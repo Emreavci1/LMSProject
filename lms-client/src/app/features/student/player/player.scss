@@ -1,0 +1,195 @@
+.page {
+  padding: 16px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  h1 {
+    font-size: 1.2rem;
+    color: #1e293b;
+    margin: 0;
+    flex: 1;
+    min-width: 200px;
+  }
+}
+
+.progress-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+
+  mat-progress-bar {
+    width: 120px;
+    border-radius: 4px;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0284c7;
+  }
+}
+
+// Mobile-first: alt alta; geniş ekranda yan yana
+.player-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 1fr 340px;
+    align-items: start;
+  }
+}
+
+// --- Video alanı ---
+.video-area {
+  aspect-ratio: 16 / 9;
+  background: #0f172a;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+
+  .play-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #0284c7;
+    cursor: pointer;
+  }
+
+  .video-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 12px 0 4px;
+  }
+
+  .video-note {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+}
+
+.lesson-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+
+.active-lesson-info {
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    color: #1e293b;
+    font-size: 15px;
+  }
+
+  span {
+    color: #94a3b8;
+    font-size: 12px;
+  }
+}
+
+.content-tabs {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+.tab-content {
+  padding: 16px;
+  color: #475569;
+  line-height: 1.6;
+}
+
+.muted {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+// --- Ders listesi paneli ---
+.lesson-panel {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+
+  h2 {
+    font-size: 1rem;
+    color: #1e293b;
+    margin: 0 0 12px;
+  }
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
+  padding: 12px 0 6px;
+}
+
+.lesson-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  &.active {
+    background: #e0f2fe;
+
+    .lesson-title {
+      color: #0284c7;
+      font-weight: 600;
+    }
+  }
+
+  .lesson-title {
+    flex: 1;
+    font-size: 14px;
+    color: #334155;
+  }
+
+  .duration {
+    font-size: 12px;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #94a3b8;
+  padding: 48px;
+}

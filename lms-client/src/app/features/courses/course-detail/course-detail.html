@@ -1,0 +1,83 @@
+<div class="page">
+  @if (loading()) {
+    <div class="center-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (course(); as c) {
+    <a mat-button routerLink="/courses" class="back-link">
+      <mat-icon>arrow_back</mat-icon> Kurslara dön
+    </a>
+
+    <mat-card class="detail-card">
+      <mat-card-content>
+        <div class="detail-header">
+          <h1>{{ c.title }}</h1>
+          @if (!c.isActive) {
+            <span class="inactive-badge">Pasif</span>
+          }
+        </div>
+
+        <p class="instructor">
+          <mat-icon>person</mat-icon> {{ c.instructorName }}
+        </p>
+
+        <p class="description">{{ c.description }}</p>
+
+        <div class="actions">
+          <!-- Katılımcı: katılma durumu / katıl butonu -->
+          @if (isAttendee()) {
+            @if (isEnrolled()) {
+              <span class="enrolled-status">
+                <mat-icon>check_circle</mat-icon> Bu kursa katıldınız
+              </span>
+            } @else {
+              <button
+                mat-flat-button
+                color="primary"
+                (click)="enroll()"
+                [disabled]="enrolling()"
+              >
+                @if (enrolling()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <ng-container><mat-icon>add</mat-icon> Kursa Katıl</ng-container>
+                }
+              </button>
+            }
+          }
+
+          <!-- Sahibi/Admin: düzenle butonu -->
+          @if (canManage()) {
+            <a mat-stroked-button color="primary" [routerLink]="['/courses', c.id, 'edit']">
+              <mat-icon>edit</mat-icon> Düzenle
+            </a>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Sahibi/Admin: katılımcı listesi -->
+    @if (canManage()) {
+      <mat-card class="attendees-card">
+        <mat-card-header>
+          <mat-card-title>Katılımcılar ({{ attendees().length }})</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (attendees().length === 0) {
+            <p class="empty-text">Henüz katılımcı yok.</p>
+          } @else {
+            <mat-list>
+              @for (att of attendees(); track att.userId) {
+                <mat-list-item>
+                  <mat-icon matListItemIcon>person</mat-icon>
+                  <span matListItemTitle>{{ att.fullName }}</span>
+                  <span matListItemLine>{{ att.email }}</span>
+                </mat-list-item>
+              }
+            </mat-list>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  }
+</div>

@@ -1,0 +1,83 @@
+<div class="page">
+  @if (course(); as c) {
+    <!-- Üst bar: geri + başlık + ilerleme -->
+    <div class="top-bar">
+      <a mat-button routerLink="/my-courses">
+        <mat-icon>arrow_back</mat-icon> Eğitimlerim
+      </a>
+      <h1>{{ c.title }}</h1>
+      <div class="progress-wrap">
+        <mat-progress-bar mode="determinate" [value]="progress()" />
+        <span>%{{ progress() }}</span>
+      </div>
+    </div>
+
+    <div class="player-layout">
+      <!-- Sol: video + sekmeler -->
+      <div class="main-area">
+        <!-- Video placeholder — gerçek video backend'e içerik eklenince gelecek -->
+        <div class="video-area">
+          <mat-icon class="play-icon">play_circle</mat-icon>
+          <p class="video-title">{{ activeLesson()?.title ?? 'Ders seçin' }}</p>
+          <span class="video-note">Video içeriği yakında eklenecek</span>
+        </div>
+
+        <div class="lesson-actions">
+          <div class="active-lesson-info">
+            <strong>{{ activeLesson()?.title }}</strong>
+            <span>{{ activeLesson()?.durationMin }} dk</span>
+          </div>
+          <button mat-flat-button color="primary" (click)="completeAndNext()">
+            <mat-icon>check</mat-icon>
+            Tamamla ve Geç
+          </button>
+        </div>
+
+        <mat-tab-group class="content-tabs">
+          <mat-tab label="Genel Bakış">
+            <div class="tab-content">
+              <p>{{ c.description }}</p>
+              <p class="muted">{{ c.lessonCount }} ders · {{ c.durationHours }} saat · {{ c.level }} seviyesi · Eğitmen: {{ c.instructorName }}</p>
+            </div>
+          </mat-tab>
+          <mat-tab label="Notlar">
+            <div class="tab-content muted">Not alma özelliği yakında eklenecek.</div>
+          </mat-tab>
+          <mat-tab label="Duyurular">
+            <div class="tab-content muted">Bu kurs için duyuru bulunmuyor.</div>
+          </mat-tab>
+        </mat-tab-group>
+      </div>
+
+      <!-- Sağ: bölüm/ders listesi -->
+      <aside class="lesson-panel">
+        <h2>Kurs İçeriği</h2>
+        @for (group of sections(); track group.section) {
+          <div class="section">
+            <div class="section-title">{{ group.section }}</div>
+            @for (lesson of group.lessons; track lesson.id) {
+              <div
+                class="lesson-item"
+                [class.active]="activeLesson()?.id === lesson.id"
+                (click)="selectLesson(lesson)"
+              >
+                <mat-checkbox
+                  [checked]="isCompleted(lesson.id)"
+                  (click)="$event.stopPropagation()"
+                  (change)="toggleCompleted(lesson)"
+                />
+                <span class="lesson-title">{{ lesson.title }}</span>
+                <span class="duration">{{ lesson.durationMin }} dk</span>
+              </div>
+            }
+          </div>
+        }
+      </aside>
+    </div>
+  } @else {
+    <div class="empty">
+      <p>Kurs bulunamadı.</p>
+      <a mat-flat-button color="primary" routerLink="/my-courses">Eğitimlerim</a>
+    </div>
+  }
+</div>

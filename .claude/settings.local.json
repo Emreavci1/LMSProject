@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(dotnet restore *)",
+      "PowerShell(dotnet ef migrations *)",
+      "PowerShell(dotnet run *)",
+      "PowerShell($deadline = \\(Get-Date\\).AddSeconds\\(60\\); do { Start-Sleep -Milliseconds 1500; try { $r = Invoke-RestMethod -Method Post -Uri http://localhost:5080/api/auth/login -ContentType 'application/json' -Body '{\"email\":\"admin@losev.org.tr\",\"password\":\"Admin123!\"}'; break } catch { $r = $null } } while \\(\\(Get-Date\\) -lt $deadline\\); if \\($r\\) { $r | ConvertTo-Json } else { 'API cevap vermedi' })",
+      "PowerShell(dotnet add *)",
+      "PowerShell(dotnet build *)"
+    ]
+  }
+}

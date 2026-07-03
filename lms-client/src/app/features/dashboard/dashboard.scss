@@ -1,0 +1,289 @@
+$primary: #006194;
+$primary-light: rgba(0, 97, 148, 0.1);
+$secondary-container: #dae2fd;
+$on-secondary-container: #5c647a;
+$tertiary: #bb0112;
+$surface: #f7f9fb;
+$surface-low: #f2f4f6;
+$surface-high: #e6e8ea;
+$surface-variant: #e0e3e5;
+$on-surface: #191c1e;
+$on-surface-variant: #3f4850;
+$outline-variant: #bfc7d2;
+
+.dashboard {
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+// --- Yönetici / Eğitmen Temel Görünümü ---
+.role-dashboard {
+  h1 { margin-top: 0; margin-bottom: 8px; font-size: 24px; color: $on-surface; }
+  .subtitle { color: $on-surface-variant; margin-bottom: 24px; }
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  
+  .link-card {
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    background: #fff;
+    border: 1px solid rgba($outline-variant, 0.4);
+    box-shadow: none !important;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+      border-color: $primary;
+    }
+  
+    .card-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: $primary;
+      margin-bottom: 16px;
+    }
+  
+    h2 { font-size: 18px; margin: 0 0 8px; color: $on-surface; }
+    p { color: $on-surface-variant; margin: 0; font-size: 14px; }
+  }
+}
+
+// --- Öğrenci (Student) Dashboard (Stitch Tasarımı) ---
+.student-dashboard {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: 1px solid $surface-variant;
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+      transform: translateY(-2px);
+    }
+  }
+
+  // Welcome Banner
+  .welcome-banner {
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 24px;
+
+    .banner-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to right, $primary-light, transparent);
+      z-index: 0;
+    }
+
+    .banner-content {
+      position: relative;
+      z-index: 10;
+      max-width: 600px;
+      margin-bottom: 24px;
+
+      h1 { font-size: 32px; font-weight: 700; margin: 0 0 16px; }
+      p { font-size: 18px; color: $on-surface-variant; margin: 0; }
+    }
+
+    .banner-image {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+
+      img {
+        height: 160px;
+        object-fit: contain;
+        filter: drop-shadow(0 20px 13px rgba(0,0,0,0.1));
+      }
+    }
+  }
+
+  @media (min-width: 768px) {
+    .welcome-banner {
+      flex-direction: row;
+      justify-content: space-between;
+
+      .banner-content { margin-bottom: 0; }
+      .banner-image { width: 33%; justify-content: flex-end; }
+    }
+  }
+
+  // Grid Layout
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+
+    @media (min-width: 768px) {
+      grid-template-columns: 8fr 4fr;
+    }
+  }
+
+  // Quick Stats
+  .quick-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+
+    @media (min-width: 640px) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .stat-tile {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      mat-icon { font-size: 36px; width: 36px; height: 36px; margin-bottom: 8px; }
+      .value { font-size: 24px; font-weight: 600; line-height: 1.2; }
+      .label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: $on-surface-variant; margin-top: 4px; }
+    }
+  }
+
+  // Continue Learning
+  .continue-learning {
+    padding: 24px;
+
+    h2 { font-size: 20px; font-weight: 600; color: $on-surface; margin: 0 0 24px; }
+
+    .continue-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+
+      @media (min-width: 768px) {
+        flex-direction: row;
+        align-items: center;
+      }
+    }
+
+    .thumbnail {
+      width: 100%;
+      aspect-ratio: 16/9;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+      @media (min-width: 768px) {
+        width: 33%;
+      }
+
+      img { width: 100%; height: 100%; object-fit: cover; }
+      .play-overlay {
+        position: absolute; inset: 0; background: rgba(0,0,0,0.2);
+        display: flex; align-items: center; justify-content: center;
+
+        .play-btn {
+          width: 48px; height: 48px; border-radius: 50%; background: #fff; border: none;
+          display: grid; place-items: center; cursor: pointer;
+          transition: transform 0.2s;
+          box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+
+          &:hover { transform: scale(1.05); }
+        }
+      }
+    }
+
+    .details {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+
+      @media (min-width: 768px) { width: 66%; }
+
+      .module-tag { display: inline-block; padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+      h3 { font-size: 20px; font-weight: 600; margin: 0; color: $on-surface; }
+      .course-name { font-size: 14px; color: $on-surface-variant; margin: 4px 0 0; }
+
+      .progress-section {
+        .progress-labels { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 8px; color: $on-surface-variant; }
+        .progress-track { width: 100%; height: 8px; border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 4px; }
+      }
+    }
+  }
+
+  // Webinars
+  .webinars {
+    padding: 24px;
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+
+      h2 { font-size: 20px; font-weight: 600; margin: 0; color: $on-surface; }
+      .text-btn { background: transparent; border: none; font-size: 14px; font-weight: 600; cursor: pointer; padding: 0; &:hover { opacity: 0.8; } }
+    }
+
+    .webinar-list { display: flex; flex-direction: column; gap: 16px; }
+
+    .webinar-item {
+      display: flex;
+      gap: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover { background: $surface-low; border-color: $surface-variant; }
+
+      .date-box {
+        width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: all 0.2s;
+
+        .day { font-size: 20px; font-weight: 600; line-height: 1; }
+        .month { font-size: 12px; text-transform: uppercase; margin-top: 2px; }
+      }
+
+      &:hover .date-box { background: $primary; color: #fff; }
+
+      .info {
+        h4 { font-size: 14px; font-weight: 600; margin: 0 0 4px; color: $on-surface; }
+        .time { display: flex; align-items: center; gap: 4px; font-size: 14px; mat-icon { font-size: 16px; width: 16px; height: 16px; } }
+      }
+    }
+  }
+
+  // Helpers
+  .text-primary { color: $primary; }
+  .text-tertiary { color: $tertiary; }
+  .bg-primary { background: $primary; }
+  .bg-surface-high { background: $surface-high; }
+  .bg-secondary-container { background: $secondary-container; }
+  .text-on-secondary { color: $on-secondary-container; }
+  .text-on-surface { color: $on-surface; }
+  .text-muted { color: $on-surface-variant; }
+  .bold { font-weight: bold; }
+  .text-center { text-align: center; }
+
+  .btn {
+    padding: 8px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+    &.btn-primary { background: $primary; color: #fff; &:hover { background: darken($primary, 5%); } }
+    &.btn-outline { background: transparent; border: 1px solid $outline-variant; color: $on-surface; &:hover { background: $surface-low; } }
+    &.full-width { width: 100%; }
+  }
+  .mt-24 { margin-top: 24px; }
+}

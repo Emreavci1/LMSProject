@@ -1,0 +1,22 @@
+# .NET Core
+bin/
+obj/
+.vs/
+*.user
+*.suo
+appsettings.Development.json
+*.log
+
+# Node & Angular
+node_modules/
+dist/
+.angular/
+.cache/
+coverage/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# AI Assistant
+.gemini/

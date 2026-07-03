@@ -1,0 +1,22 @@
+<div class="page">
+  <h1>Program</h1>
+  <p class="subtitle">Bu haftaki ders ve etkinliklerin.</p>
+
+  <div class="week-grid">
+    @for (day of days; track day; let i = $index) {
+      <div class="day-column">
+        <div class="day-header">{{ day }}</div>
+        @if (eventsOf(i).length === 0) {
+          <div class="no-event">—</div>
+        } @else {
+          @for (event of eventsOf(i); track event.title) {
+            <div class="event" [style.border-left-color]="event.color">
+              <strong>{{ event.title }}</strong>
+              <span><mat-icon>schedule</mat-icon> {{ event.start }} – {{ event.end }}</span>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+</div>

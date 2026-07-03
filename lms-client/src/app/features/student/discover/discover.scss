@@ -1,0 +1,345 @@
+// Öğrenci: Eğitimleri Keşfet — Stitch Tasarımı
+$primary: #006194;
+$primary-container: #007bb9;
+$surface-lowest: #ffffff;
+$surface-low: #f2f4f6;
+$outline-variant: #bfc7d2;
+$on-surface: #191c1e;
+$on-surface-variant: #3f4850;
+$green: #16A34A;
+$green-bg: #e8f5e9;
+
+.page {
+  padding: 24px 16px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .page {
+    padding: 32px 40px;
+  }
+}
+
+// --- Üst Kısım ---
+.page-header {
+  margin-bottom: 24px;
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $on-surface;
+    margin: 0 0 24px;
+  }
+}
+
+@media (min-width: 768px) {
+  .page-header .title {
+    font-size: 2rem;
+  }
+}
+
+.filter-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .filter-controls {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.search-mobile, .search-desktop {
+  position: relative;
+  width: 100%;
+
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $on-surface-variant;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  input {
+    width: 100%;
+    padding: 10px 16px 10px 40px;
+    border: 1px solid $outline-variant;
+    border-radius: 999px;
+    font-size: 14px;
+    color: $on-surface;
+    background: $surface-lowest;
+    outline: none;
+    transition: all 0.2s;
+
+    &:focus {
+      border-color: $primary;
+      box-shadow: 0 0 0 2px rgba($primary, 0.1);
+    }
+  }
+}
+
+.search-desktop {
+  display: none;
+  max-width: 400px;
+}
+
+@media (min-width: 768px) {
+  .search-mobile { display: none; }
+  .search-desktop { display: block; }
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-wrap {
+  position: relative;
+
+  select {
+    appearance: none;
+    padding: 8px 32px 8px 16px;
+    border: 1px solid $outline-variant;
+    border-radius: 999px;
+    background: $surface-lowest;
+    color: $on-surface-variant;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+
+    &:hover {
+      background: $surface-low;
+    }
+    &:focus {
+      border-color: $primary;
+    }
+  }
+
+  .chip-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $on-surface-variant;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+  }
+}
+
+// --- Kategori Hapları (Pills) ---
+.category-pills {
+  display: flex;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  
+  // scrollbar gizleme
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pill {
+    white-space: nowrap;
+    padding: 8px 24px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    background: $surface-lowest;
+    border: 1px solid $outline-variant;
+    color: $on-surface-variant;
+
+    &:hover {
+      background: $surface-low;
+    }
+
+    &.active {
+      background: $primary;
+      color: #fff;
+      border-color: $primary;
+    }
+  }
+}
+
+// --- Kurs Grid ---
+.course-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) {
+  .course-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .course-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1280px) {
+  .course-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.course-card {
+  background: $surface-lowest;
+  border: 1px solid rgba($outline-variant, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+  transition: box-shadow 0.3s ease;
+  height: 100%;
+
+  &:hover {
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+
+    .course-title {
+      color: $primary;
+    }
+  }
+}
+
+.card-img {
+  position: relative;
+  height: 192px; // h-48
+  width: 100%;
+  background-size: cover !important;
+  background-position: center !important;
+  background-color: $primary; // fallback
+
+  .category-tag {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: $surface-lowest;
+    color: $on-surface;
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+  }
+
+  .free-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: $green-bg;
+    color: $green;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+.card-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .course-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: $on-surface;
+    margin: 0 0 8px;
+    cursor: pointer;
+    transition: color 0.2s;
+  }
+}
+
+.instructor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  margin-top: auto; // push to bottom before stats
+
+  .instructor-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba($primary-container, 0.15);
+    color: $primary;
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .instructor-name {
+    font-size: 14px;
+    color: $on-surface-variant;
+  }
+}
+
+.course-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  color: #707881;
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}
+
+.join-btn {
+  width: 100%;
+  padding: 8px;
+  background: $primary;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover {
+    background: $primary-container;
+  }
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px;
+  color: $on-surface-variant;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+    margin-bottom: 12px;
+  }
+}

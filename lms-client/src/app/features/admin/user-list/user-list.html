@@ -1,0 +1,93 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Kullanıcı Yönetimi</h1>
+    <button mat-flat-button color="primary" (click)="openCreate()">
+      <mat-icon>person_add</mat-icon>
+      Yeni Kullanıcı
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="center-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else {
+    <!-- Masaüstü: tablo görünümü -->
+    <div class="table-wrapper">
+      <table mat-table [dataSource]="users()" class="user-table">
+        <ng-container matColumnDef="fullName">
+          <th mat-header-cell *matHeaderCellDef>Ad Soyad</th>
+          <td mat-cell *matCellDef="let user">{{ user.fullName }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="email">
+          <th mat-header-cell *matHeaderCellDef>Email</th>
+          <td mat-cell *matCellDef="let user">{{ user.email }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="role">
+          <th mat-header-cell *matHeaderCellDef>Rol</th>
+          <td mat-cell *matCellDef="let user">{{ roleLabels[user.role] }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef>Durum</th>
+          <td mat-cell *matCellDef="let user">
+            @if (user.isActive) {
+              <span class="status active">Aktif</span>
+            } @else {
+              <span class="status inactive">Pasif</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef></th>
+          <td mat-cell *matCellDef="let user">
+            <button mat-icon-button (click)="openEdit(user)" matTooltip="Düzenle">
+              <mat-icon>edit</mat-icon>
+            </button>
+            @if (user.isActive && !isSelf(user)) {
+              <button mat-icon-button color="warn" (click)="deactivate(user)" matTooltip="Pasifleştir">
+                <mat-icon>block</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+      </table>
+    </div>
+
+    <!-- Mobil: kart görünümü -->
+    <div class="card-list">
+      @for (user of users(); track user.id) {
+        <mat-card class="user-card">
+          <mat-card-content>
+            <div class="card-row">
+              <strong>{{ user.fullName }}</strong>
+              @if (user.isActive) {
+                <span class="status active">Aktif</span>
+              } @else {
+                <span class="status inactive">Pasif</span>
+              }
+            </div>
+            <p class="muted">{{ user.email }}</p>
+            <p class="muted">{{ roleLabels[user.role] }}</p>
+            <div class="card-actions">
+              <button mat-button (click)="openEdit(user)">
+                <mat-icon>edit</mat-icon> Düzenle
+              </button>
+              @if (user.isActive && !isSelf(user)) {
+                <button mat-button color="warn" (click)="deactivate(user)">
+                  <mat-icon>block</mat-icon> Pasifleştir
+                </button>
+              }
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

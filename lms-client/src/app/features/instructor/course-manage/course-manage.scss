@@ -1,0 +1,545 @@
+.page {
+  padding: 24px 32px 32px;
+  max-width: 1000px;
+  margin: 0 auto;
+
+  @media (max-width: 640px) {
+    padding: 16px;
+  }
+}
+
+.back-link {
+  margin-bottom: 12px;
+}
+
+.muted {
+  color: #64748b;
+  font-size: 13px;
+}
+
+// Kurs başlığı
+.course-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .cover {
+    width: 100%;
+    height: 90px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+
+    @media (min-width: 640px) {
+      width: 140px;
+      height: 84px;
+    }
+  }
+
+  h1 {
+    font-size: 1.35rem;
+    color: #1e293b;
+    margin: 0;
+  }
+}
+
+.header-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #475569;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  mat-icon {
+    font-size: 17px;
+    width: 17px;
+    height: 17px;
+    color: #0284c7;
+  }
+}
+
+.manage-tabs {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.tab-content {
+  padding: 20px;
+}
+
+$primary: #006194;
+$primary-light: #cce5ff;
+$outline-dim: #e0e3e5;
+$outline-variant: #707881;
+$surface: #f7f9fb;
+$surface-container: #eceef0;
+$on-surface: #191c1e;
+$on-surface-variant: #5c647a;
+$tertiary: #bb0112;
+$secondary: #565e74;
+
+// İçerik sekmesi
+.add-lesson-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: $on-surface;
+  }
+}
+
+.add-lesson-form-card {
+  background: $surface;
+  border: 1px solid $outline-dim;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.flex-1 { flex: 1; min-width: 140px; }
+.flex-2 { flex: 2; min-width: 200px; }
+.items-center { align-items: center; }
+.max-w-xs { max-width: 250px; }
+.mt-3 { margin-top: 12px; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $on-surface;
+  }
+}
+
+.custom-input, .custom-select, .custom-textarea {
+  width: 100%;
+  background: #fff;
+  border: 1px solid $outline-dim;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: $on-surface;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.2);
+  }
+  &::placeholder { color: $on-surface-variant; opacity: 0.7; }
+}
+.custom-textarea { resize: vertical; }
+
+.select-wrapper {
+  position: relative;
+  .custom-select { appearance: none; padding-right: 36px; cursor: pointer; }
+  .select-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: $on-surface-variant;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.document-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: #fff;
+  border: 2px dashed $outline-dim;
+  border-radius: 6px;
+  cursor: pointer;
+  color: $on-surface-variant;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover { border-color: $primary; background: $surface-container; }
+  &.has-file { border: 2px solid $primary; color: $primary; }
+}
+
+.action-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.custom-btn-primary {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: $primary;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover { filter: brightness(0.9); box-shadow: 0 2px 8px rgba($primary, 0.3); }
+}
+
+.optional-label {
+  font-weight: 400;
+  font-size: 12px;
+  color: $on-surface-variant;
+}
+
+.empty-state-box {
+  text-align: center;
+  padding: 40px;
+  background: $surface;
+  border-radius: 12px;
+  border: 1px dashed $outline-dim;
+  color: $on-surface-variant;
+  mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.3; margin-bottom: 12px; }
+}
+
+// Eğitim açıklaması
+.course-description {
+  font-size: 14px;
+  color: #334155;
+  line-height: 1.5;
+  margin: 4px 0 2px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Ders açıklaması
+.lesson-desc {
+  font-size: 12px;
+  color: $on-surface-variant;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// Ders tipi ikonu
+.icon-box {
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $surface;
+  flex-shrink: 0;
+  &.video { color: $primary; }
+  &.doc { color: $tertiary; }
+  &.txt { color: $secondary; }
+}
+
+.hint {
+  margin: -4px 0 14px;
+  font-style: italic;
+}
+
+.lesson-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+
+  .order {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+}
+
+.lesson-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 14px;
+    color: #1e293b;
+  }
+
+  span {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+}
+
+.lesson-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.lesson-item-wrap {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+
+  .lesson-row {
+    border: none;
+    border-radius: 0;
+    &.open { background: #f8fafc; border-bottom: 1px solid #e2e8f0; }
+  }
+
+  .lesson-info { cursor: pointer; }
+}
+
+// Ders içerik önizlemesi
+.lesson-preview {
+  padding: 14px 16px 16px;
+  background: #f8fafc;
+  font-size: 13px;
+  color: #334155;
+
+  .video-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    max-width: 460px;
+    border-radius: 8px;
+    overflow: hidden;
+    iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  }
+
+  .ext-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #0284c7;
+    text-decoration: none;
+    word-break: break-all;
+    &:hover { text-decoration: underline; }
+    mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  }
+
+  .doc-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    color: #b91c1c;
+    font-weight: 500;
+    word-break: break-all;
+    mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  }
+
+  .text-block {
+    white-space: pre-wrap;
+    line-height: 1.6;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+
+  .lesson-preview-desc {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed #e2e8f0;
+
+    h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin: 0 0 6px;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.5;
+      color: #1e293b;
+      white-space: pre-wrap;
+    }
+  }
+}
+
+// Öğrenciler sekmesi
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.student-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.mini-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #0284c7;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.student-info {
+  flex: 1;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font-size: 14px;
+    color: #1e293b;
+  }
+
+  span {
+    font-size: 12px;
+    color: #94a3b8;
+  }
+}
+
+.student-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 160px;
+
+  mat-progress-bar {
+    width: 110px;
+    border-radius: 4px;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0284c7;
+  }
+}
+
+// Ayarlar sekmesi
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid #e2e8f0;
+
+  &:last-child { border-bottom: none; }
+  &.danger strong { color: #b91c1c; }
+
+  strong {
+    display: block;
+    font-size: 14px;
+    color: #1e293b;
+  }
+
+  span {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+}
+
+// Yükleme / bulunamadı kutusu
+.center-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 56px 24px;
+}
+
+// Başlık + durum rozeti
+.title-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+
+  &.published { background: #e0f2fe; color: #0369a1; }
+  &.draft { background: #fef3c7; color: #b45309; }
+  &.scheduled { background: #ede9fe; color: #6d28d9; }
+}

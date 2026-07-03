@@ -1,0 +1,381 @@
+// Öğrenci: Eğitimlerim — Stitch Tasarımı
+$primary: #006194;
+$primary-light: rgba(0, 97, 148, 0.1);
+$secondary: #565e74;
+$secondary-light: rgba(86, 94, 116, 0.1);
+$secondary-dark: rgba(86, 94, 116, 0.8);
+$tertiary: #bb0112;
+$tertiary-light: rgba(187, 1, 18, 0.1);
+$surface-lowest: #ffffff;
+$surface-low: #f2f4f6;
+$outline-variant: #bfc7d2;
+$on-surface: #191c1e;
+$on-surface-variant: #3f4850;
+
+.page {
+  padding: 24px 16px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+  .page { padding: 32px 40px; }
+}
+
+// --- Header ---
+.header-wrap {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $on-surface;
+    margin: 0 0 8px;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+    color: $on-surface-variant;
+    margin: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .header-wrap {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+
+    .title { font-size: 2rem; }
+  }
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+
+  button {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: $on-surface-variant;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+      background: rgba($on-surface, 0.05);
+    }
+
+    &.active {
+      background: rgba($on-surface, 0.1);
+      color: $on-surface;
+    }
+  }
+}
+
+.hidden-mobile { display: none; }
+@media (min-width: 640px) {
+  .hidden-mobile { display: flex; }
+}
+
+// --- Stats Grid (Bento) ---
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+  .stats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.stat-card {
+  background: $surface-lowest;
+  border: 1px solid rgba($outline-variant, 0.3);
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 128px;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+
+  .glow {
+    position: absolute;
+    top: -16px;
+    right: -16px;
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    filter: blur(24px);
+    opacity: 0.15;
+  }
+
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .label {
+    font-size: 14px;
+    font-weight: 600;
+    color: $on-surface-variant;
+  }
+
+  .icon-wrap {
+    padding: 8px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+
+    mat-icon {
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  .value {
+    font-size: 48px;
+    line-height: 1;
+    font-weight: 700;
+    color: $on-surface;
+
+    .unit {
+      font-size: 20px;
+      color: $on-surface-variant;
+      margin-left: 4px;
+    }
+  }
+}
+
+// Helpers
+.bg-primary { background-color: $primary !important; }
+.text-primary { color: $primary !important; }
+.bg-primary-light { background-color: $primary-light !important; }
+
+.bg-tertiary { background-color: $tertiary !important; }
+.text-tertiary { color: $tertiary !important; }
+.bg-tertiary-light { background-color: $tertiary-light !important; }
+
+.bg-secondary { background-color: $secondary !important; }
+.text-secondary { color: $secondary !important; }
+.bg-secondary-light { background-color: $secondary-light !important; }
+.bg-secondary-dark { background-color: $secondary-dark !important; }
+
+// --- Course Grid ---
+.course-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 768px) { .course-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1280px) { .course-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.course-card {
+  background: $surface-lowest;
+  border: 1px solid rgba($outline-variant, 0.3);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+  transition: all 0.3s ease;
+  height: 100%;
+
+  &:hover {
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+  }
+
+  &.completed {
+    opacity: 0.9;
+  }
+}
+
+.card-img {
+  height: 160px;
+  position: relative;
+  background-size: cover !important;
+  background-position: center !important;
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    opacity: 0.8;
+    mix-blend-mode: multiply; // To make it grayscale-ish
+  }
+
+  .status-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+}
+
+.card-content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    .category {
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .star {
+      color: $outline-variant;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .course-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: $on-surface;
+    margin: 0 0 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
+
+.info-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  margin-bottom: 16px;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    color: $on-surface-variant;
+  }
+
+  p { margin: 0; }
+
+  .info-label {
+    font-size: 12px;
+    color: $on-surface-variant;
+  }
+
+  .info-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: $on-surface;
+  }
+
+  &.border-outline { border-color: rgba($outline-variant, 0.4); }
+  &.border-secondary { border-color: rgba($secondary, 0.2); }
+}
+
+.mt-auto { margin-top: auto; }
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: $on-surface-variant;
+}
+
+.progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba($outline-variant, 0.3);
+  border-radius: 999px;
+  margin-bottom: 20px;
+  overflow: hidden;
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1s ease-in-out;
+  }
+}
+
+// --- Butonlar ---
+.btn {
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  border: none;
+  text-decoration: none;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  &.btn-primary {
+    background: $primary;
+    color: #fff;
+    &:hover { background: darken($primary, 5%); }
+  }
+
+  &.btn-outline {
+    background: transparent;
+    border: 1px solid $outline-variant;
+    color: $on-surface;
+    &:hover { background: $surface-low; }
+  }
+}
+
+.mt-4 { margin-top: 16px; }
+
+.empty {
+  text-align: center;
+  padding: 48px;
+  color: $on-surface-variant;
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    opacity: 0.5;
+    margin-bottom: 12px;
+  }
+}

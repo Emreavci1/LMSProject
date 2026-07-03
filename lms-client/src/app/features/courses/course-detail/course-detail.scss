@@ -1,0 +1,78 @@
+.page {
+  padding: 16px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.back-link {
+  margin-bottom: 12px;
+}
+
+.detail-card {
+  margin-bottom: 16px;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  h1 {
+    font-size: 1.5rem;
+    margin: 0;
+  }
+}
+
+.inactive-badge {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.instructor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  margin: 8px 0 16px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.description {
+  color: rgba(0, 0, 0, 0.8);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.enrolled-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #2e7d32;
+  font-weight: 500;
+}
+
+.empty-text {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.center-box {
+  display: flex;
+  justify-content: center;
+  padding: 48px;
+}

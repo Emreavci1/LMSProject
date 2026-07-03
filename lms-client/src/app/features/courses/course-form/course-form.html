@@ -1,0 +1,48 @@
+<div class="page">
+  <a mat-button routerLink="/courses" class="back-link">
+    <mat-icon>arrow_back</mat-icon> Kurslara dön
+  </a>
+
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode() ? 'Kursu Düzenle' : 'Yeni Kurs Oluştur' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      @if (loading()) {
+        <div class="center-box">
+          <mat-spinner diameter="40" />
+        </div>
+      } @else {
+        <form [formGroup]="form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Kurs Başlığı</mat-label>
+            <input matInput formControlName="title" maxlength="200" />
+            @if (form.controls.title.hasError('required') && form.controls.title.touched) {
+              <mat-error>Kurs başlığı boş olamaz.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Açıklama</mat-label>
+            <textarea matInput formControlName="description" rows="6" maxlength="2000"></textarea>
+            @if (form.controls.description.hasError('required') && form.controls.description.touched) {
+              <mat-error>Açıklama boş olamaz.</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="form-actions">
+            <a mat-button routerLink="/courses">İptal</a>
+            <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20" />
+              } @else {
+                {{ isEditMode() ? 'Kaydet' : 'Oluştur' }}
+              }
+            </button>
+          </div>
+        </form>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>
