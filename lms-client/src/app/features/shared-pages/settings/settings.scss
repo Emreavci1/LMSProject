@@ -1,0 +1,64 @@
+.page {
+  padding: 24px 16px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.6rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 4px 0 20px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+
+  h2 {
+    font-size: 1.1rem;
+    color: #1e293b;
+    margin: 0 0 16px;
+  }
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  strong {
+    display: block;
+    font-size: 14px;
+    color: #1e293b;
+  }
+
+  span {
+    font-size: 13px;
+    color: #94a3b8;
+  }
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+
+  button {
+    align-self: flex-start;
+  }
+}

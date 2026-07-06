@@ -1,0 +1,138 @@
+<div class="page">
+  <!-- Page Header -->
+  <div class="header-wrap">
+    <div>
+      <h2 class="title">Eğitimlerim</h2>
+      <p class="subtitle">Devam eden ve tamamladığınız eğitimleri buradan takip edebilirsiniz.</p>
+    </div>
+    
+    <div class="filter-tabs hidden-mobile">
+      <button class="active">Tümü</button>
+      <button>Devam Edenler</button>
+      <button>Tamamlananlar</button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <!-- Stat 1 -->
+    <div class="stat-card">
+      <div class="glow bg-primary"></div>
+      <div class="top-row">
+        <span class="label">Kayıtlı Kurslar</span>
+        <div class="icon-wrap text-primary bg-primary-light">
+          <mat-icon>library_books</mat-icon>
+        </div>
+      </div>
+      <div class="value">{{ allCards().length }}</div>
+    </div>
+    
+    <!-- Stat 2 -->
+    <div class="stat-card">
+      <div class="glow bg-tertiary"></div>
+      <div class="top-row">
+        <span class="label">Tamamlanan Kurslar</span>
+        <div class="icon-wrap text-tertiary bg-tertiary-light">
+          <mat-icon>task_alt</mat-icon>
+        </div>
+      </div>
+      <div class="value">{{ completedCount() }}</div>
+    </div>
+    
+    <!-- Stat 3 -->
+    <div class="stat-card">
+      <div class="glow bg-secondary"></div>
+      <div class="top-row">
+        <span class="label">Toplam Öğrenme Saati</span>
+        <div class="icon-wrap text-secondary bg-secondary-light">
+          <mat-icon>schedule</mat-icon>
+        </div>
+      </div>
+      <div class="value">{{ totalHours() }}<span class="unit">sa</span></div>
+    </div>
+  </div>
+
+  @if (allCards().length === 0) {
+    <div class="empty">
+      <mat-icon>school</mat-icon>
+      <p>Henüz bir eğitime kayıtlı değilsin.</p>
+      <button class="btn btn-primary mt-4" routerLink="/discover">Eğitimleri Keşfet</button>
+    </div>
+  } @else {
+    <!-- Course Grid -->
+    <div class="course-grid">
+      @for (course of allCards(); track course.key) {
+        @let progress = progressOf(course);
+        @let isCompleted = progress === 100;
+
+        <div class="course-card" [class.completed]="isCompleted">
+          <!-- Thumbnail -->
+          <div class="card-img" [style.background]="course.cover">
+            @if (isCompleted) {
+              <div class="overlay bg-secondary-dark"></div>
+              <span class="status-tag bg-secondary-dark">Tamamlandı</span>
+            } @else {
+              <span class="status-tag bg-primary">Devam Ediyor</span>
+            }
+          </div>
+          
+          <!-- Content -->
+          <div class="card-content">
+            <div class="card-top">
+              <span class="category" [class.text-secondary]="isCompleted" [class.text-primary]="!isCompleted">
+                {{ course.category }}
+              </span>
+              <mat-icon class="star">star</mat-icon>
+            </div>
+            
+            <h3 class="course-title">{{ course.title }}</h3>
+            
+            <!-- Last accessed / Certificate box -->
+            @if (isCompleted) {
+              <div class="info-box bg-secondary-light border-secondary">
+                <mat-icon class="text-secondary">workspace_premium</mat-icon>
+                <p>Sertifika başarıyla alındı.</p>
+              </div>
+            } @else {
+              <div class="info-box bg-surface-low border-outline">
+                <mat-icon>play_circle</mat-icon>
+                <div>
+                  <p class="info-label">Sırada:</p>
+                  <p class="info-value">Kaldığın Yerden Devam Et</p>
+                </div>
+              </div>
+            }
+
+            <div class="mt-auto">
+              <!-- Progress -->
+              <div class="progress-info">
+                <span>İlerleme</span>
+                <span class="progress-text" [class.text-secondary]="isCompleted" [class.text-primary]="!isCompleted">
+                  %{{ progress }} Tamamlandı
+                </span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill" 
+                     [class.bg-secondary]="isCompleted" 
+                     [class.bg-primary]="!isCompleted"
+                     [style.width.%]="progress"></div>
+              </div>
+
+              <!-- Action -->
+              <button class="btn"
+                      [class.btn-outline]="isCompleted"
+                      [class.btn-primary]="!isCompleted"
+                      [routerLink]="course.playerLink">
+                @if (isCompleted) {
+                  Tekrar İncele
+                } @else {
+                  Devam Et <mat-icon>arrow_forward</mat-icon>
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

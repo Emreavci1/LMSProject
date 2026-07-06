@@ -1,0 +1,82 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Eğitimlerim</h1>
+      <p class="subtitle">Verdiğin eğitimleri yönet.</p>
+    </div>
+    <a mat-flat-button color="primary" routerLink="/instructor/courses/new">
+      <mat-icon>add</mat-icon> Eğitim Aç
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="state-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (error()) {
+    <div class="state-box error">
+      <mat-icon>error_outline</mat-icon>
+      <p>Eğitimler yüklenemedi.</p>
+      <button mat-stroked-button (click)="load()">Tekrar Dene</button>
+    </div>
+  } @else if (courses().length === 0) {
+    <div class="state-box empty">
+      <mat-icon>school</mat-icon>
+      <p>Henüz bir eğitim oluşturmadın.</p>
+      <a mat-flat-button color="primary" routerLink="/instructor/courses/new">
+        <mat-icon>add</mat-icon> İlk Eğitimini Aç
+      </a>
+    </div>
+  } @else {
+    <div class="course-list">
+      @for (course of courses(); track course.id) {
+        <div class="course-row">
+          <div class="cover" [style.background-image]="coverCss(course.coverImageUrl)"></div>
+          <div class="info">
+            <div class="title-row">
+              <h2>{{ course.title }}</h2>
+              <span class="badge"
+                [class.published]="course.status === 'Published'"
+                [class.draft]="course.status === 'Draft'"
+                [class.scheduled]="course.status === 'Scheduled'">
+                @switch (course.status) {
+                  @case ('Published') { <mat-icon>public</mat-icon> Yayında }
+                  @case ('Scheduled') { <mat-icon>schedule</mat-icon> {{ course.publishDate | date: 'dd.MM.yyyy' }} }
+                  @default { <mat-icon>edit_note</mat-icon> Taslak }
+                }
+              </span>
+            </div>
+            @if (course.description) {
+              <p class="course-desc">{{ course.description }}</p>
+            }
+            <p class="muted">
+              {{ course.category || 'Kategori yok' }} · {{ course.lessonCount }} ders · {{ course.durationHours }} saat
+            </p>
+            <div class="stats">
+              <span><mat-icon>signal_cellular_alt</mat-icon> {{ course.level || '—' }}</span>
+              <mat-slide-toggle
+                class="active-toggle"
+                [checked]="course.isActive"
+                (change)="toggleActive(course)">
+                {{ course.isActive ? 'Aktif' : 'Pasif' }}
+              </mat-slide-toggle>
+            </div>
+          </div>
+          <div class="actions">
+            @if (course.status !== 'Published') {
+              <button mat-flat-button color="primary" (click)="publish(course)">
+                <mat-icon>publish</mat-icon> Yayınla
+              </button>
+            }
+            <a mat-stroked-button color="primary" [routerLink]="['/instructor/courses', course.id]">
+              <mat-icon>tune</mat-icon> Yönet
+            </a>
+            <button mat-stroked-button color="warn" (click)="remove(course)">
+              <mat-icon>delete</mat-icon> Sil
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

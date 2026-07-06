@@ -1,0 +1,59 @@
+<mat-toolbar color="primary" class="navbar">
+  <a routerLink="/" class="brand">LÖSEV LMS</a>
+
+  <span class="spacer"></span>
+
+  <!-- Masaüstü menüsü: geniş ekranda görünür -->
+  <nav class="desktop-menu">
+    <a mat-button routerLink="/">Ana Sayfa</a>
+    <a mat-button routerLink="/courses">Kurslar</a>
+
+    <!-- Admin: kullanıcı yönetimi -->
+    @if (auth.role() === 'Admin') {
+      <a mat-button routerLink="/admin/users">Kullanıcılar</a>
+    }
+
+    <button mat-button [matMenuTriggerFor]="userMenu">
+      <mat-icon>account_circle</mat-icon>
+      {{ auth.currentUser()?.fullName }}
+    </button>
+  </nav>
+
+  <!-- Mobil menü: dar ekranda hamburger ikonuna dönüşür -->
+  <button mat-icon-button class="mobile-menu-button" [matMenuTriggerFor]="mobileMenu" aria-label="Menü">
+    <mat-icon>menu</mat-icon>
+  </button>
+</mat-toolbar>
+
+<!-- Kullanıcı menüsü (masaüstü) -->
+<mat-menu #userMenu="matMenu">
+  <div class="menu-user-info" mat-menu-item disabled>
+    {{ auth.currentUser()?.email }} · {{ auth.role() }}
+  </div>
+  <button mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    Çıkış Yap
+  </button>
+</mat-menu>
+
+<!-- Mobil menü içeriği -->
+<mat-menu #mobileMenu="matMenu">
+  <a mat-menu-item routerLink="/">
+    <mat-icon>home</mat-icon>
+    Ana Sayfa
+  </a>
+  <a mat-menu-item routerLink="/courses">
+    <mat-icon>school</mat-icon>
+    Kurslar
+  </a>
+  @if (auth.role() === 'Admin') {
+    <a mat-menu-item routerLink="/admin/users">
+      <mat-icon>group</mat-icon>
+      Kullanıcılar
+    </a>
+  }
+  <button mat-menu-item (click)="logout()">
+    <mat-icon>logout</mat-icon>
+    Çıkış Yap
+  </button>
+</mat-menu>

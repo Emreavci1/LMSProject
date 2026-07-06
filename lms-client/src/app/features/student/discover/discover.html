@@ -1,0 +1,136 @@
+<div class="page">
+  <!-- Page Header & Filters -->
+  <div class="page-header">
+    <h2 class="title">Yeni Eğitimleri Keşfet</h2>
+
+    <div class="filter-controls">
+      <!-- Mobile Search (sadece mobilde görünür) -->
+      <div class="search-mobile">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Ara..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </div>
+
+      <!-- Masaüstü Search -->
+      <div class="search-desktop hidden-mobile">
+        <mat-icon class="search-icon">search</mat-icon>
+        <input
+          type="text"
+          placeholder="Eğitim, eğitmen veya konu ara..."
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </div>
+
+      <!-- Filter Chips -->
+      <div class="filter-chips">
+        <!-- Kategoriler -->
+        <div class="chip-wrap">
+          <select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event || null)">
+            <option value="">Tüm Kategoriler</option>
+            @for (cat of categories(); track cat) {
+              <option [value]="cat">{{ cat }}</option>
+            }
+          </select>
+          <mat-icon class="chip-icon">keyboard_arrow_down</mat-icon>
+        </div>
+
+        <!-- Seviyeler -->
+        <div class="chip-wrap">
+          <select [ngModel]="selectedLevel()" (ngModelChange)="selectedLevel.set($event || null)">
+            <option value="">Tüm Seviyeler</option>
+            @for (lvl of levels; track lvl) {
+              <option [value]="lvl">{{ lvl }}</option>
+            }
+          </select>
+          <mat-icon class="chip-icon">keyboard_arrow_down</mat-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Pills (Horizontal Scroll) -->
+  <div class="category-pills">
+    <button
+      class="pill"
+      [class.active]="!selectedCategory()"
+      (click)="selectedCategory.set(null)">
+      Tümü
+    </button>
+    @for (cat of categories(); track cat) {
+      <button
+        class="pill"
+        [class.active]="selectedCategory() === cat"
+        (click)="selectedCategory.set(cat)">
+        {{ cat }}
+      </button>
+    }
+  </div>
+
+  <!-- Course Grid -->
+  <div class="course-grid">
+    @for (course of filteredCourses(); track course.key) {
+      <!-- Gerçek kurs kartı her yerinden tıklanınca detay sayfasına gider;
+           demo kartların detay sayfası yok (routerLink null → pasif) -->
+      <div
+        class="course-card"
+        [class.clickable]="course.isReal"
+        [routerLink]="course.isReal ? ['/courses', course.id] : null"
+      >
+        <!-- Card Image (yüklenen kapak görseli veya gradient) -->
+        <div class="card-img" [style.background]="course.cover">
+          <span class="category-tag">{{ course.category }}</span>
+          @if (course.level === 'Başlangıç') {
+            <span class="free-tag">Ücretsiz</span>
+          }
+        </div>
+
+        <!-- Card Content -->
+        <div class="card-content">
+          @if (course.isReal) {
+            <h3 class="course-title">{{ course.title }}</h3>
+          } @else {
+            <h3 class="course-title static">{{ course.title }}</h3>
+          }
+
+          <div class="instructor">
+            <div class="instructor-avatar">{{ course.instructorName[0] }}</div>
+            <span class="instructor-name">{{ course.instructorName }}</span>
+          </div>
+
+          <div class="course-stats">
+            <div class="stat">
+              <mat-icon>menu_book</mat-icon>
+              <span>{{ course.lessonCount }} Ders</span>
+            </div>
+            <div class="stat">
+              <mat-icon>schedule</mat-icon>
+              <span>{{ course.durationHours }} Saat</span>
+            </div>
+          </div>
+
+          <!-- stopPropagation: buton tıklaması kartın detay yönlendirmesini tetiklemesin -->
+          @if (isEnrolled(course)) {
+            <button class="join-btn enrolled" disabled (click)="$event.stopPropagation()">
+              <mat-icon>check</mat-icon>
+              Katıldın
+            </button>
+          } @else if (isStudent() || !course.isReal) {
+            <button class="join-btn" (click)="enroll(course); $event.stopPropagation()">Katıl</button>
+          }
+        </div>
+      </div>
+    }
+
+    @if (filteredCourses().length === 0 && !loading()) {
+      <div class="empty-state">
+        <mat-icon>search_off</mat-icon>
+        <p>Arama kriterlerinize uygun eğitim bulunamadı.</p>
+      </div>
+    }
+  </div>
+</div>

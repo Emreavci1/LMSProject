@@ -1,0 +1,19 @@
+<h2 mat-dialog-title>Görseli Kırp</h2>
+<mat-dialog-content>
+  <div class="cropper-container">
+    <image-cropper
+      [imageChangedEvent]="imageChangedEvent"
+      [maintainAspectRatio]="true"
+      [aspectRatio]="16 / 9"
+      format="png"
+      (imageCropped)="imageCropped($event)"
+      (imageLoaded)="imageLoaded($event)"
+      (cropperReady)="cropperReady()"
+      (loadImageFailed)="loadImageFailed()"
+    ></image-cropper>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button (click)="onCancel()">İptal</button>
+  <button mat-flat-button color="primary" (click)="onSave()">Kırp ve Uygula</button>
+</mat-dialog-actions>

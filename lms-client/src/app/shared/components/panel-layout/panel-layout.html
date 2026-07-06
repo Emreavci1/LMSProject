@@ -1,0 +1,73 @@
+<div class="layout" [class.sidebar-collapsed]="sidebarCollapsed()">
+  <!-- Mobil üst bar: hamburger + marka -->
+  <header class="mobile-topbar">
+    <button mat-icon-button (click)="sidebarOpen.set(!sidebarOpen())" aria-label="Menü">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span class="brand">LÖSEV LMS</span>
+  </header>
+
+  <!-- Mobilde sidebar açıkken arka planı karartan katman -->
+  @if (sidebarOpen()) {
+    <div class="backdrop" (click)="sidebarOpen.set(false)"></div>
+  }
+
+  <!-- Sol sidebar -->
+  <aside class="sidebar" [class.open]="sidebarOpen()" [class.collapsed]="sidebarCollapsed()">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">
+        @if (!sidebarCollapsed()) {
+          LÖSEV <span>LMS</span>
+        } @else {
+          <span>L</span>
+        }
+      </div>
+      <!-- Masaüstü collapse butonu -->
+      <button class="collapse-btn hidden-mobile" (click)="sidebarCollapsed.set(!sidebarCollapsed())">
+        <mat-icon>{{ sidebarCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+      </button>
+    </div>
+
+    <!-- Kullanıcı özeti -->
+    <div class="user-summary">
+      <div class="avatar" [title]="auth.currentUser()?.fullName">{{ initials() }}</div>
+      @if (!sidebarCollapsed()) {
+        <div class="user-info">
+          <strong>{{ auth.currentUser()?.fullName }}</strong>
+          <span>{{ roleLabel() }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Menü -->
+    <nav class="menu">
+      @for (item of menuItems(); track item.route) {
+        <a
+          class="menu-item"
+          [routerLink]="item.route"
+          routerLinkActive="active"
+          (click)="sidebarOpen.set(false)"
+          [title]="sidebarCollapsed() ? item.label : ''"
+        >
+          <mat-icon>{{ item.icon }}</mat-icon>
+          @if (!sidebarCollapsed()) {
+            <span class="menu-label">{{ item.label }}</span>
+          }
+        </a>
+      }
+    </nav>
+
+    <!-- Alt: çıkış -->
+    <button class="menu-item logout" (click)="logout()" [title]="sidebarCollapsed() ? 'Çıkış Yap' : ''">
+      <mat-icon>logout</mat-icon>
+      @if (!sidebarCollapsed()) {
+        <span class="menu-label">Çıkış Yap</span>
+      }
+    </button>
+  </aside>
+
+  <!-- Sayfa içeriği -->
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

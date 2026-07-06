@@ -1,0 +1,26 @@
+.cropper-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f2f4f6;
+  border-radius: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+image-cropper {
+  display: block;
+  max-height: 60vh;
+  width: 100%;
+}
+
+/* Kaynak görsel hem genişliğe hem YÜKSEKLİĞE sığsın (dikey/uzun fotoğraflarda
+   resmin tamamı görünür; kırpma kutusu üzerinde gezdirilebilir). */
+image-cropper .ngx-ic-source-image {
+  max-height: 58vh !important;
+  max-width: 100% !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 auto;
+}

@@ -1,0 +1,267 @@
+<div class="page">
+  @if (loading()) {
+    <div class="center-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (course(); as c) {
+    <a mat-button routerLink="/instructor/courses" class="back-link">
+      <mat-icon>arrow_back</mat-icon> Eğitimlerim
+    </a>
+
+    <!-- Kurs başlığı + istatistikler -->
+    <div class="course-header">
+      <div class="cover" [style.background-image]="coverCss(c.coverImageUrl)"></div>
+      <div class="header-info">
+        <div class="title-line">
+          <h1>{{ c.title }}</h1>
+          <span class="badge"
+            [class.published]="c.status === 'Published'"
+            [class.draft]="c.status === 'Draft'"
+            [class.scheduled]="c.status === 'Scheduled'">
+            @switch (c.status) {
+              @case ('Published') { Yayında }
+              @case ('Scheduled') { Zamanlanmış }
+              @default { Taslak }
+            }
+          </span>
+        </div>
+        @if (c.description) {
+          <p class="course-description">{{ c.description }}</p>
+        }
+        <p class="muted">{{ c.category || 'Kategori yok' }} · {{ c.level || '—' }}</p>
+        <div class="header-stats">
+          <span><mat-icon>group</mat-icon> {{ mock.courseStudents().length }} öğrenci</span>
+          <span><mat-icon>trending_up</mat-icon> %{{ completionRate() }} ort. tamamlama</span>
+          <span><mat-icon>menu_book</mat-icon> {{ lessons().length }} ders</span>
+        </div>
+      </div>
+    </div>
+
+    <mat-tab-group class="manage-tabs">
+      <!-- İÇERİK sekmesi -->
+      <mat-tab label="İçerik">
+        <div class="tab-content">
+          <!-- "Yeni Ders Ekle" butonu -->
+          <div class="add-lesson-header">
+            <h3>Ders İçerikleri</h3>
+            <button class="custom-btn-primary" (click)="showAddForm.set(!showAddForm())">
+              <mat-icon>{{ showAddForm() ? 'close' : 'add' }}</mat-icon>
+              {{ showAddForm() ? 'Kapat' : 'Yeni Ders Ekle' }}
+            </button>
+          </div>
+
+          <!-- Açılır Ders Ekleme Formu -->
+          @if (showAddForm()) {
+            <div class="add-lesson-form-card">
+              <div class="form-row">
+                <div class="form-group flex-2">
+                  <label>İçerik Başlığı</label>
+                  <input class="custom-input" [ngModel]="newLessonTitle()" (ngModelChange)="newLessonTitle.set($event)" placeholder="Örn: 1. Hafta Sunumu" />
+                </div>
+                <div class="form-group flex-1">
+                  <label>Bölüm Adı</label>
+                  <input class="custom-input" [ngModel]="newLessonSection()" (ngModelChange)="newLessonSection.set($event)" placeholder="Örn: Giriş" />
+                </div>
+                <div class="form-group flex-1">
+                  <label>İçerik Tipi</label>
+                  <div class="select-wrapper">
+                    <select class="custom-select" [ngModel]="newContentType()" (ngModelChange)="newContentType.set($event)">
+                      @for (type of contentTypes; track type.value) {
+                        <option [value]="type.value">{{ type.label }}</option>
+                      }
+                    </select>
+                    <mat-icon class="select-icon">expand_more</mat-icon>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Açıklama <span class="optional-label">(Opsiyonel)</span></label>
+                <textarea class="custom-textarea" [ngModel]="newLessonDescription()" (ngModelChange)="newLessonDescription.set($event)" rows="2" placeholder="Bu içeriğin ne anlattığını kısaca özetleyin..."></textarea>
+              </div>
+
+              <div class="dynamic-content-area">
+                @switch (newContentType()) {
+                  @case ('Video') {
+                    <div class="form-row">
+                      <div class="form-group flex-2">
+                        <label>Video Linki (URL)</label>
+                        <input class="custom-input" [ngModel]="newContentUrl()" (ngModelChange)="newContentUrl.set($event)" placeholder="https://youtube.com/..." />
+                      </div>
+                      <div class="form-group flex-1">
+                        <label>Süre (Dk)</label>
+                        <input type="number" class="custom-input" [ngModel]="newLessonDuration()" (ngModelChange)="newLessonDuration.set($event)" placeholder="Opsiyonel" />
+                      </div>
+                    </div>
+                  }
+                  @case ('Document') {
+                    <div class="form-row items-center">
+                      <div class="form-group flex-2">
+                        <label>Döküman (PDF / Sunum)</label>
+                        <div class="document-upload" [class.has-file]="newContentUrl()" (click)="docInput.click()">
+                          <mat-icon>upload_file</mat-icon>
+                          <span>{{ newContentUrl() ? 'Belge Seçildi: ' + newContentUrl() : 'PDF veya Sunum Yükle' }}</span>
+                          <input #docInput type="file" accept=".pdf,.ppt,.pptx" (change)="onMaterialFileSelected($event)" style="display:none;" />
+                        </div>
+                      </div>
+                      <div class="form-group flex-1">
+                        <label>Tahmini Süre</label>
+                        <input type="number" class="custom-input" [ngModel]="newLessonDuration()" (ngModelChange)="newLessonDuration.set($event)" placeholder="Opsiyonel" />
+                      </div>
+                    </div>
+                  }
+                  @case ('Text') {
+                    <div class="form-group">
+                      <label>Metin İçeriği</label>
+                      <textarea class="custom-textarea" [ngModel]="newTextContent()" (ngModelChange)="newTextContent.set($event)" rows="4" placeholder="Okuma içeriği..."></textarea>
+                    </div>
+                    <div class="form-group max-w-xs">
+                      <label>Tahmini Okuma Süresi (Dk)</label>
+                      <input type="number" class="custom-input" [ngModel]="newLessonDuration()" (ngModelChange)="newLessonDuration.set($event)" placeholder="Opsiyonel" />
+                    </div>
+                  }
+                }
+              </div>
+
+              <div class="action-right mt-3">
+                <button class="custom-btn-primary" (click)="addLesson()">
+                  <mat-icon>add</mat-icon> Ders Ekle
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Ders listesi (sırala / sil) -->
+          @if (lessons().length === 0) {
+            <div class="empty-state-box">
+              <mat-icon>inventory_2</mat-icon>
+              <p>Henüz ders eklenmemiş. Yukarıdaki butona tıklayarak başlayın.</p>
+            </div>
+          } @else {
+            <div class="lesson-list">
+              @for (lesson of lessons(); track lesson.id; let i = $index; let last = $last) {
+                <div class="lesson-item-wrap">
+                  <div class="lesson-row" [class.open]="previewLessonId() === lesson.id">
+                    <span class="order">{{ i + 1 }}</span>
+                    <div class="icon-box" [class.video]="lesson.contentType === 'Video'" [class.doc]="lesson.contentType === 'Document'" [class.txt]="lesson.contentType === 'Text'">
+                      <mat-icon>{{ lesson.contentType === 'Video' ? 'play_circle' : lesson.contentType === 'Document' ? 'picture_as_pdf' : 'article' }}</mat-icon>
+                    </div>
+                    <div class="lesson-info" (click)="togglePreview(lesson.id)">
+                      <strong>{{ lesson.title }}</strong>
+                      <span>
+                        {{ lesson.section }} · {{ lesson.durationMin }} dk
+                        @if (lesson.contentType) {
+                          · {{ lesson.contentType === 'Video' ? 'Video' : lesson.contentType === 'Document' ? 'Döküman' : 'Metin' }}
+                        }
+                      </span>
+                    </div>
+                    <div class="lesson-actions">
+                      <button mat-icon-button (click)="togglePreview(lesson.id)" aria-label="Önizle">
+                        <mat-icon>{{ previewLessonId() === lesson.id ? 'expand_less' : 'visibility' }}</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="i === 0" (click)="moveLesson(lesson.id, -1)" aria-label="Yukarı taşı">
+                        <mat-icon>arrow_upward</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="last" (click)="moveLesson(lesson.id, 1)" aria-label="Aşağı taşı">
+                        <mat-icon>arrow_downward</mat-icon>
+                      </button>
+                      <button mat-icon-button color="warn" (click)="removeLesson(lesson.id)" aria-label="Sil">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+
+                  @if (previewLessonId() === lesson.id) {
+                    <div class="lesson-preview">
+                      @switch (lesson.contentType) {
+                        @case ('Video') {
+                          @if (videoEmbedUrl(lesson.contentUrl); as safe) {
+                            <div class="video-frame"><iframe [src]="safe" allowfullscreen></iframe></div>
+                          } @else if (lesson.contentUrl) {
+                            <a [href]="lesson.contentUrl" target="_blank" rel="noopener" class="ext-link">
+                              <mat-icon>open_in_new</mat-icon> {{ lesson.contentUrl }}
+                            </a>
+                          } @else {
+                            <p class="muted">Bu ders için video bağlantısı yok.</p>
+                          }
+                        }
+                        @case ('Document') {
+                          <div class="doc-chip"><mat-icon>picture_as_pdf</mat-icon> <span>{{ lesson.contentUrl || 'Döküman' }}</span></div>
+                        }
+                        @case ('Text') {
+                          <div class="text-block">{{ lesson.textContent }}</div>
+                        }
+                        @default {
+                          <p class="muted">Bu ders için önizlenecek içerik bulunmuyor.</p>
+                        }
+                      }
+
+                      @if (lesson.description) {
+                        <div class="lesson-preview-desc">
+                          <h4>Eğitmen Notu / Açıklama</h4>
+                          <p>{{ lesson.description }}</p>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ÖĞRENCİLER sekmesi -->
+      <mat-tab label="Öğrenciler">
+        <div class="tab-content">
+          <div class="student-list">
+            @for (student of mock.courseStudents(); track student.email) {
+              <div class="student-row">
+                <div class="mini-avatar">{{ student.fullName[0] }}</div>
+                <div class="student-info">
+                  <strong>{{ student.fullName }}</strong>
+                  <span>{{ student.email }} · Kayıt: {{ student.enrollDate | date: 'dd.MM.yyyy' }}</span>
+                </div>
+                <div class="student-progress">
+                  <mat-progress-bar mode="determinate" [value]="student.progress" />
+                  <span>%{{ student.progress }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- AYARLAR sekmesi -->
+      <mat-tab label="Ayarlar">
+        <div class="tab-content">
+          @if (c.status !== 'Published') {
+            <div class="setting-row">
+              <div>
+                <strong>Yayın durumu</strong>
+                <span>Bu eğitim henüz yayında değil. Yayınlarsan öğrencilere açılır.</span>
+              </div>
+              <button mat-flat-button color="primary" (click)="publish()">
+                <mat-icon>publish</mat-icon> Yayınla
+              </button>
+            </div>
+          }
+          <div class="setting-row danger">
+            <div>
+              <strong>Eğitimi sil</strong>
+              <span>Eğitim kalıcı olarak silinir (geri alınamaz). Geçici gizlemek için Eğitimlerim'deki Aktif/Pasif anahtarını kullan.</span>
+            </div>
+            <button mat-stroked-button color="warn" (click)="deleteCourse()">
+              <mat-icon>delete_forever</mat-icon> Sil
+            </button>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  } @else {
+    <div class="center-box">
+      <p class="muted">Kurs bulunamadı.</p>
+      <a mat-flat-button color="primary" routerLink="/instructor/courses">Eğitimlerim</a>
+    </div>
+  }
+</div>

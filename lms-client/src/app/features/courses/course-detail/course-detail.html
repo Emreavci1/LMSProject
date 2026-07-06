@@ -1,0 +1,148 @@
+<div class="page">
+  @if (loading()) {
+    <div class="center-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (course(); as c) {
+    <!-- Hero: kapak görseli üstüne kurs kimliği.
+         Görsel varsa <img> hero'nun boyutunu belirler (orijinal oran, kırpılmaz);
+         yazı katmanı üstüne biner. Görsel yoksa gradient arka plan kullanılır. -->
+    <div class="hero" [style.background]="coverImage() ? null : cover()">
+      @if (coverImage(); as img) {
+        <img class="hero-img" [src]="img" alt="{{ c.title }} kapak görseli" />
+      }
+      <div class="hero-overlay" [class.on-image]="coverImage()">
+        <div class="hero-content">
+          <div class="hero-tags">
+            @if (c.category) {
+              <span class="tag">{{ c.category }}</span>
+            }
+            @if (c.level) {
+              <span class="tag">{{ c.level }}</span>
+            }
+            @if (!c.isActive) {
+              <span class="tag inactive">Pasif</span>
+            }
+          </div>
+
+          <h1>{{ c.title }}</h1>
+
+          <div class="hero-meta">
+            <span class="meta-item">
+              <mat-icon>person</mat-icon> {{ c.instructorName }}
+            </span>
+            <span class="meta-item">
+              <mat-icon>menu_book</mat-icon> {{ c.lessonCount }} ders
+            </span>
+            <span class="meta-item">
+              <mat-icon>schedule</mat-icon> {{ c.durationHours }} saat
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-layout">
+      <!-- Sol: açıklama + müfredat -->
+      <div class="main-col">
+        <section class="card">
+          <h2>Bu Eğitim Hakkında</h2>
+          <p class="description">{{ c.description }}</p>
+        </section>
+
+        <section class="card">
+          <h2>Eğitim İçeriği</h2>
+          @if (lessons().length > 0) {
+            <p class="curriculum-summary">
+              {{ sections().length }} bölüm · {{ lessons().length }} ders
+              @if (totalMinutes() > 0) {
+                · toplam {{ totalMinutes() }} dk
+              }
+            </p>
+            @for (group of sections(); track group.section) {
+              <div class="section-block">
+                <div class="section-header">{{ group.section }}</div>
+                @for (lesson of group.lessons; track lesson.id) {
+                  <div class="lesson-row">
+                    <mat-icon class="type-icon">{{ lessonIcon(lesson) }}</mat-icon>
+                    <span class="lesson-name">{{ lesson.title }}</span>
+                    @if (lesson.durationMin) {
+                      <span class="lesson-duration">{{ lesson.durationMin }} dk</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          } @else {
+            <p class="empty-text">İçerik listesi henüz eklenmemiş.</p>
+          }
+        </section>
+
+        <!-- Sahibi/Admin: katılımcı listesi -->
+        @if (canManage()) {
+          <section class="card">
+            <h2>Katılımcılar ({{ attendees().length }})</h2>
+            @if (attendees().length === 0) {
+              <p class="empty-text">Henüz katılımcı yok.</p>
+            } @else {
+              @for (att of attendees(); track att.userId) {
+                <div class="attendee-row">
+                  <div class="attendee-avatar">{{ att.fullName[0] }}</div>
+                  <div class="attendee-info">
+                    <span class="attendee-name">{{ att.fullName }}</span>
+                    <span class="attendee-email">{{ att.email }}</span>
+                  </div>
+                </div>
+              }
+            }
+          </section>
+        }
+      </div>
+
+      <!-- Sağ: aksiyon kutusu -->
+      <aside class="side-col">
+        <div class="card action-card">
+          <!-- Katılımcı: katıl / eğitime git -->
+          @if (isAttendee()) {
+            @if (isEnrolled()) {
+              <p class="enrolled-note">
+                <mat-icon>check_circle</mat-icon> Bu eğitime katıldın
+              </p>
+              <a class="cta-btn primary" [routerLink]="['/learn', c.id]">
+                <mat-icon>play_arrow</mat-icon>
+                Eğitime Git
+              </a>
+            } @else {
+              <button class="cta-btn primary" (click)="enroll()" [disabled]="enrolling()">
+                @if (enrolling()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <mat-icon>add</mat-icon>
+                  Kursa Katıl
+                }
+              </button>
+              <p class="cta-note">Katıldıktan sonra "Eğitimlerim" sayfandan erişebilirsin.</p>
+            }
+          }
+
+          <!-- Sahibi/Admin: düzenleme -->
+          @if (canManage()) {
+            <a class="cta-btn outline" [routerLink]="['/instructor/courses', c.id]">
+              <mat-icon>edit</mat-icon>
+              Kursu Yönet
+            </a>
+          }
+
+          <ul class="fact-list">
+            <li><mat-icon>menu_book</mat-icon> {{ c.lessonCount }} ders</li>
+            <li><mat-icon>schedule</mat-icon> {{ c.durationHours }} saat içerik</li>
+            @if (c.level) {
+              <li><mat-icon>signal_cellular_alt</mat-icon> {{ c.level }} seviyesi</li>
+            }
+            <li><mat-icon>workspace_premium</mat-icon> Ücretsiz kurum içi eğitim</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+  }
+</div>

@@ -1,0 +1,52 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Kurslar</h1>
+    @if (auth.role() === 'Instructor' || auth.role() === 'Admin') {
+      <a mat-flat-button color="primary" routerLink="/courses/new">
+        <mat-icon>add</mat-icon>
+        Yeni Kurs
+      </a>
+    }
+  </div>
+
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-label>Kurs veya eğitmen ara</mat-label>
+    <input matInput [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)" />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (loading()) {
+    <div class="center-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else if (filteredCourses().length === 0) {
+    <div class="center-box empty">
+      <mat-icon>school</mat-icon>
+      <p>Gösterilecek kurs bulunamadı.</p>
+    </div>
+  } @else {
+    <div class="course-grid">
+      @for (course of filteredCourses(); track course.id) {
+        <mat-card class="course-card">
+          <mat-card-content>
+            <div class="card-top">
+              <h2 class="course-title">{{ course.title }}</h2>
+              @if (isEnrolled(course.id)) {
+                <span class="enrolled-badge">
+                  <mat-icon>check_circle</mat-icon> Katıldın
+                </span>
+              }
+            </div>
+            <p class="instructor">
+              <mat-icon>person</mat-icon> {{ course.instructorName }}
+            </p>
+            <p class="description">{{ course.description }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <a mat-button color="primary" [routerLink]="['/courses', course.id]">Detay</a>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,58 @@
+<div class="page">
+  <h1>Ayarlar</h1>
+  <p class="subtitle">Bildirim tercihleri ve hesap güvenliği.</p>
+
+  <!-- Bildirim tercihleri -->
+  <div class="card">
+    <h2>Bildirimler</h2>
+    <div class="toggle-row">
+      <div>
+        <strong>Email bildirimleri</strong>
+        <span>Önemli gelişmelerde email al</span>
+      </div>
+      <mat-slide-toggle [checked]="emailNotifications()" (change)="emailNotifications.set($event.checked)" />
+    </div>
+    <div class="toggle-row">
+      <div>
+        <strong>Kurs hatırlatmaları</strong>
+        <span>Yarım kalan eğitimler için hatırlatma</span>
+      </div>
+      <mat-slide-toggle [checked]="courseReminders()" (change)="courseReminders.set($event.checked)" />
+    </div>
+    <div class="toggle-row">
+      <div>
+        <strong>Duyuru emailleri</strong>
+        <span>Yeni kurs ve etkinlik duyuruları</span>
+      </div>
+      <mat-slide-toggle [checked]="announcementEmails()" (change)="announcementEmails.set($event.checked)" />
+    </div>
+  </div>
+
+  <!-- Şifre değiştirme -->
+  <div class="card">
+    <h2>Şifre Değiştir</h2>
+    <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
+      <mat-form-field appearance="outline">
+        <mat-label>Mevcut Şifre</mat-label>
+        <input matInput type="password" formControlName="currentPassword" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Yeni Şifre</mat-label>
+        <input matInput type="password" formControlName="newPassword" />
+        @if (passwordForm.controls.newPassword.hasError('minlength')) {
+          <mat-error>Şifre en az 8 karakter olmalı.</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Yeni Şifre (Tekrar)</mat-label>
+        <input matInput type="password" formControlName="confirmPassword" />
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>lock_reset</mat-icon> Şifreyi Değiştir
+      </button>
+    </form>
+  </div>
+</div>

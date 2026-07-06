@@ -1,0 +1,79 @@
+.page {
+  padding: 24px 16px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+h1 {
+  font-size: 1.6rem;
+  color: #1e293b;
+  margin: 0;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 4px 0 20px;
+}
+
+.profile-card {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 24px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 220px 1fr;
+  }
+}
+
+.avatar-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+
+  .big-avatar {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: #0284c7;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  strong {
+    color: #1e293b;
+  }
+}
+
+.muted {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.role-badge {
+  background: #e0f2fe;
+  color: #0284c7;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 12px;
+  margin-top: 4px;
+}
+
+.form-side {
+  display: flex;
+  flex-direction: column;
+
+  button {
+    align-self: flex-start;
+  }
+}

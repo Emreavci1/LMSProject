@@ -1,0 +1,126 @@
+<div class="page">
+  <h1>Genel Bakış</h1>
+  <p class="subtitle">Platformun güncel durumu ve temel metrikleri.</p>
+
+  <!-- KPI Kartları -->
+  <section class="kpi-grid">
+    @for (kpi of kpis; track kpi.label) {
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-wrap">
+            <mat-icon>{{ kpi.icon }}</mat-icon>
+          </div>
+          <span class="trend" [class.up]="kpi.trendUp" [class.down]="!kpi.trendUp">
+            <mat-icon>{{ kpi.trendUp ? 'trending_up' : 'trending_down' }}</mat-icon>
+            {{ kpi.trend }}%
+          </span>
+        </div>
+        <h3 class="kpi-label">{{ kpi.label }}</h3>
+        <p class="kpi-value">{{ kpi.value }}</p>
+      </div>
+    }
+  </section>
+
+  <!-- Grafikler bölümü -->
+  <section class="charts-grid">
+    <!-- Kayıt Trendi (bar chart — saf CSS) -->
+    <div class="chart-card chart-wide">
+      <div class="chart-header">
+        <div>
+          <h2>Kayıt Sayısı</h2>
+          <p class="chart-sub">Son aylık eğitim kayıt trendi</p>
+        </div>
+      </div>
+      <div class="bar-chart">
+        @for (m of mock.monthlyEnrollments(); track m.month) {
+          <div class="bar-col">
+            <div class="bar" [style.height.%]="(m.count / maxEnrollment) * 100"></div>
+            <span class="bar-label">{{ m.month }}</span>
+            <span class="bar-value">{{ m.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Popüler Kategoriler -->
+    <div class="chart-card">
+      <h2>En Popüler Kategoriler</h2>
+      <p class="chart-sub">Kayıt oranlarına göre dağılım</p>
+      <div class="category-bars">
+        @for (cat of popularCategories; track cat.name) {
+          <div class="cat-bar-item">
+            <div class="cat-bar-header">
+              <span class="cat-name">{{ cat.name }}</span>
+              <span class="cat-percent">{{ cat.percent }}%</span>
+            </div>
+            <div class="cat-bar-track">
+              <div class="cat-bar-fill" [style.width.%]="cat.percent"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Alt bölüm: Aktiviteler + Popüler Kurslar -->
+  <section class="bottom-grid">
+    <!-- Son Aktiviteler -->
+    <div class="activity-card">
+      <h2>Son Aktiviteler</h2>
+      <div class="timeline">
+        @for (activity of mock.recentActivities(); track activity.text) {
+          <div class="timeline-item">
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+              <p>{{ activity.text }}</p>
+              <span class="time">{{ activity.time }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Popüler Eğitimler Tablosu -->
+    <div class="table-card">
+      <div class="table-header">
+        <h2>Popüler Eğitimler</h2>
+      </div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Eğitim Başlığı</th>
+              <th>Eğitmen</th>
+              <th class="text-right">Öğrenci</th>
+              <th class="text-center">Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (course of topCourses; track course.id) {
+              <tr>
+                <td>
+                  <div class="course-cell">
+                    <div class="course-icon">
+                      <mat-icon>school</mat-icon>
+                    </div>
+                    <span>{{ course.title }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="instructor-cell">
+                    <div class="mini-avatar">{{ course.instructorName[0] }}</div>
+                    <span>{{ course.instructorName }}</span>
+                  </div>
+                </td>
+                <td class="text-right">{{ course.students }}</td>
+                <td class="text-center">
+                  <span class="status-badge active">Aktif</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</div>

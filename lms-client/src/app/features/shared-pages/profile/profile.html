@@ -1,0 +1,41 @@
+<div class="page">
+  <h1>Profil</h1>
+  <p class="subtitle">Hesap bilgilerini görüntüle ve düzenle.</p>
+
+  <div class="profile-card">
+    <!-- Sol: avatar + özet -->
+    <div class="avatar-side">
+      <div class="big-avatar">{{ initials() }}</div>
+      <strong>{{ auth.currentUser()?.fullName }}</strong>
+      <span class="muted">{{ auth.currentUser()?.email }}</span>
+      <span class="role-badge">{{ auth.role() }}</span>
+    </div>
+
+    <!-- Sağ: düzenleme formu -->
+    <form [formGroup]="form" (ngSubmit)="save()" class="form-side">
+      <mat-form-field appearance="outline">
+        <mat-label>Ad Soyad</mat-label>
+        <input matInput formControlName="fullName" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" formControlName="email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Telefon (opsiyonel)</mat-label>
+        <input matInput formControlName="phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Hakkımda (opsiyonel)</mat-label>
+        <textarea matInput formControlName="bio" rows="3"></textarea>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>save</mat-icon> Kaydet
+      </button>
+    </form>
+  </div>
+</div>

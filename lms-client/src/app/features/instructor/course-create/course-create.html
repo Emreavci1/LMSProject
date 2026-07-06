@@ -1,0 +1,388 @@
+<div class="page-container">
+  <!-- Page Header -->
+  <div class="page-header">
+    <h2>Yeni Eğitim Oluştur</h2>
+    <p>Kapsamlı ve ilgi çekici bir eğitim programı hazırlamak için aşağıdaki adımları takip edin.</p>
+  </div>
+
+  <!-- Custom Wizard Stepper -->
+  <div class="stepper-card">
+    <ol class="stepper-list">
+      <!-- Step 1 -->
+      <li class="stepper-item" [class.active]="currentStep() >= 1">
+        <span class="step-circle" [class.completed]="currentStep() > 1">1</span>
+        <span class="step-label">1. Temel Bilgiler</span>
+      </li>
+      <!-- Step 2 -->
+      <li class="stepper-item" [class.active]="currentStep() >= 2">
+        <span class="step-circle" [class.completed]="currentStep() > 2">2</span>
+        <span class="step-label">2. Müfredat</span>
+      </li>
+      <!-- Step 3 -->
+      <li class="stepper-item no-line" [class.active]="currentStep() === 3">
+        <span class="step-circle">3</span>
+        <span class="step-label">3. Önizleme & Yayınla</span>
+      </li>
+    </ol>
+  </div>
+
+  <!-- ADIM 1: Temel Bilgiler (Bento Layout) -->
+  @if (currentStep() === 1) {
+    <div class="bento-grid">
+      <!-- Sol Kolon: Input Fields -->
+      <div class="bento-col-left">
+        <h3 class="bento-title">Eğitim Detayları</h3>
+        <form [formGroup]="infoForm" class="bento-form">
+          <div class="form-group">
+            <label for="course-title">Eğitim Başlığı <span class="required">*</span></label>
+            <input id="course-title" formControlName="title" maxlength="200" placeholder="Örn: İleri Düzey Proje Yönetimi" class="custom-input" />
+          </div>
+
+          <div class="form-group">
+            <label for="course-category">Kategori <span class="required">*</span></label>
+            <div class="select-wrapper">
+              <select id="course-category" formControlName="category" class="custom-select">
+                <option value="" disabled selected>Bir kategori seçin...</option>
+                @for (category of mock.categories(); track category) {
+                  <option [value]="category">{{ category }}</option>
+                }
+              </select>
+              <mat-icon class="select-icon">expand_more</mat-icon>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="course-level">Seviye <span class="required">*</span></label>
+            <div class="select-wrapper">
+              <select id="course-level" formControlName="level" class="custom-select">
+                <option value="" disabled selected>Bir seviye seçin...</option>
+                @for (level of levels; track level) {
+                  <option [value]="level">{{ level }}</option>
+                }
+              </select>
+              <mat-icon class="select-icon">expand_more</mat-icon>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="course-desc">Açıklama <span class="required">*</span></label>
+            <textarea id="course-desc" formControlName="description" rows="6" maxlength="2000" placeholder="Eğitimin içeriği, hedef kitlesi ve kazanımları hakkında detaylı bilgi verin..." class="custom-textarea"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Sağ Kolon: Media Upload -->
+      <div class="bento-col-right">
+        <div class="bento-card full-height">
+          <h3 class="bento-title">Kapak Görseli</h3>
+          <p class="bento-desc">Eğitiminiz için dikkat çekici bir kapak görseli yükleyin. (Önerilen: 1920x1080px)</p>
+          
+          <div class="upload-drag-area" [class.has-image]="coverImagePreview()" (click)="fileInput.click()">
+            @if (coverImagePreview()) {
+              <img [src]="coverImagePreview()" alt="Cover Preview" class="cover-preview" />
+              <div class="upload-overlay">
+                <mat-icon>edit</mat-icon>
+                <span>Görseli Değiştir</span>
+              </div>
+            } @else {
+              <div class="icon-circle">
+                <mat-icon>cloud_upload</mat-icon>
+              </div>
+              <p class="drag-main">Görseli sürükleyip bırakın</p>
+              <p class="drag-sub">veya bilgisayarınızdan seçin</p>
+              <button class="custom-btn-outline">Dosya Seç</button>
+            }
+            <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-footer">
+      <button class="custom-btn-outline" routerLink="/instructor">İptal</button>
+      <button class="custom-btn-primary" (click)="nextStep()" [disabled]="infoForm.invalid">
+        Sonraki Adım <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  }
+
+  <!-- ADIM 2: Müfredat -->
+  @if (currentStep() === 2) {
+    <div class="bento-single-col">
+      <div class="bento-card">
+        <h3 class="bento-title">Müfredat ve Materyaller</h3>
+        <p class="bento-desc mb-4">Eğitiminize ait video, sunum (PDF) veya okuma metinlerini buradan sırasıyla ekleyebilirsiniz.</p>
+        
+        <div class="add-lesson-box">
+          <div class="form-row">
+            <div class="form-group flex-2">
+              <label>İçerik Başlığı</label>
+              <input class="custom-input" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" placeholder="Örn: 1. Hafta Sunumu" />
+            </div>
+            <div class="form-group flex-1">
+              <label>Bölüm Adı</label>
+              <input class="custom-input" [ngModel]="newSection()" (ngModelChange)="newSection.set($event)" placeholder="Örn: Giriş" />
+            </div>
+            <div class="form-group flex-1">
+              <label>İçerik Tipi</label>
+              <div class="select-wrapper">
+                <select class="custom-select" [ngModel]="newContentType()" (ngModelChange)="newContentType.set($event)">
+                  @for (type of contentTypes; track type.value) {
+                    <option [value]="type.value">{{ type.label }}</option>
+                  }
+                </select>
+                <mat-icon class="select-icon">expand_more</mat-icon>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Açıklama <span class="optional-label">(Opsiyonel)</span></label>
+            <textarea class="custom-textarea" [ngModel]="newDescription()" (ngModelChange)="newDescription.set($event)" rows="2" placeholder="Bu içeriğin ne anlattığını kısaca özetleyin..."></textarea>
+          </div>
+
+          <div class="dynamic-content-area">
+            @switch (newContentType()) {
+              @case ('Video') {
+                <div class="form-row">
+                  <div class="form-group flex-2">
+                    <label>Video Linki (URL)</label>
+                    <input class="custom-input" [ngModel]="newContentUrl()" (ngModelChange)="newContentUrl.set($event)" placeholder="https://youtube.com/..." />
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Süre (Dk)</label>
+                    <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
+                  </div>
+                </div>
+              }
+              @case ('Document') {
+                <div class="form-row items-center">
+                  <div class="form-group flex-2">
+                    <label>Döküman (PDF / Sunum)</label>
+                    <div class="document-upload" [class.has-file]="newContentUrl()" (click)="docInput.click()">
+                      <mat-icon>upload_file</mat-icon>
+                      <span>{{ newContentUrl() ? 'Belge Seçildi: ' + newContentUrl() : 'PDF veya Sunum Yükle' }}</span>
+                      <input #docInput type="file" accept=".pdf,.ppt,.pptx" (change)="onMaterialFileSelected($event)" style="display:none;" />
+                    </div>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Tahmini Süre</label>
+                    <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
+                  </div>
+                </div>
+              }
+              @case ('Text') {
+                <div class="form-group">
+                  <label>Metin İçeriği</label>
+                  <textarea class="custom-textarea" [ngModel]="newTextContent()" (ngModelChange)="newTextContent.set($event)" rows="4" placeholder="Okuma içeriği..."></textarea>
+                </div>
+                <div class="form-group max-w-xs">
+                  <label>Tahmini Okuma Süresi (Dk)</label>
+                  <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
+                </div>
+              }
+            }
+          </div>
+
+          <div class="action-right mt-4">
+            <button class="custom-btn-outline" (click)="addDraftLesson()">
+              <mat-icon>add</mat-icon> Materyal Ekle
+            </button>
+          </div>
+        </div>
+
+        @if (draftLessons().length === 0) {
+          <div class="empty-state-box mt-4">
+            <mat-icon>inventory_2</mat-icon>
+            <p>Eğitime henüz bir materyal eklemediniz.</p>
+          </div>
+        } @else {
+          <p class="reorder-hint mt-4"><mat-icon>swipe_vertical</mat-icon> Sıralamak için sürükle, önizlemek için içeriğe tıkla.</p>
+          <div class="draft-list" cdkDropList (cdkDropListDropped)="dropDraftLesson($event)">
+            @for (lesson of draftLessons(); track $index; let i = $index) {
+              <div class="draft-item-wrap" cdkDrag>
+                <div class="drag-placeholder" *cdkDragPlaceholder></div>
+                <div class="draft-item" [class.open]="previewIndex() === i">
+                  <mat-icon class="drag-handle" cdkDragHandle>drag_indicator</mat-icon>
+                  <span class="order">{{ i + 1 }}</span>
+                  <div class="icon-box" [class.video]="lesson.contentType === 'Video'" [class.doc]="lesson.contentType === 'Document'" [class.txt]="lesson.contentType === 'Text'">
+                    <mat-icon>{{ lesson.contentType === 'Video' ? 'play_circle' : lesson.contentType === 'Document' ? 'picture_as_pdf' : 'article' }}</mat-icon>
+                  </div>
+                  <div class="info-box" (click)="togglePreview(i)">
+                    <strong>{{ lesson.title }}</strong>
+                    <span>{{ lesson.section }} @if (lesson.durationMin) { · {{ lesson.durationMin }} dk }</span>
+                  </div>
+                  <button class="preview-btn" (click)="togglePreview(i)" [attr.aria-label]="'Önizle'">
+                    <mat-icon>{{ previewIndex() === i ? 'expand_less' : 'visibility' }}</mat-icon>
+                  </button>
+                  <button class="delete-btn" (click)="removeDraftLesson(i)"><mat-icon>delete</mat-icon></button>
+                </div>
+
+                @if (previewIndex() === i) {
+                  <div class="lesson-preview">
+                    @switch (lesson.contentType) {
+                      @case ('Video') {
+                        @if (videoEmbedUrl(lesson.contentUrl); as safe) {
+                          <div class="video-frame">
+                            <iframe [src]="safe" allowfullscreen></iframe>
+                          </div>
+                        } @else {
+                          <a [href]="lesson.contentUrl" target="_blank" rel="noopener" class="ext-link">
+                            <mat-icon>open_in_new</mat-icon> {{ lesson.contentUrl }}
+                          </a>
+                        }
+                      }
+                      @case ('Document') {
+                        <div class="doc-chip">
+                          <mat-icon>picture_as_pdf</mat-icon> <span>{{ lesson.contentUrl }}</span>
+                        </div>
+                      }
+                      @case ('Text') {
+                        <div class="text-block">{{ lesson.textContent }}</div>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-footer">
+      <button class="custom-btn-outline" (click)="prevStep()">Geri</button>
+      <button class="custom-btn-primary" (click)="nextStep()" [disabled]="draftLessons().length === 0">
+        Önizleme & Yayınla <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  }
+
+  <!-- ADIM 3: Önizleme (öğrenci "eğitime devam et" player'ı tarzında) -->
+  @if (currentStep() === 3) {
+    <div class="bento-single-col preview-layout">
+      <!-- Başlık şeridi -->
+      <div class="preview-topbar">
+        <div class="pt-pills">
+          <span class="pill primary-pill">{{ infoForm.value.category || 'Kategori' }}</span>
+          <span class="pill dark-pill">{{ infoForm.value.level }}</span>
+        </div>
+        <h2>{{ infoForm.value.title || '(Başlık girilmedi)' }}</h2>
+        <p class="pt-meta">
+          <span><mat-icon>person</mat-icon> {{ instructorName() }}</span>
+          <span><mat-icon>menu_book</mat-icon> {{ draftLessons().length }} içerik</span>
+          @if (totalDuration() > 0) {
+            <span><mat-icon>schedule</mat-icon> {{ totalDuration() }} dk</span>
+          }
+        </p>
+      </div>
+
+      <div class="player-grid">
+        <!-- Sol: oynatıcı sahnesi -->
+        <div class="player-main">
+          <div class="player-stage" [style.background-image]="coverImagePreview() ? 'url(' + coverImagePreview() + ')' : null">
+            @if (activePreview(); as lesson) {
+              @switch (lesson.contentType) {
+                @case ('Video') {
+                  @if (videoEmbedUrl(lesson.contentUrl); as safe) {
+                    <iframe class="stage-frame" [src]="safe" allowfullscreen></iframe>
+                  } @else {
+                    <div class="stage-placeholder">
+                      <mat-icon class="stage-icon">play_circle</mat-icon>
+                      <p>{{ lesson.title }}</p>
+                      <span>Video (harici bağlantı)</span>
+                    </div>
+                  }
+                }
+                @case ('Document') {
+                  <div class="stage-placeholder">
+                    <mat-icon class="stage-icon">picture_as_pdf</mat-icon>
+                    <p>{{ lesson.title }}</p>
+                    <span>{{ lesson.contentUrl || 'Döküman' }}</span>
+                  </div>
+                }
+                @case ('Text') {
+                  <div class="stage-placeholder">
+                    <mat-icon class="stage-icon">article</mat-icon>
+                    <p>{{ lesson.title }}</p>
+                    <span>Okuma metni</span>
+                  </div>
+                }
+              }
+            } @else {
+              <div class="stage-placeholder">
+                <mat-icon class="stage-icon">play_circle</mat-icon>
+                <p>İçerik seçin</p>
+              </div>
+            }
+          </div>
+
+          @if (activePreview(); as lesson) {
+            <div class="active-strip">
+              <div class="active-meta">
+                <strong>{{ lesson.title }}</strong>
+                <span>{{ lesson.section }} @if (lesson.durationMin) { · {{ lesson.durationMin }} dk }</span>
+              </div>
+              <span class="type-tag">{{ lesson.contentType === 'Video' ? 'Video' : lesson.contentType === 'Document' ? 'Döküman' : 'Metin' }}</span>
+            </div>
+          }
+
+          <div class="overview-card">
+            <h3>Genel Bakış</h3>
+            <p>{{ infoForm.value.description }}</p>
+          </div>
+        </div>
+
+        <!-- Sağ: kurs içeriği paneli -->
+        <aside class="content-panel">
+          <h3>Kurs İçeriği</h3>
+          @for (group of draftSections(); track group.section) {
+            <div class="cp-section">
+              <div class="cp-section-title">{{ group.section }}</div>
+              @for (row of group.items; track row.index) {
+                <div class="cp-item" [class.active]="activePreview() === row.lesson" (click)="previewIndex.set(row.index)">
+                  <mat-icon class="cp-icon"
+                    [class.video]="row.lesson.contentType === 'Video'"
+                    [class.doc]="row.lesson.contentType === 'Document'"
+                    [class.txt]="row.lesson.contentType === 'Text'">
+                    {{ row.lesson.contentType === 'Video' ? 'play_circle' : row.lesson.contentType === 'Document' ? 'description' : 'article' }}
+                  </mat-icon>
+                  <span class="cp-title">{{ row.lesson.title }}</span>
+                  @if (row.lesson.durationMin) {
+                    <span class="cp-dur">{{ row.lesson.durationMin }} dk</span>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </aside>
+      </div>
+
+      <!-- Yayınlama seçenekleri -->
+      <div class="publish-box">
+        <h3><mat-icon>rocket_launch</mat-icon> Yayınlama</h3>
+        <p>Eğitimi hemen yayınlayabilir, ileri bir tarihe zamanlayabilir ya da taslak olarak saklayıp Eğitimlerim'den sonra yayınlayabilirsin.</p>
+        <div class="form-group max-w-xs">
+          <label>Yayın Tarihi (opsiyonel)</label>
+          <input type="date" class="custom-input" [min]="todayStr" [ngModel]="publishDate()" (ngModelChange)="publishDate.set($event)" />
+          @if (isFutureDate()) {
+            <span class="schedule-hint"><mat-icon>event_available</mat-icon> Eğitim {{ publishDate() }} tarihinde otomatik yayınlanacak.</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="action-footer">
+      <button class="custom-btn-outline" (click)="prevStep()" [disabled]="saving()">Geri</button>
+      <button class="custom-btn-outline" (click)="saveDraft()" [disabled]="saving()">
+        <mat-icon>save</mat-icon> Taslak Kaydet
+      </button>
+      <button class="custom-btn-publish" (click)="publish()" [disabled]="saving()">
+        <mat-icon>{{ isFutureDate() ? 'schedule_send' : 'publish' }}</mat-icon>
+        {{ isFutureDate() ? 'Zamanla' : 'Yayınla' }}
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,138 @@
+<div class="page">
+  <div class="page-header">
+    <div>
+      <h1>Eğitim Yönetimi</h1>
+      <p class="subtitle">Platformdaki tüm eğitimleri görüntüleyin ve yönetin.</p>
+    </div>
+    <button mat-flat-button color="primary" routerLink="/instructor/courses/new">
+      <mat-icon>add</mat-icon>
+      Yeni Eğitim
+    </button>
+  </div>
+
+  <!-- Filtre barı -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="Eğitim ara..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </div>
+    <div class="filter-controls">
+      <select [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event || null)">
+        <option value="">Tüm Kategoriler</option>
+        @for (cat of mock.categories(); track cat) {
+          <option [value]="cat">{{ cat }}</option>
+        }
+      </select>
+      <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="all">Tüm Durumlar</option>
+        <option value="active">Aktif</option>
+        <option value="passive">Pasif</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Masaüstü: tablo görünümü -->
+  <div class="table-container">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Eğitim</th>
+            <th>Eğitmen</th>
+            <th>Kategori</th>
+            <th class="text-center">Öğrenci</th>
+            <th class="text-center">Durum</th>
+            <th class="text-right">İşlem</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (course of filteredCourses(); track course.id) {
+            <tr>
+              <td>
+                <div class="course-cell">
+                  <div class="course-thumb" [style.background]="course.cover">
+                    <mat-icon>school</mat-icon>
+                  </div>
+                  <div>
+                    <p class="course-title">{{ course.title }}</p>
+                    <p class="course-meta">
+                      <mat-icon>schedule</mat-icon> {{ course.durationHours }} saat
+                    </p>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="instructor-cell">
+                  <div class="mini-avatar">{{ course.instructorName[0] }}</div>
+                  <span>{{ course.instructorName }}</span>
+                </div>
+              </td>
+              <td>
+                <span class="category-badge">{{ course.category }}</span>
+              </td>
+              <td class="text-center">
+                <span class="student-count">{{ course.students }}</span>
+              </td>
+              <td class="text-center">
+                <mat-slide-toggle
+                  [checked]="course.isActive"
+                  (change)="toggleStatus(course.id)"
+                ></mat-slide-toggle>
+                <span class="toggle-label">{{ course.isActive ? 'Aktif' : 'Pasif' }}</span>
+              </td>
+              <td class="text-right">
+                <button class="detail-btn">Detay</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Sayfalama bilgisi -->
+    <div class="table-footer">
+      <p>
+        Toplam <strong>{{ filteredCourses().length }}</strong> eğitim gösteriliyor
+      </p>
+    </div>
+  </div>
+
+  <!-- Mobil: kart görünümü -->
+  <div class="card-list">
+    @for (course of filteredCourses(); track course.id) {
+      <div class="course-card-mobile">
+        <div class="card-top">
+          <div class="course-cell">
+            <div class="course-thumb" [style.background]="course.cover">
+              <mat-icon>school</mat-icon>
+            </div>
+            <div>
+              <p class="course-title">{{ course.title }}</p>
+              <p class="course-meta">{{ course.instructorName }}</p>
+            </div>
+          </div>
+          <mat-slide-toggle
+            [checked]="course.isActive"
+            (change)="toggleStatus(course.id)"
+          ></mat-slide-toggle>
+        </div>
+        <div class="card-bottom">
+          <span class="category-badge">{{ course.category }}</span>
+          <span class="course-meta"><mat-icon>group</mat-icon> {{ course.students }} öğrenci</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (filteredCourses().length === 0) {
+    <div class="empty">
+      <mat-icon>search_off</mat-icon>
+      <p>Bu filtrelere uygun eğitim bulunamadı.</p>
+    </div>
+  }
+</div>
