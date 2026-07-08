@@ -24,19 +24,6 @@ export interface MockCourse {
   publishDate?: string; // ISO tarih — zamanlanmış yayın için
 }
 
-export interface MockLesson {
-  id: number;
-  courseId: number;
-  section: string;
-  title: string;
-  description?: string; // Opsiyonel ders açıklaması
-  durationMin: number;
-  // Materyal tipi ve içeriği (opsiyonel — seed derslerde yok, oluşturulanlarda dolu)
-  contentType?: 'Video' | 'Document' | 'Text';
-  contentUrl?: string;
-  textContent?: string;
-}
-
 export interface MockTransaction {
   date: string;
   description: string;

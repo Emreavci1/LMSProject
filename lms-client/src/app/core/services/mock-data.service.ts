@@ -1,8 +1,7 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import {
   MockActivity,
   MockCourse,
-  MockLesson,
   MockScheduleEvent,
   MockStudentProgress,
   MockTransaction,
@@ -14,8 +13,8 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MockDataService {
   // --- Kurslar ---
-  // GEÇİCİ: 3 göstermelik demo kurs. Gerçek kurslar backend API'den gelir
-  // (Keşfet sayfası ikisini birleştirir); backend tamamlanınca bunlar silinecek.
+  // GEÇİCİ: Admin panelindeki "Tüm Kurslar" / "Kategoriler" / "Genel Bakış" sayfaları
+  // henüz backend'e bağlanmadığı için bu göstermelik veriyi kullanır.
   readonly courses = signal<MockCourse[]>([
     { id: 1, title: 'Temel Bilgisayar Kullanımı', description: 'Bilgisayara yeni başlayanlar için dosya yönetimi, internet ve ofis programlarına giriş.', category: 'Teknoloji', level: 'Başlangıç', durationHours: 8, lessonCount: 6, instructorName: 'Eğitmen Bir', students: 42, rating: 4.6, isActive: true, status: 'Published', cover: 'linear-gradient(135deg, #0284C7, #0F172A)' },
     { id: 2, title: 'Çocuklarda Beslenme ve Sağlık', description: 'Tedavi sürecindeki çocuklar için doğru beslenme ilkeleri ve pratik öneriler.', category: 'Sağlık', level: 'Başlangıç', durationHours: 6, lessonCount: 5, instructorName: 'Eğitmen İki', students: 87, rating: 4.9, isActive: true, status: 'Published', cover: 'linear-gradient(135deg, #16A34A, #0F172A)' },
@@ -23,95 +22,6 @@ export class MockDataService {
   ]);
 
   readonly categories = signal<string[]>(['Genel', 'Sağlık', 'Teknoloji', 'Kişisel Gelişim', 'Sanat']);
-
-  // --- Dersler (kurs başına bölümlere ayrılmış) ---
-  readonly lessons = signal<MockLesson[]>([
-    // Kurs 1
-    { id: 101, courseId: 1, section: 'Giriş', title: 'Bilgisayarı Tanıyalım', durationMin: 18 },
-    { id: 102, courseId: 1, section: 'Giriş', title: 'Klavye ve Fare Kullanımı', durationMin: 22 },
-    { id: 103, courseId: 1, section: 'Temeller', title: 'Dosya ve Klasör Yönetimi', durationMin: 25 },
-    { id: 104, courseId: 1, section: 'Temeller', title: 'İnternette Güvenli Gezinme', durationMin: 30 },
-    { id: 105, courseId: 1, section: 'Uygulama', title: 'Word ile İlk Belgem', durationMin: 28 },
-    { id: 106, courseId: 1, section: 'Uygulama', title: 'E-posta Kullanımı', durationMin: 20 },
-    // Kurs 2
-    { id: 201, courseId: 2, section: 'Temel Bilgiler', title: 'Beslenmenin Önemi', durationMin: 15 },
-    { id: 202, courseId: 2, section: 'Temel Bilgiler', title: 'Besin Grupları', durationMin: 20 },
-    { id: 203, courseId: 2, section: 'Uygulama', title: 'Günlük Menü Planlama', durationMin: 25 },
-    { id: 204, courseId: 2, section: 'Uygulama', title: 'Tedavi Sürecinde Beslenme', durationMin: 30 },
-    { id: 205, courseId: 2, section: 'Uygulama', title: 'Sık Yapılan Hatalar', durationMin: 18 },
-    // Kurs 3
-    { id: 301, courseId: 3, section: 'Kavramlar', title: 'İletişim Nedir?', durationMin: 15 },
-    { id: 302, courseId: 3, section: 'Kavramlar', title: 'Empati ve Aktif Dinleme', durationMin: 25 },
-    { id: 303, courseId: 3, section: 'Teknikler', title: 'Beden Dili', durationMin: 20 },
-    { id: 304, courseId: 3, section: 'Teknikler', title: 'Zor Konuşmalar', durationMin: 30 },
-    { id: 305, courseId: 3, section: 'Teknikler', title: 'Geri Bildirim Verme', durationMin: 22 },
-    { id: 306, courseId: 3, section: 'Uygulama', title: 'Hasta Aileleriyle İletişim', durationMin: 35 },
-    { id: 307, courseId: 3, section: 'Uygulama', title: 'Vaka Çalışmaları', durationMin: 40 },
-    { id: 308, courseId: 3, section: 'Uygulama', title: 'Değerlendirme', durationMin: 15 },
-  ]);
-
-  // --- Eğitmenin oluşturduğu GERÇEK kursların dersleri ---
-  // Backend'de ders modülü yok (spec gereği). Seed demo derslerinden (yukarıdaki `lessons`)
-  // AYRI tutulur ki gerçek kurs id'leri (1,2,3...) seed courseId'leriyle ÇAKIŞMASIN.
-  // localStorage'a yazılır ki sayfa yenilense de eklenen dersler kaybolmasın.
-  private readonly MANAGED_KEY = 'lms_managed_lessons';
-  readonly managedLessons = signal<MockLesson[]>(this.loadManaged());
-
-  constructor() {
-    // managedLessons her değiştiğinde localStorage'a kaydet
-    effect(() => this.saveManaged(this.managedLessons()));
-    // tamamlanan dersler de kalıcı olsun
-    effect(() => {
-      try {
-        localStorage.setItem(this.COMPLETED_KEY, JSON.stringify([...this.completedLessonIds()]));
-      } catch {
-        /* localStorage yoksa sessizce geç */
-      }
-    });
-  }
-
-  private loadManaged(): MockLesson[] {
-    try {
-      const raw = localStorage.getItem(this.MANAGED_KEY);
-      return raw ? (JSON.parse(raw) as MockLesson[]) : [];
-    } catch {
-      return [];
-    }
-  }
-
-  private saveManaged(list: MockLesson[]): void {
-    try {
-      localStorage.setItem(this.MANAGED_KEY, JSON.stringify(list));
-    } catch {
-      /* localStorage yoksa sessizce geç */
-    }
-  }
-
-  // Gerçek bir kursa ait dersler (Yönet sayfası bunu kullanır)
-  managedLessonsOf(courseId: number): MockLesson[] {
-    return this.managedLessons().filter((l) => l.courseId === courseId);
-  }
-
-  // Kurs silinince derslerini de temizle
-  removeManagedLessonsOf(courseId: number): void {
-    this.managedLessons.update((list) => list.filter((l) => l.courseId !== courseId));
-  }
-
-  // --- Öğrencinin katılım/ilerleme durumu ---
-  // Demo katılımlar oturum içidir; tamamlanan dersler localStorage'da kalıcıdır
-  // (gerçek kursların ilerlemesi sayfa yenilenince kaybolmasın diye).
-  private readonly COMPLETED_KEY = 'lms_completed_lessons';
-  readonly enrolledCourseIds = signal<Set<number>>(new Set([1, 3]));
-  readonly completedLessonIds = signal<Set<number>>(this.loadCompleted());
-
-  private loadCompleted(): Set<number> {
-    try {
-      const raw = localStorage.getItem(this.COMPLETED_KEY);
-      return raw ? new Set(JSON.parse(raw) as number[]) : new Set([101, 102, 103, 301]);
-    } catch {
-      return new Set([101, 102, 103, 301]);
-    }
-  }
 
   // --- Bakiye ---
   readonly balance = signal(250);
@@ -154,49 +64,7 @@ export class MockDataService {
     { fullName: 'Fatma Şahin', email: 'fatma@losev.org.tr', progress: 67, enrollDate: '2026-05-18' },
   ]);
 
-  // --- Türetilmiş değerler ---
-  readonly enrolledCourses = computed(() =>
-    this.courses().filter((c) => this.enrolledCourseIds().has(c.id))
-  );
-
   // --- İşlemler ---
-  enroll(courseId: number): void {
-    const next = new Set(this.enrolledCourseIds());
-    next.add(courseId);
-    this.enrolledCourseIds.set(next);
-  }
-
-  isEnrolled(courseId: number): boolean {
-    return this.enrolledCourseIds().has(courseId);
-  }
-
-  toggleLessonCompleted(lessonId: number): void {
-    const next = new Set(this.completedLessonIds());
-    if (next.has(lessonId)) next.delete(lessonId);
-    else next.add(lessonId);
-    this.completedLessonIds.set(next);
-  }
-
-  lessonsOf(courseId: number): MockLesson[] {
-    return this.lessons().filter((l) => l.courseId === courseId);
-  }
-
-  // Demo kurs ilerlemesi: tamamlanan ders / toplam ders (yüzde)
-  progressOf(courseId: number): number {
-    return this.progressOfLessons(this.lessonsOf(courseId));
-  }
-
-  // Gerçek kurs ilerlemesi: dersler managed depodan gelir
-  managedProgressOf(courseId: number): number {
-    return this.progressOfLessons(this.managedLessonsOf(courseId));
-  }
-
-  private progressOfLessons(lessons: MockLesson[]): number {
-    if (lessons.length === 0) return 0;
-    const done = lessons.filter((l) => this.completedLessonIds().has(l.id)).length;
-    return Math.round((done / lessons.length) * 100);
-  }
-
   addCourse(course: Omit<MockCourse, 'id' | 'students' | 'rating' | 'isActive'>): MockCourse {
     const newCourse: MockCourse = {
       ...course,

@@ -2,9 +2,14 @@
   @if (course(); as c) {
     <!-- Üst bar: geri + başlık + ilerleme -->
     <div class="top-bar">
-      <a mat-button routerLink="/my-courses">
+      <a mat-button [routerLink]="backLink()">
         <mat-icon>arrow_back</mat-icon> Eğitimlerim
       </a>
+      @if (isPreview()) {
+        <span class="preview-tag">
+          <mat-icon>visibility</mat-icon> Önizleme — katılımcı görünümü
+        </span>
+      }
       <h1>{{ c.title }}</h1>
       <div class="progress-wrap">
         <mat-progress-bar mode="determinate" [value]="progress()" />
@@ -70,8 +75,8 @@
         <div class="lesson-actions">
           <div class="active-lesson-info">
             <strong>{{ activeLesson()?.title }}</strong>
-            @if (activeLesson()?.durationMin) {
-              <span>{{ activeLesson()?.durationMin }} dk</span>
+            @if (activeLesson()?.durationMin; as dm) {
+              <span>{{ dm }} dk</span>
             }
           </div>
           <div class="nav-buttons">
@@ -103,11 +108,21 @@
                 <hr class="divider" />
               }
               <p>{{ c.description }}</p>
-              <p class="muted">{{ c.lessonCount }} ders · {{ c.durationHours }} saat · {{ c.level }} seviyesi · Eğitmen: {{ c.instructorName }}</p>
+              <p class="muted">{{ lessons().length }} ders · {{ courseDurationLabel() }} · {{ c.level }} seviyesi · Eğitmen: {{ c.instructorName }}</p>
             </div>
           </mat-tab>
           <mat-tab label="Notlar">
-            <div class="tab-content muted">Not alma özelliği yakında eklenecek.</div>
+            @if (activeLesson()?.notes) {
+              <div class="tab-content">
+                <div class="notes-header">
+                  <mat-icon>sticky_note_2</mat-icon>
+                  <strong>Eğitmenin ders notları</strong>
+                </div>
+                <p class="notes-body">{{ activeLesson()?.notes }}</p>
+              </div>
+            } @else {
+              <div class="tab-content muted">Bu ders için eğitmen notu bulunmuyor.</div>
+            }
           </mat-tab>
           <mat-tab label="Duyurular">
             <div class="tab-content muted">Bu kurs için duyuru bulunmuyor.</div>
@@ -149,7 +164,7 @@
   } @else if (!loading()) {
     <div class="empty">
       <p>Kurs bulunamadı.</p>
-      <a mat-flat-button color="primary" routerLink="/my-courses">Eğitimlerim</a>
+      <a mat-flat-button color="primary" [routerLink]="backLink()">Eğitimlerim</a>
     </div>
   }
 </div>

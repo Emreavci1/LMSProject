@@ -30,7 +30,7 @@
         }
         <p class="muted">{{ c.category || 'Kategori yok' }} · {{ c.level || '—' }}</p>
         <div class="header-stats">
-          <span><mat-icon>group</mat-icon> {{ mock.courseStudents().length }} öğrenci</span>
+          <span><mat-icon>group</mat-icon> {{ attendees().length }} öğrenci</span>
           <span><mat-icon>trending_up</mat-icon> %{{ completionRate() }} ort. tamamlama</span>
           <span><mat-icon>menu_book</mat-icon> {{ lessons().length }} ders</span>
         </div>
@@ -123,6 +123,12 @@
                 }
               </div>
 
+              <!-- Ders notları: oynatıcıdaki "Notlar" sekmesinde öğrenciye gösterilir -->
+              <div class="form-group">
+                <label>Ders Notları <span class="optional-label">(Opsiyonel)</span></label>
+                <textarea class="custom-textarea" [ngModel]="newLessonNotes()" (ngModelChange)="newLessonNotes.set($event)" rows="3" placeholder="Öğrencinin ders sırasında görebileceği notlar (kaynaklar, ipuçları, hatırlatmalar)..."></textarea>
+              </div>
+
               <div class="action-right mt-3">
                 <button class="custom-btn-primary" (click)="addLesson()">
                   <mat-icon>add</mat-icon> Ders Ekle
@@ -211,24 +217,28 @@
         </div>
       </mat-tab>
 
-      <!-- ÖĞRENCİLER sekmesi -->
+      <!-- ÖĞRENCİLER sekmesi (gerçek katılımlar + ilerleme) -->
       <mat-tab label="Öğrenciler">
         <div class="tab-content">
-          <div class="student-list">
-            @for (student of mock.courseStudents(); track student.email) {
-              <div class="student-row">
-                <div class="mini-avatar">{{ student.fullName[0] }}</div>
-                <div class="student-info">
-                  <strong>{{ student.fullName }}</strong>
-                  <span>{{ student.email }} · Kayıt: {{ student.enrollDate | date: 'dd.MM.yyyy' }}</span>
+          @if (attendees().length === 0) {
+            <p class="empty-text">Bu eğitime henüz katılan yok.</p>
+          } @else {
+            <div class="student-list">
+              @for (student of attendees(); track student.userId) {
+                <div class="student-row">
+                  <div class="mini-avatar">{{ student.fullName[0] }}</div>
+                  <div class="student-info">
+                    <strong>{{ student.fullName }}</strong>
+                    <span>{{ student.email }} · Kayıt: {{ student.enrollDate | date: 'dd.MM.yyyy' }}</span>
+                  </div>
+                  <div class="student-progress">
+                    <mat-progress-bar mode="determinate" [value]="student.progress" />
+                    <span>%{{ student.progress }}</span>
+                  </div>
                 </div>
-                <div class="student-progress">
-                  <mat-progress-bar mode="determinate" [value]="student.progress" />
-                  <span>%{{ student.progress }}</span>
-                </div>
-              </div>
-            }
-          </div>
+              }
+            </div>
+          }
         </div>
       </mat-tab>
 

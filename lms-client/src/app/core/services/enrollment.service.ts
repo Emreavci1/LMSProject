@@ -18,4 +18,9 @@ export class EnrollmentService {
   getMyEnrollments(): Observable<Enrollment[]> {
     return this.http.get<Enrollment[]>(`${this.base}/my`);
   }
+
+  // Kayıtlı kurstan ayrıl
+  unenroll(courseId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${courseId}`);
+  }
 }

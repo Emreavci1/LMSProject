@@ -23,24 +23,79 @@
       </div>
     }
     @case ('Instructor') {
-      <div class="role-dashboard">
-        <h1>Hoş geldin, {{ auth.currentUser()?.fullName }} 👋</h1>
-        <p class="subtitle">Eğitmen panelindesin.</p>
-        <div class="card-grid">
-          <mat-card class="link-card" routerLink="/instructor/courses">
-            <mat-card-content>
-              <mat-icon class="card-icon">school</mat-icon>
-              <h2>Kurslar</h2>
-              <p>Kurslarını görüntüle ve yönet.</p>
-            </mat-card-content>
-          </mat-card>
-          <mat-card class="link-card" routerLink="/instructor/courses/new">
-            <mat-card-content>
-              <mat-icon class="card-icon">add_circle</mat-icon>
-              <h2>Yeni Kurs</h2>
-              <p>Yeni bir eğitim oluştur.</p>
-            </mat-card-content>
-          </mat-card>
+      <!-- Öğrenci ana sayfasıyla aynı stil altyapısını kullanır (student-dashboard sınıfı) -->
+      <div class="student-dashboard instructor-dashboard">
+        <!-- Welcome Banner -->
+        <div class="welcome-banner glass-card">
+          <div class="banner-bg"></div>
+          <div class="banner-content">
+            <h1 class="text-primary">Hoş geldin, {{ auth.currentUser()?.fullName?.split(' ')?.[0] }}! 👋</h1>
+            <p>Eğitimlerini buradan takip edebilir, yeni eğitimler açabilirsin.</p>
+            <a class="btn btn-primary banner-cta" routerLink="/instructor/courses/new">
+              <mat-icon>add</mat-icon> Yeni Eğitim Aç
+            </a>
+          </div>
+        </div>
+
+        <!-- Quick Stats (gerçek veriler) -->
+        <div class="quick-stats">
+          <div class="glass-card stat-tile text-center">
+            <mat-icon class="text-primary">group</mat-icon>
+            <span class="value text-on-surface">{{ totalStudents() }}</span>
+            <span class="label">Toplam Katılımcı</span>
+          </div>
+          <div class="glass-card stat-tile text-center">
+            <mat-icon class="text-primary">menu_book</mat-icon>
+            <span class="value text-on-surface">{{ totalLessons() }}</span>
+            <span class="label">Toplam Ders</span>
+          </div>
+          <div class="glass-card stat-tile text-center">
+            <mat-icon class="text-primary">schedule</mat-icon>
+            <span class="value text-on-surface">{{ totalContentLabel() }}</span>
+            <span class="label">Toplam İçerik Süresi</span>
+          </div>
+        </div>
+
+        <!-- Açılan eğitimler -->
+        <div class="glass-card my-courses-panel">
+          <div class="panel-header">
+            <h2>Açtığın Eğitimler</h2>
+            <a class="see-all" routerLink="/instructor/courses">Tümünü Yönet →</a>
+          </div>
+
+          @if (myCourses().length === 0) {
+            <div class="empty-state">
+              <mat-icon>school</mat-icon>
+              <p>Henüz bir eğitim açmadın. İlk eğitimini oluşturarak başla!</p>
+              <a class="btn btn-primary" routerLink="/instructor/courses/new">Eğitim Aç</a>
+            </div>
+          } @else {
+            <div class="course-mini-grid">
+              @for (course of myCourses(); track course.id) {
+                <a class="course-mini-card" [routerLink]="['/instructor/courses', course.id]">
+                  <div class="mini-cover" [style.background-image]="courseCover(course)">
+                    <span class="mini-badge"
+                      [class.published]="course.status === 'Published'"
+                      [class.draft]="course.status === 'Draft'"
+                      [class.scheduled]="course.status === 'Scheduled'">
+                      @switch (course.status) {
+                        @case ('Published') { Yayında }
+                        @case ('Scheduled') { Zamanlanmış }
+                        @default { Taslak }
+                      }
+                    </span>
+                  </div>
+                  <div class="mini-info">
+                    <h3>{{ course.title }}</h3>
+                    <p class="mini-meta">
+                      <span><mat-icon>group</mat-icon> {{ course.studentCount }} katılımcı</span>
+                      <span><mat-icon>menu_book</mat-icon> {{ course.lessonCount }} ders</span>
+                    </p>
+                  </div>
+                </a>
+              }
+            </div>
+          }
         </div>
       </div>
     }
@@ -61,96 +116,84 @@
         <div class="dashboard-grid">
           <!-- Left Column -->
           <div class="main-column">
-            <!-- Quick Stats -->
+            <!-- Quick Stats (gerçek veriler) -->
             <div class="quick-stats">
               <div class="glass-card stat-tile text-center">
                 <mat-icon class="text-primary">task_alt</mat-icon>
-                <span class="value text-on-surface">12</span>
+                <span class="value text-on-surface">{{ completedCount() }}</span>
                 <span class="label">Tamamlanan Kurs</span>
               </div>
               <div class="glass-card stat-tile text-center">
-                <mat-icon class="text-primary">schedule</mat-icon>
-                <span class="value text-on-surface">48s</span>
-                <span class="label">Öğrenme Süresi</span>
+                <mat-icon class="text-primary">school</mat-icon>
+                <span class="value text-on-surface">{{ enrolledCount() }}</span>
+                <span class="label">Katılınan Kurs</span>
               </div>
               <div class="glass-card stat-tile text-center">
-                <mat-icon class="text-tertiary">workspace_premium</mat-icon>
-                <span class="value text-on-surface">5</span>
-                <span class="label">Kazanılan Rozet</span>
+                <mat-icon class="text-primary">schedule</mat-icon>
+                <span class="value text-on-surface">{{ learningLabel() }}</span>
+                <span class="label">Öğrenme Süresi</span>
               </div>
             </div>
 
-            <!-- Continue Learning -->
+            <!-- Continue Learning: yarım kalan son kurs (varsa) -->
             <div class="glass-card continue-learning">
               <h2>Öğrenmeye Devam Et</h2>
-              <div class="continue-content">
-                <div class="thumbnail">
-                  <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJzCVK-DXtJYt5FMmxy0LMy5DTxZPZxYW_NCDh1Fep0f1kNAJWcgoGH2jtLAuOLnJPRzSUfa0CnqK9BG-1aWByVYlm5eEOi2VdROPWfIMb73NuTH8toJcLFBaqPssAk23pJpw7sYgmlfhHGZFkgupMMhAvxtHPV6Bd85kBn47a00c3e9MntINUaSc4Ju5S1WzqoBpUHX4Jx8Qx_b7FFj1Ce70tvWVEP1esAKjDzXJ3koE_IAn4BqARcg" alt="Video thumbnail">
-                  <div class="play-overlay">
-                    <button class="play-btn">
-                      <mat-icon class="text-primary">play_arrow</mat-icon>
-                    </button>
-                  </div>
-                </div>
-                <div class="details">
-                  <div class="course-meta">
-                    <span class="module-tag bg-surface-high text-primary">Modül 3</span>
-                    <h3>İletişim Becerileri ve Empati</h3>
-                    <p class="course-name">Gönüllü Eğitim Programı</p>
-                  </div>
-                  <div class="progress-section">
-                    <div class="progress-labels">
-                      <span>İlerleme</span>
-                      <span class="text-primary bold">%65</span>
-                    </div>
-                    <div class="progress-track bg-surface-high">
-                      <div class="progress-fill bg-primary" style="width: 65%"></div>
+              @if (continueCard(); as cc) {
+                <div class="continue-content">
+                  <!-- background-image binding: shorthand (background) inline gelince
+                       stylesheet'teki background-size/position'ı eziyordu (foto kayması) -->
+                  <div class="thumbnail" [style.background-image]="cc.cover">
+                    <div class="play-overlay">
+                      <a class="play-btn" [routerLink]="cc.playerLink" aria-label="Derse devam et">
+                        <mat-icon class="text-primary">play_arrow</mat-icon>
+                      </a>
                     </div>
                   </div>
-                  <button class="btn btn-primary" routerLink="/my-courses">Derse Git</button>
+                  <div class="details">
+                    <div class="course-meta">
+                      <span class="module-tag bg-surface-high text-primary">{{ cc.category }}</span>
+                      <h3>{{ cc.title }}</h3>
+                    </div>
+                    <div class="progress-section">
+                      <div class="progress-labels">
+                        <span>İlerleme</span>
+                        <span class="text-primary bold">%{{ progressOf(cc) }}</span>
+                      </div>
+                      <div class="progress-track bg-surface-high">
+                        <div class="progress-fill bg-primary" [style.width.%]="progressOf(cc)"></div>
+                      </div>
+                    </div>
+                    <a class="btn btn-primary" [routerLink]="cc.playerLink">Derse Devam Et</a>
+                  </div>
                 </div>
-              </div>
+              } @else {
+                <div class="empty-state">
+                  <mat-icon>menu_book</mat-icon>
+                  <p>Şu anda devam eden bir eğitimin yok. Yeni bir eğitime başlamaya ne dersin?</p>
+                  <a class="btn btn-primary" routerLink="/discover">Eğitimleri Keşfet</a>
+                </div>
+              }
             </div>
+
+            <!-- Eğitimlerim sayfasına yönlendiren buton -->
+            <a class="btn btn-primary go-my-courses" routerLink="/my-courses">
+              <mat-icon>school</mat-icon>
+              Eğitimlerime Git
+            </a>
           </div>
 
           <!-- Right Column -->
           <div class="side-column">
-            <!-- Upcoming Webinars -->
+            <!-- Yaklaşan Etkinlikler: özellik henüz yok — boş durum -->
             <div class="glass-card webinars">
               <div class="card-header">
                 <h2>Yaklaşan Etkinlikler</h2>
-                <button class="text-btn text-primary">Tümü</button>
               </div>
-              <div class="webinar-list">
-                <div class="webinar-item hover-surface">
-                  <div class="date-box bg-secondary-container text-on-secondary">
-                    <span class="day">12</span>
-                    <span class="month">Eki</span>
-                  </div>
-                  <div class="info">
-                    <h4>Liderlik Semineri</h4>
-                    <div class="time text-muted">
-                      <mat-icon>schedule</mat-icon>
-                      14:00 - 15:30
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="webinar-item hover-surface">
-                  <div class="date-box bg-secondary-container text-on-secondary">
-                    <span class="day">15</span>
-                    <span class="month">Eki</span>
-                  </div>
-                  <div class="info">
-                    <h4>Proje Yönetimi Temelleri</h4>
-                    <div class="time text-muted">
-                      <mat-icon>videocam</mat-icon>
-                      Online (Zoom)
-                    </div>
-                  </div>
-                </div>
+              <div class="empty-events">
+                <mat-icon>event_busy</mat-icon>
+                <p>Yaklaşan etkinlik bulunmuyor.</p>
+                <span>Planlanan etkinlikler burada görünecek.</span>
               </div>
-              <button class="btn btn-outline full-width mt-24">Takvime Ekle</button>
             </div>
           </div>
         </div>

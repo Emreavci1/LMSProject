@@ -267,11 +267,6 @@ $green-bg: #e8f5e9;
     margin: 0 0 8px;
     cursor: pointer;
     transition: color 0.2s;
-
-    // Demo kartların detay sayfası yok — tıklanabilir görünmesin
-    &.static {
-      cursor: default;
-    }
   }
 }
 

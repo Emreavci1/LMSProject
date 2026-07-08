@@ -2,27 +2,29 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { forkJoin, map, of, switchMap } from 'rxjs';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
+import { LessonService } from '../../../core/services/lesson.service';
+import { ProgressService } from '../../../core/services/progress.service';
 import { coverCss } from '../../../core/utils/cover.util';
+import { formatDuration } from '../../../core/utils/duration.util';
 
-// Kayıtlı kurs kartı: gerçek (API) ve demo (mock) kayıtları tek tipte birleştirir
+// Kayıtlı kurs kartı
 interface EnrolledCard {
-  key: string; // 'real-5' | 'demo-1' — id çakışmasını önler
   id: number;
-  isReal: boolean;
   title: string;
   category: string;
-  durationHours: number;
+  durationMinutes: number; // göstermelik toplam süre (30 dk yuvarlı)
   cover: string; // CSS background değeri
-  progress: number; // 0-100
-  playerLink: string[]; // gerçek: /learn/:id, demo: /learn/demo/:id
+  // İlerleme ve tamamlanan dakika hesabı için (dakika = GERÇEK süre)
+  lessons: { id: number; durationMin: number }[];
+  playerLink: string[]; // /learn/:id
 }
 
-// Öğrenci: Eğitimlerim — kayıtlı olunan kursların listesi ve ilerleme durumu.
-// Gerçek katılımlar backend'den gelir, yanlarında demo kayıtlar gösterilir.
+// Öğrenci: Eğitimlerim — kayıtlı kursların listesi, ilerleme ve öğrenme süresi.
+// İlerleme = tamamlanan ders / toplam ders. Öğrenme süresi = tamamlanan derslerin
+// GERÇEK dakika toplamı (kurs süresi ise göstermelik/yuvarlı).
 @Component({
   selector: 'app-my-courses',
   imports: [MatIconModule, MatButtonModule, RouterLink],
@@ -30,75 +32,79 @@ interface EnrolledCard {
   styleUrl: './my-courses.scss',
 })
 export class MyCourses {
-  protected mock = inject(MockDataService);
+  private progressService = inject(ProgressService);
   private courseService = inject(CourseService);
   private enrollmentService = inject(EnrollmentService);
+  private lessonService = inject(LessonService);
 
-  // Gerçek katılımlar (kurs bilgileriyle birleşmiş)
-  private readonly realCards = signal<EnrolledCard[]>([]);
+  // Katılımlar (kurs + ders bilgileriyle birleşmiş)
+  readonly allCards = signal<EnrolledCard[]>([]);
 
   constructor() {
-    // Katılımlarım + yayındaki kurslar birlikte çekilir, courseId ile eşlenir.
-    // (Enrollment DTO'sunda kapak/kategori yok; kurs kataloğundan tamamlanır)
+    // Tamamlanan dersler backend'den (ilerleme hesabı için)
+    this.progressService.load();
+
+    // Katılımlarım + yayındaki kurslar çekilir; ardından her kursun dersleri alınır
+    // (ilerleme ve öğrenme süresi ders bazında hesaplanır).
     forkJoin({
       enrollments: this.enrollmentService.getMyEnrollments(),
       courses: this.courseService.getAll(),
-    }).subscribe({
-      next: ({ enrollments, courses }) => {
-        this.realCards.set(
-          enrollments.map((e) => {
-            const course = courses.find((c) => c.id === e.courseId);
-            return {
-              key: `real-${e.courseId}`,
-              id: e.courseId,
-              isReal: true,
-              title: course?.title ?? e.courseTitle,
-              category: course?.category || 'Genel',
-              durationHours: course?.durationHours ?? 0,
-              cover: coverCss(course?.coverImageUrl),
-              progress: 0, // ilerleme signal'den canlı okunur (template'te)
-              playerLink: ['/learn', String(e.courseId)],
-            };
-          })
-        );
-      },
-      error: () => { /* demo kartlar yine de gösterilir */ },
-    });
+    })
+      .pipe(
+        switchMap(({ enrollments, courses }) => {
+          if (enrollments.length === 0) return of<EnrolledCard[]>([]);
+          return forkJoin(
+            enrollments.map((e) => {
+              const course = courses.find((c) => c.id === e.courseId);
+              return this.lessonService.getByCourse(e.courseId).pipe(
+                map(
+                  (lessons): EnrolledCard => ({
+                    id: e.courseId,
+                    title: course?.title ?? e.courseTitle,
+                    category: course?.category || 'Genel',
+                    durationMinutes: course?.durationMinutes ?? 0,
+                    cover: coverCss(course?.coverImageUrl),
+                    lessons: lessons.map((l) => ({ id: l.id, durationMin: l.durationMin })),
+                    playerLink: ['/learn', String(e.courseId)],
+                  })
+                )
+              );
+            })
+          );
+        })
+      )
+      .subscribe({
+        next: (cards) => this.allCards.set(cards),
+        error: () => {
+          /* API hatası olsa da sayfa boş liste gösterir */
+        },
+      });
   }
-
-  // Demo kayıtları aynı kart tipine çevir
-  private readonly demoCards = computed<EnrolledCard[]>(() =>
-    this.mock.enrolledCourses().map((c) => ({
-      key: `demo-${c.id}`,
-      id: c.id,
-      isReal: false,
-      title: c.title,
-      category: c.category,
-      durationHours: c.durationHours,
-      cover: c.cover,
-      progress: 0,
-      playerLink: ['/learn', 'demo', String(c.id)],
-    }))
-  );
-
-  // Gerçek kayıtlar önce, demo kayıtlar sonra
-  readonly allCards = computed<EnrolledCard[]>(() => [
-    ...this.realCards(),
-    ...this.demoCards(),
-  ]);
 
   // İlerleme her render'da canlı hesaplanır (ders tamamlama anında yansısın)
   progressOf(card: EnrolledCard): number {
-    return card.isReal
-      ? this.mock.managedProgressOf(card.id)
-      : this.mock.progressOf(card.id);
+    if (card.lessons.length === 0) return 0;
+    const done = card.lessons.filter((l) =>
+      this.progressService.completedLessonIds().has(l.id)
+    ).length;
+    return Math.round((done / card.lessons.length) * 100);
+  }
+
+  // Bu kartta tamamlanan derslerin GERÇEK dakika toplamı
+  private completedMinutes(card: EnrolledCard): number {
+    return card.lessons
+      .filter((l) => this.progressService.completedLessonIds().has(l.id))
+      .reduce((sum, l) => sum + (l.durationMin || 0), 0);
   }
 
   readonly completedCount = computed(
     () => this.allCards().filter((c) => this.progressOf(c) === 100).length
   );
 
-  readonly totalHours = computed(() =>
-    this.allCards().reduce((sum, c) => sum + c.durationHours, 0)
+  // Toplam öğrenme süresi = tüm kartlarda tamamlanan derslerin gerçek dakika toplamı.
+  // Ana sayfadaki "Öğrenme Süresi" ile aynı mantık (dummy değil).
+  readonly totalLearningMinutes = computed(() =>
+    this.allCards().reduce((sum, c) => sum + this.completedMinutes(c), 0)
   );
+  readonly learningLabel = computed(() => formatDuration(this.totalLearningMinutes()));
 }

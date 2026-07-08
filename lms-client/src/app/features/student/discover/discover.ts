@@ -8,25 +8,22 @@ import { EnrollmentService } from '../../../core/services/enrollment.service';
 import { MockDataService } from '../../../core/services/mock-data.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { coverCss } from '../../../core/utils/cover.util';
+import { formatCourseHours } from '../../../core/utils/duration.util';
 
-// Katalog kartı: gerçek (API) ve demo (mock) kursları tek tipte birleştirir.
-// `key` alanı zorunlu çünkü demo id'leri (1,2,3) ile veritabanı id'leri çakışabilir.
 interface CatalogCourse {
-  key: string; // 'real-5' | 'demo-1'
   id: number;
-  isReal: boolean;
   title: string;
   description: string;
   category: string;
   level: string;
-  durationHours: number;
+  durationLabel: string; // "1 saat 30 dk" gibi (30 dk yuvarlı toplam)
   lessonCount: number;
   instructorName: string;
   cover: string; // CSS background değeri (gradient veya url(...))
 }
 
 // Öğrenci: Eğitimleri Keşfet — arama, kategori ve seviye filtreli kurs kataloğu.
-// Eğitmenlerin yayınladığı GERÇEK kurslar API'den gelir; yanlarında 3 demo kurs gösterilir.
+// Eğitmenlerin yayınladığı GERÇEK kurslar API'den gelir.
 @Component({
   selector: 'app-discover',
   imports: [
@@ -65,14 +62,12 @@ export class Discover {
       next: (courses) => {
         this.realCourses.set(
           courses.map((c) => ({
-            key: `real-${c.id}`,
             id: c.id,
-            isReal: true,
             title: c.title,
             description: c.description,
             category: c.category || 'Genel',
             level: c.level || 'Başlangıç',
-            durationHours: c.durationHours,
+            durationLabel: formatCourseHours(c.durationMinutes),
             lessonCount: c.lessonCount,
             instructorName: c.instructorName,
             cover: coverCss(c.coverImageUrl),
@@ -95,29 +90,6 @@ export class Discover {
     }
   }
 
-  // Demo kursları da aynı kart tipine çevir
-  private readonly demoCourses = computed<CatalogCourse[]>(() =>
-    this.mock.courses().filter((c) => c.isActive).map((c) => ({
-      key: `demo-${c.id}`,
-      id: c.id,
-      isReal: false,
-      title: c.title,
-      description: c.description,
-      category: c.category,
-      level: c.level,
-      durationHours: c.durationHours,
-      lessonCount: c.lessonCount,
-      instructorName: c.instructorName,
-      cover: c.cover,
-    }))
-  );
-
-  // Gerçek kurslar önce (en yeni en üstte), demo kurslar sonra
-  private readonly allCourses = computed<CatalogCourse[]>(() => [
-    ...this.realCourses(),
-    ...this.demoCourses(),
-  ]);
-
   // Kategori hapları: tanımlı kategoriler + gerçek kurslardan gelenler (tekrarsız)
   readonly categories = computed(() => {
     const set = new Set(this.mock.categories());
@@ -130,7 +102,7 @@ export class Discover {
     const category = this.selectedCategory();
     const level = this.selectedLevel();
 
-    return this.allCourses().filter((c) => {
+    return this.realCourses().filter((c) => {
       if (category && c.category !== category) return false;
       if (level && c.level !== level) return false;
       if (term && !c.title.toLowerCase().includes(term) && !c.instructorName.toLowerCase().includes(term)) return false;
@@ -147,22 +119,12 @@ export class Discover {
   }
 
   isEnrolled(course: CatalogCourse): boolean {
-    return course.isReal
-      ? this.enrolledRealIds().has(course.id)
-      : this.mock.isEnrolled(course.id);
+    return this.enrolledRealIds().has(course.id);
   }
 
   enroll(course: CatalogCourse): void {
     if (this.isEnrolled(course)) return;
 
-    if (!course.isReal) {
-      // Demo kurs: oturum içi sahte katılım
-      this.mock.enroll(course.id);
-      this.notification.success('Kursa katıldınız! "Eğitimlerim" sayfasından erişebilirsiniz.');
-      return;
-    }
-
-    // Gerçek kurs: backend'e kayıt (aynı kursa ikinci kayıt backend'de engellenir)
     this.enrollmentService.enroll(course.id).subscribe({
       next: () => {
         this.enrolledRealIds.update((set) => new Set(set).add(course.id));

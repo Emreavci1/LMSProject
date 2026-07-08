@@ -7,7 +7,6 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterLink } from '@angular/router';
 import { Course } from '../../../core/models/course.models';
 import { CourseService } from '../../../core/services/course.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { coverCss } from '../../../core/utils/cover.util';
 
@@ -27,7 +26,6 @@ import { coverCss } from '../../../core/utils/cover.util';
 })
 export class InstructorCourses {
   private courseService = inject(CourseService);
-  private mock = inject(MockDataService);
   private notification = inject(NotificationService);
 
   readonly courses = signal<Course[]>([]);
@@ -110,7 +108,6 @@ export class InstructorCourses {
     this.courseService.remove(course.id).subscribe({
       next: () => {
         this.courses.update((list) => list.filter((c) => c.id !== course.id));
-        this.mock.removeManagedLessonsOf(course.id); // yerel derslerini de temizle
         this.notification.success(`"${course.title}" silindi.`);
       },
       error: () => this.notification.error('Silme işlemi başarısız oldu.'),

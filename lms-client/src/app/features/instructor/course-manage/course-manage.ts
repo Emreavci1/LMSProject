@@ -11,15 +11,16 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { Course } from '../../../core/models/course.models';
-import { MockLesson } from '../../../core/models/mock.models';
+import { CourseAttendee } from '../../../core/models/enrollment.models';
+import { CreateLesson, Lesson } from '../../../core/models/lesson.models';
 import { CourseService } from '../../../core/services/course.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
+import { LessonService } from '../../../core/services/lesson.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { coverCss } from '../../../core/utils/cover.util';
 
 export type ContentType = 'Video' | 'Document' | 'Text';
 
-// Eğitmen: Eğitim Detayı — kurs API'den yüklenir; ders/öğrenci verisi (spec gereği) mock
+// Eğitmen: Eğitim Detayı — kurs, dersler ve katılımcılar API'den yüklenir
 @Component({
   selector: 'app-course-manage',
   imports: [
@@ -40,8 +41,8 @@ export type ContentType = 'Video' | 'Document' | 'Text';
 export class CourseManage {
   readonly id = input.required<string>();
 
-  protected mock = inject(MockDataService);
   private courseService = inject(CourseService);
+  private lessonService = inject(LessonService);
   private notification = inject(NotificationService);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
@@ -69,8 +70,27 @@ export class CourseManage {
     });
   });
 
-  // Dersler backend'de tutulmuyor (spec gereği); gerçek kursa ait dersler managed depodan gelir
-  readonly lessons = computed(() => this.mock.managedLessonsOf(Number(this.id())));
+  // Dersler artık backend'de (SQL Server). id değişince API'den yüklenir.
+  readonly lessons = signal<Lesson[]>([]);
+
+  private readonly _loadLessons = effect(() => {
+    const courseId = Number(this.id());
+    this.lessonService.getByCourse(courseId).subscribe({
+      next: (list) => this.lessons.set(list),
+      error: () => this.lessons.set([]),
+    });
+  });
+
+  // Katılımcılar (gerçek kayıtlar + ilerleme yüzdeleri) — id değişince API'den yüklenir
+  readonly attendees = signal<CourseAttendee[]>([]);
+
+  private readonly _loadAttendees = effect(() => {
+    const courseId = Number(this.id());
+    this.courseService.getAttendees(courseId).subscribe({
+      next: (list) => this.attendees.set(list),
+      error: () => this.attendees.set([]),
+    });
+  });
 
   // "Yeni Ders Ekle" formu aç/kapat
   readonly showAddForm = signal(false);
@@ -83,6 +103,7 @@ export class CourseManage {
   readonly newContentType = signal<ContentType>('Video');
   readonly newContentUrl = signal('');
   readonly newTextContent = signal('');
+  readonly newLessonNotes = signal('');
 
   readonly contentTypes: { value: ContentType, label: string }[] = [
     { value: 'Video', label: 'Video Bağlantısı' },
@@ -90,10 +111,11 @@ export class CourseManage {
     { value: 'Text', label: 'Okuma Metni' }
   ];
 
+  // Ortalama tamamlama: katılımcıların ilerleme yüzdelerinin ortalaması
   readonly completionRate = computed(() => {
-    const students = this.mock.courseStudents();
-    if (students.length === 0) return 0;
-    return Math.round(students.reduce((sum, s) => sum + s.progress, 0) / students.length);
+    const attendees = this.attendees();
+    if (attendees.length === 0) return 0;
+    return Math.round(attendees.reduce((sum, a) => sum + a.progress, 0) / attendees.length);
   });
 
   addLesson(): void {
@@ -118,26 +140,32 @@ export class CourseManage {
       return;
     }
 
-    const newLesson: MockLesson = {
-      id: Date.now(),
-      courseId: Number(this.id()),
+    const dto: CreateLesson = {
       section,
       title,
-      description: this.newLessonDescription().trim() || undefined,
+      description: this.newLessonDescription().trim() || null,
       durationMin: this.newLessonDuration() || 15,
       contentType: type,
-      contentUrl: type !== 'Text' ? this.newContentUrl().trim() : undefined,
-      textContent: type === 'Text' ? this.newTextContent().trim() : undefined,
+      contentUrl: type !== 'Text' ? this.newContentUrl().trim() : null,
+      textContent: type === 'Text' ? this.newTextContent().trim() : null,
+      notes: this.newLessonNotes().trim() || null,
     };
-    this.mock.managedLessons.update((list) => [...list, newLesson]);
 
-    // Formu sıfırla
-    this.newLessonTitle.set('');
-    this.newLessonDescription.set('');
-    this.newContentUrl.set('');
-    this.newTextContent.set('');
-    this.showAddForm.set(false);
-    this.notification.success('Ders eklendi.');
+    this.lessonService.create(Number(this.id()), dto).subscribe({
+      next: (created) => {
+        // Dönen dersi listenin sonuna ekle (backend sona ekler)
+        this.lessons.update((list) => [...list, created]);
+        // Formu sıfırla
+        this.newLessonTitle.set('');
+        this.newLessonDescription.set('');
+        this.newContentUrl.set('');
+        this.newTextContent.set('');
+        this.newLessonNotes.set('');
+        this.showAddForm.set(false);
+        this.notification.success('Ders eklendi.');
+      },
+      error: (err) => this.notification.fromHttpError(err, 'Ders eklenemedi.'),
+    });
   }
 
   onMaterialFileSelected(event: Event) {
@@ -150,8 +178,13 @@ export class CourseManage {
 
   removeLesson(lessonId: number): void {
     if (this.previewLessonId() === lessonId) this.previewLessonId.set(null);
-    this.mock.managedLessons.update((list) => list.filter((l) => l.id !== lessonId));
-    this.notification.success('Ders kaldırıldı.');
+    this.lessonService.remove(Number(this.id()), lessonId).subscribe({
+      next: () => {
+        this.lessons.update((list) => list.filter((l) => l.id !== lessonId));
+        this.notification.success('Ders kaldırıldı.');
+      },
+      error: (err) => this.notification.fromHttpError(err, 'Ders silinemedi.'),
+    });
   }
 
   // --- Ders içerik önizlemesi ---
@@ -162,7 +195,7 @@ export class CourseManage {
   }
 
   // Video linkini gömülebilir (YouTube embed) URL'e çevir; değilse null
-  videoEmbedUrl(url: string | undefined): SafeResourceUrl | null {
+  videoEmbedUrl(url: string | null | undefined): SafeResourceUrl | null {
     if (!url) return null;
     const match = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/);
     if (!match) return null;
@@ -172,17 +205,22 @@ export class CourseManage {
   }
 
   moveLesson(lessonId: number, direction: -1 | 1): void {
-    const all = this.mock.managedLessons();
-    const courseLessons = all.filter((l) => l.courseId === Number(this.id()));
-    const index = courseLessons.findIndex((l) => l.id === lessonId);
+    const list = this.lessons();
+    const index = list.findIndex((l) => l.id === lessonId);
     const target = index + direction;
-    if (target < 0 || target >= courseLessons.length) return;
+    if (index < 0 || target < 0 || target >= list.length) return;
 
-    const reordered = [...courseLessons];
+    const reordered = [...list];
     [reordered[index], reordered[target]] = [reordered[target], reordered[index]];
 
-    const others = all.filter((l) => l.courseId !== Number(this.id()));
-    this.mock.managedLessons.set([...others, ...reordered]);
+    // Optimistik güncelle, sonra API'ye yeni sırayı bildir; hata olursa geri al
+    this.lessons.set(reordered);
+    this.lessonService.reorder(Number(this.id()), reordered.map((l) => l.id)).subscribe({
+      error: () => {
+        this.notification.error('Sıralama güncellenemedi.');
+        this.lessons.set(list);
+      },
+    });
   }
 
   // Kursu yayına al (taslak/zamanlanmış → yayında)

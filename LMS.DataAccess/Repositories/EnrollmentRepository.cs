@@ -26,4 +26,7 @@ public class EnrollmentRepository : Repository<Enrollment>, IEnrollmentRepositor
             .Where(e => e.CourseId == courseId)
             .OrderByDescending(e => e.EnrollDate)
             .ToListAsync();
+
+    public async Task<Enrollment?> GetByUserAndCourseAsync(int userId, int courseId)
+        => await _dbSet.FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
 }

@@ -30,6 +30,18 @@ public class EnrollmentController : ApiControllerBase
         return CreatedAtAction(nameof(GetMyEnrollments), result.Data);
     }
 
+    // DELETE /api/enrollments/{courseId} — kayıtlı kurstan ayrıl (yalnızca katılımcılar)
+    [HttpDelete("{courseId:int}")]
+    [Authorize(Roles = "CourseAttendee")]
+    public async Task<ActionResult> Unenroll(int courseId)
+    {
+        var result = await _enrollmentService.UnenrollAsync(CurrentUserId, courseId);
+        if (!result.Success)
+            return ToErrorResponse(result);
+
+        return NoContent();
+    }
+
     // GET /api/enrollments/my — kendi katıldığım kurslar
     [HttpGet("my")]
     public async Task<ActionResult<List<EnrollmentDto>>> GetMyEnrollments()

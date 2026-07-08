@@ -302,6 +302,94 @@ $on-surface-variant: #5c647a;
   &:hover .upload-overlay { opacity: 1; }
 }
 
+// "Görseli kaldır" bağlantısı (yüklü foto varken görünür)
+.remove-cover-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 4px 8px;
+  border: none;
+  background: none;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+
+  &:hover { background: rgba(#b91c1c, 0.06); }
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+}
+
+// Kapak rengi seçimi (foto yoksa arka plan bu renkten üretilir)
+.color-pick {
+  margin-top: 16px;
+
+  .color-label {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 8px;
+  }
+
+  .swatches {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 0.15s, border-color 0.15s;
+
+    &:hover { transform: scale(1.12); }
+
+    &.selected {
+      border-color: $on-surface;
+      box-shadow: 0 0 0 2px #fff inset;
+    }
+  }
+
+  // Native renk seçici — yuvarlak swatch görünümünde
+  .custom-swatch {
+    appearance: none;
+    -webkit-appearance: none;
+    background: conic-gradient(red, yellow, lime, cyan, blue, magenta, red);
+    overflow: hidden;
+
+    &::-webkit-color-swatch-wrapper { padding: 0; opacity: 0; }
+    &::-webkit-color-swatch { border: none; opacity: 0; }
+  }
+
+  .color-preview {
+    margin-top: 12px;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    span {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 13px;
+      font-weight: 600;
+    }
+  }
+
+  .color-note {
+    margin: 10px 0 0;
+    font-size: 12px;
+    color: $on-surface-variant;
+  }
+}
+
 .document-upload {
   display: flex;
   align-items: center;

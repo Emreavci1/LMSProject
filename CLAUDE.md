@@ -164,15 +164,33 @@ Enrollment
 Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, tablo ekleme, varsayımda bulunma. Netleştiğinde doküman güncellenecek:
 
 - Section/şube sistemi (bir dersi birden fazla Instructor'ın vermesi)
-- Ders içerik yapısı (video, doküman, quiz vb.) — **PLAN NETLEŞTİ (2026-07-06), uygulama ertelendi:**
-  video ve sunumlar URL olarak değil, Udemy/Moodle tarzı doğrudan dosya yükleme ile sisteme
-  yüklenecek (dosya depolama + Lesson entity + upload API gerektirir). Büyük iş olduğu için
-  şimdilik yapılmıyor; geçici çözüm olarak dersler frontend'de localStorage'da tutuluyor
-  (`MockDataService.managedLessons`). Bu madde uygulanana kadar backend'e ders tablosu ekleme.
+- Ders içerik yapısı (video, doküman, quiz vb.):
+  - **YAPILDI (2026-07-07) — Backend ders depolama (URL/metin tabanlı):** `Lesson` entity +
+    `Lessons` tablosu + migration + CRUD API (`/api/courses/{courseId}/lessons`, sahiplik
+    kontrollü) eklendi. Dersler artık SQL Server'da kalıcı tutulur. İçerik tipi: `Video`/`Document`
+    URL ile, `Text` doğrudan metinle.
+  - **YAPILDI (2026-07-08) — Dummy/demo veri temizliği:** Ders backend'e taşındığı için artık
+    kullanılmayan `MockDataService.managedLessons` (localStorage kalıntısı) ve 3 sahte demo kurs +
+    18 sahte ders (Discover/Eğitimlerim/Dashboard/Player'da gerçek kurslarla birleştiriliyordu)
+    kaldırıldı. Bu sayfalar artık yalnızca backend'deki gerçek kursları/kayıtları gösteriyor.
+    `MockDataService.courses` yalnızca Admin panelinin henüz backend'e bağlanmamış sayfalarında
+    (Tüm Kurslar, Kategoriler, Genel Bakış) kullanılmaya devam ediyor.
+  - **HÂLÂ ERTELENDİ — Doğrudan dosya yükleme:** video/sunumların Udemy/Moodle tarzı sisteme
+    yüklenmesi (dosya depolama + upload API). Büyük iş; şimdilik içerik URL olarak veriliyor.
+    Kullanıcı kararı: "şimdilik url kısmı kalsın".
 - Sertifika sistemi
 - Periyodik eğitim mekanizması (yıllık tekrar, hatırlatma vb.)
-- İlerleme (progress) ölçümü
-- Duyuru (announcements) modülü
+- İlerleme (progress) ölçümü:
+  - **YAPILDI (2026-07-08) — Ders tamamlama takibi backend'de:** `LessonCompletion` entity +
+    `LessonCompletions` tablosu (UserId+LessonId unique) + `ProgressController`
+    (toggle + my). İlerleme = tamamlanan ders / toplam ders yüzdesi. Frontend
+    (player/eğitimlerim/dashboard) localStorage yerine bu API'yi kullanır
+    (`ProgressService`, optimistik toggle). Eğitmen, katılımcı listesinde her
+    öğrencinin gerçek ilerlemesini görür (`CourseAttendeeDto.Progress`).
+    Ayrıca aynı gün: `Lesson.Notes` alanı (eğitmen ders notu, player "Notlar"
+    sekmesi) ve kurs oluşturmada kapak rengi seçimi (foto opsiyonel; foto yoksa
+    seçilen renkten gradient kapak) eklendi.
+- Duyuru (announcements) modülü — 2026-07-08 kararı: şimdilik ertelendi (kullanıcı isteği)
 
 ---
 
@@ -198,8 +216,13 @@ CourseController
 
 EnrollmentController
   POST   /api/enrollments             → kursa katıl (CourseAttendee)
+  DELETE /api/enrollments/{courseId}  → kayıtlı kurstan ayrıl (CourseAttendee, yalnızca kendi kaydı)
   GET    /api/enrollments/my          → kullanıcının katıldığı kurslar
-  GET    /api/enrollments/course/{courseId} → kursa katılanlar (kursun sahibi Instructor veya Admin)
+  GET    /api/enrollments/course/{courseId} → kursa katılanlar + ilerleme yüzdeleri (kursun sahibi Instructor veya Admin)
+
+ProgressController
+  POST   /api/progress/lessons/{lessonId}/toggle → dersi tamamla / geri al (CourseAttendee, kursa kayıt şartı)
+  GET    /api/progress/my             → kullanıcının tamamladığı ders id listesi
 ```
 
 Tüm endpoint'ler (login hariç) `[Authorize]` gerektirir. HTTP durum kodları doğru kullanılmalı: 200/201 başarı, 400 validasyon hatası, 401 kimliksiz, 403 yetkisiz, 404 bulunamadı.

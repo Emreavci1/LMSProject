@@ -35,7 +35,7 @@
               <mat-icon>menu_book</mat-icon> {{ c.lessonCount }} ders
             </span>
             <span class="meta-item">
-              <mat-icon>schedule</mat-icon> {{ c.durationHours }} saat
+              <mat-icon>schedule</mat-icon> {{ courseDurationLabel() }}
             </span>
           </div>
         </div>
@@ -54,10 +54,7 @@
           <h2>Eğitim İçeriği</h2>
           @if (lessons().length > 0) {
             <p class="curriculum-summary">
-              {{ sections().length }} bölüm · {{ lessons().length }} ders
-              @if (totalMinutes() > 0) {
-                · toplam {{ totalMinutes() }} dk
-              }
+              {{ sections().length }} bölüm · {{ lessons().length }} ders · {{ courseDurationLabel() }}
             </p>
             @for (group of sections(); track group.section) {
               <div class="section-block">
@@ -110,8 +107,16 @@
               </p>
               <a class="cta-btn primary" [routerLink]="['/learn', c.id]">
                 <mat-icon>play_arrow</mat-icon>
-                Eğitime Git
+                Derse Devam Et
               </a>
+              <button class="cta-btn danger" (click)="unenroll()" [disabled]="unenrolling()">
+                @if (unenrolling()) {
+                  <mat-spinner diameter="20" />
+                } @else {
+                  <mat-icon>logout</mat-icon>
+                  Dersten Ayrıl / Çık
+                }
+              </button>
             } @else {
               <button class="cta-btn primary" (click)="enroll()" [disabled]="enrolling()">
                 @if (enrolling()) {
@@ -135,7 +140,7 @@
 
           <ul class="fact-list">
             <li><mat-icon>menu_book</mat-icon> {{ c.lessonCount }} ders</li>
-            <li><mat-icon>schedule</mat-icon> {{ c.durationHours }} saat içerik</li>
+            <li><mat-icon>schedule</mat-icon> {{ courseDurationLabel() }} içerik</li>
             @if (c.level) {
               <li><mat-icon>signal_cellular_alt</mat-icon> {{ c.level }} seviyesi</li>
             }

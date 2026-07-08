@@ -13,7 +13,11 @@ export interface Course {
   category?: string | null;
   level?: string | null;
   durationHours: number;
+  // Göstermelik toplam süre (dakika) — derslerden 30 dk yuvarlanarak hesaplanır (backend)
+  durationMinutes: number;
   lessonCount: number;
+  // Kursa kayıtlı katılımcı sayısı
+  studentCount: number;
   status: CourseStatus;
   publishDate?: string | null;
   isActive: boolean;

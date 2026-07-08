@@ -10,15 +10,21 @@ public class EnrollmentService : IEnrollmentService
 {
     private readonly IEnrollmentRepository _enrollmentRepository;
     private readonly ICourseRepository _courseRepository;
+    private readonly ILessonRepository _lessonRepository;
+    private readonly ILessonCompletionRepository _completionRepository;
     private readonly IMapper _mapper;
 
     public EnrollmentService(
         IEnrollmentRepository enrollmentRepository,
         ICourseRepository courseRepository,
+        ILessonRepository lessonRepository,
+        ILessonCompletionRepository completionRepository,
         IMapper mapper)
     {
         _enrollmentRepository = enrollmentRepository;
         _courseRepository = courseRepository;
+        _lessonRepository = lessonRepository;
+        _completionRepository = completionRepository;
         _mapper = mapper;
     }
 
@@ -48,6 +54,18 @@ public class EnrollmentService : IEnrollmentService
         return ServiceResult<EnrollmentDto>.Ok(_mapper.Map<EnrollmentDto>(enrollment));
     }
 
+    public async Task<ServiceResult> UnenrollAsync(int userId, int courseId)
+    {
+        var enrollment = await _enrollmentRepository.GetByUserAndCourseAsync(userId, courseId);
+        if (enrollment is null)
+            return ServiceResult.Fail(ServiceErrorType.NotFound, "Bu kursa kayıtlı değilsiniz.");
+
+        _enrollmentRepository.Remove(enrollment);
+        await _enrollmentRepository.SaveChangesAsync();
+
+        return ServiceResult.Ok();
+    }
+
     public async Task<List<EnrollmentDto>> GetMyEnrollmentsAsync(int userId)
     {
         var enrollments = await _enrollmentRepository.GetByUserWithCourseAsync(userId);
@@ -65,6 +83,19 @@ public class EnrollmentService : IEnrollmentService
             return ServiceResult<List<CourseAttendeeDto>>.Fail(ServiceErrorType.Forbidden, "Bu kursun katılımcılarını görme yetkiniz yok.");
 
         var enrollments = await _enrollmentRepository.GetByCourseWithUserAsync(courseId);
-        return ServiceResult<List<CourseAttendeeDto>>.Ok(_mapper.Map<List<CourseAttendeeDto>>(enrollments));
+        var attendees = _mapper.Map<List<CourseAttendeeDto>>(enrollments);
+
+        // İlerleme yüzdesi: tamamlanan ders / kurstaki toplam ders
+        var lessons = await _lessonRepository.GetByCourseAsync(courseId);
+        var completedCounts = await _completionRepository.GetCompletedCountsByCourseAsync(courseId);
+        foreach (var attendee in attendees)
+        {
+            var completed = completedCounts.GetValueOrDefault(attendee.UserId);
+            attendee.Progress = lessons.Count == 0
+                ? 0
+                : (int)Math.Round(completed * 100.0 / lessons.Count);
+        }
+
+        return ServiceResult<List<CourseAttendeeDto>>.Ok(attendees);
     }
 }

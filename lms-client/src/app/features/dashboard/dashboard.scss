@@ -186,7 +186,10 @@ $outline-variant: #bfc7d2;
         width: 33%;
       }
 
+      // Kapak artık [style.background] ile verildiği için object-fit sadece olası img'ler için
       img { width: 100%; height: 100%; object-fit: cover; }
+      background-size: cover;
+      background-position: center;
       .play-overlay {
         position: absolute; inset: 0; background: rgba(0,0,0,0.2);
         display: flex; align-items: center; justify-content: center;
@@ -196,6 +199,7 @@ $outline-variant: #bfc7d2;
           display: grid; place-items: center; cursor: pointer;
           transition: transform 0.2s;
           box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+          text-decoration: none;
 
           &:hover { transform: scale(1.05); }
         }
@@ -280,10 +284,140 @@ $outline-variant: #bfc7d2;
   .text-center { text-align: center; }
 
   .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     padding: 8px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s;
+    text-decoration: none; box-sizing: border-box;
     &.btn-primary { background: $primary; color: #fff; &:hover { background: darken($primary, 5%); } }
     &.btn-outline { background: transparent; border: 1px solid $outline-variant; color: $on-surface; &:hover { background: $surface-low; } }
     &.full-width { width: 100%; }
+    mat-icon { font-size: 20px; width: 20px; height: 20px; }
   }
   .mt-24 { margin-top: 24px; }
+
+  // Öğrenmeye Devam Et — boş durum (devam eden kurs yok)
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 24px 8px;
+    mat-icon { font-size: 48px; width: 48px; height: 48px; color: $outline-variant; }
+    p { margin: 0; color: $on-surface-variant; max-width: 320px; }
+  }
+
+  // "Eğitimlerime Git" butonu — devam kartının altında, tam genişlik
+  .go-my-courses {
+    width: 100%;
+    margin-top: 24px;
+  }
+
+  // Yaklaşan Etkinlikler — boş durum (özellik henüz yok)
+  .empty-events {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 24px 8px;
+    mat-icon { font-size: 44px; width: 44px; height: 44px; color: $outline-variant; }
+    p { margin: 0; font-weight: 600; color: $on-surface; }
+    span { font-size: 13px; color: $on-surface-variant; }
+  }
+}
+
+// --- Eğitmen ana sayfası (student-dashboard stil altyapısını paylaşır) ---
+.instructor-dashboard {
+  .banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 20px;
+
+    mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  }
+
+  .my-courses-panel {
+    padding: 24px;
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+
+      h2 { font-size: 20px; font-weight: 600; color: $on-surface; margin: 0; }
+
+      .see-all {
+        font-size: 14px;
+        font-weight: 600;
+        color: $primary;
+        text-decoration: none;
+
+        &:hover { text-decoration: underline; }
+      }
+    }
+  }
+
+  .course-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+
+    @media (min-width: 640px) { grid-template-columns: repeat(2, 1fr); }
+    @media (min-width: 1024px) { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .course-mini-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid $surface-variant;
+    border-radius: 10px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: box-shadow 0.2s, transform 0.2s;
+
+    &:hover {
+      box-shadow: 0 8px 12px -4px rgba(15, 23, 42, 0.12);
+      transform: translateY(-2px);
+    }
+
+    .mini-cover {
+      height: 110px;
+      background-size: cover;
+      background-position: center;
+      background-color: $primary;
+      position: relative;
+    }
+
+    .mini-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+
+      // instructor-courses sayfasındaki rozet renkleriyle aynı
+      &.published { background: #e0f2fe; color: #0369a1; }
+      &.draft { background: #fef3c7; color: #b45309; }
+      &.scheduled { background: #ede9fe; color: #6d28d9; }
+    }
+
+    .mini-info {
+      padding: 12px 14px;
+
+      h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+        font-weight: 600;
+        color: $on-surface;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .mini-meta {
+        display: flex;
+        gap: 14px;
+        margin: 0;
+        font-size: 12px;
+        color: $on-surface-variant;
+
+        span { display: inline-flex; align-items: center; gap: 4px; }
+        mat-icon { font-size: 15px; width: 15px; height: 15px; }
+      }
+    }
+  }
 }

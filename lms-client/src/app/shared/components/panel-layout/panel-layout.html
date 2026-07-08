@@ -46,6 +46,7 @@
           class="menu-item"
           [routerLink]="item.route"
           routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.exact ?? false }"
           (click)="sidebarOpen.set(false)"
           [title]="sidebarCollapsed() ? item.label : ''"
         >

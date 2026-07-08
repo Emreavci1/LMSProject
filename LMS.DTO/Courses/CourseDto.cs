@@ -15,6 +15,13 @@ public class CourseDto
     public int DurationHours { get; set; }
     public int LessonCount { get; set; }
 
+    // Derslerin GERÇEK süre toplamı (dakika, yuvarlama yok).
+    // "Takribi saat" gösterimi (98 dk → 2 saat) frontend'de bundan hesaplanır.
+    public int DurationMinutes { get; set; }
+
+    // Kursa kayıtlı katılımcı sayısı (Enrollments.Count'tan hesaplanır)
+    public int StudentCount { get; set; }
+
     // Yayın durumu ("Draft" | "Published" | "Scheduled") ve tarihi
     public string Status { get; set; } = null!;
     public DateTime? PublishDate { get; set; }

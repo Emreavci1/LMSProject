@@ -9,11 +9,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterModule } from '@angular/router';
+import { concatMap, from, toArray } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
 import { CourseStatus } from '../../../core/models/course.models';
+import { CreateLesson } from '../../../core/models/lesson.models';
+import { LessonService } from '../../../core/services/lesson.service';
 import { MockDataService } from '../../../core/services/mock-data.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { coverCss } from '../../../core/utils/cover.util';
 import { ImageCropperDialog } from '../../../shared/components/image-cropper-dialog/image-cropper-dialog';
 
 export type ContentType = 'Video' | 'Document' | 'Text';
@@ -26,6 +30,8 @@ export interface DraftLesson {
   durationMin?: number | null;
   contentUrl?: string;
   textContent?: string;
+  // Eğitmenin ders notları (oynatıcıdaki "Notlar" sekmesinde gösterilir)
+  notes?: string;
 }
 
 @Component({
@@ -50,6 +56,7 @@ export class CourseCreate {
   protected mock = inject(MockDataService); // yalnızca kategori listesi için
   private auth = inject(AuthService);
   private courseService = inject(CourseService);
+  private lessonService = inject(LessonService);
   private notification = inject(NotificationService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
@@ -57,6 +64,9 @@ export class CourseCreate {
 
   // Kaydetme sırasında butonları kilitlemek için
   readonly saving = signal(false);
+
+  // Template'ten kapak CSS'i üretmek için (gradient/url ayrımını util yapar)
+  protected readonly coverCss = coverCss;
 
   // MANUEL STEP KONTROLÜ
   readonly currentStep = signal<number>(1);
@@ -74,6 +84,28 @@ export class CourseCreate {
   ];
 
   readonly coverImagePreview = signal<string | null>(null);
+
+  // --- Kapak rengi (foto yüklemek opsiyonel; foto yoksa seçilen renk arka plan olur) ---
+  readonly coverColors = [
+    '#0284C7', '#16A34A', '#7C3AED', '#DC2626',
+    '#EA580C', '#0D9488', '#DB2777', '#475569',
+  ];
+  readonly coverColor = signal<string | null>(null);
+
+  // Seçilen renkten üretilen gradient (demo kapaklarla aynı stil)
+  readonly coverColorGradient = computed(() => {
+    const color = this.coverColor();
+    return color ? `linear-gradient(135deg, ${color}, #0F172A)` : null;
+  });
+
+  // Kaydedilecek kapak değeri: foto varsa foto, yoksa renk gradient'i, o da yoksa null
+  readonly effectiveCover = computed(
+    () => this.coverImagePreview() ?? this.coverColorGradient()
+  );
+
+  removeCoverImage(): void {
+    this.coverImagePreview.set(null);
+  }
 
   readonly infoForm = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -107,6 +139,7 @@ export class CourseCreate {
   readonly newDuration = signal<number | null>(null);
   readonly newContentUrl = signal('');
   readonly newTextContent = signal('');
+  readonly newNotes = signal('');
 
   addDraftLesson(): void {
     const title = this.newTitle().trim();
@@ -130,22 +163,24 @@ export class CourseCreate {
 
     this.draftLessons.update((list) => [
       ...list,
-      { 
-        title, 
+      {
+        title,
         description: this.newDescription().trim() || undefined,
-        section: this.newSection().trim() || 'Genel', 
+        section: this.newSection().trim() || 'Genel',
         contentType: type,
         durationMin: this.newDuration() || null,
         contentUrl: type !== 'Text' ? this.newContentUrl().trim() : undefined,
-        textContent: type === 'Text' ? this.newTextContent().trim() : undefined
+        textContent: type === 'Text' ? this.newTextContent().trim() : undefined,
+        notes: this.newNotes().trim() || undefined
       },
     ]);
-    
+
     this.newTitle.set('');
     this.newDescription.set('');
     this.newDuration.set(null);
     this.newContentUrl.set('');
     this.newTextContent.set('');
+    this.newNotes.set('');
   }
 
   onMaterialFileSelected(event: Event) {
@@ -256,7 +291,7 @@ export class CourseCreate {
       .create({
         title: info.title,
         description: info.description,
-        coverImageUrl: this.coverImagePreview(), // dataURL veya null
+        coverImageUrl: this.effectiveCover(), // foto (dataURL) > renk gradient'i > null
         category: info.category,
         level: info.level,
         durationHours: Math.max(1, Math.round(this.totalDuration() / 60)),
@@ -266,30 +301,56 @@ export class CourseCreate {
       })
       .subscribe({
         next: (created) => {
-          // Dersler backend'de tutulmuyor; Yönet sayfasında görünüp önizlenebilsin diye
-          // gerçek kurs id'siyle AYRI managed depoya (localStorage) yazıyoruz.
-          this.mock.managedLessons.update((list) => [
-            ...list,
-            ...this.draftLessons().map((l, i) => ({
-              id: Date.now() + i,
-              courseId: created.id,
-              section: l.section,
-              title: l.title,
-              description: l.description,
-              durationMin: l.durationMin || 0,
-              contentType: l.contentType,
-              contentUrl: l.contentUrl,
-              textContent: l.textContent,
-            })),
-          ]);
-          this.notification.success(successMsg);
-          this.router.navigate(['/instructor/courses']);
+          const drafts = this.draftLessons();
+          if (drafts.length === 0) {
+            this.finishCreate(successMsg);
+            return;
+          }
+
+          // Dersleri API'ye SIRAYLA ekle (backend her dersi sona ekler; sıra korunsun).
+          // Artık localStorage değil, gerçek veritabanı — dersler kalıcı.
+          from(drafts)
+            .pipe(
+              concatMap((l) => this.lessonService.create(created.id, this.toCreateLesson(l))),
+              toArray()
+            )
+            .subscribe({
+              next: () => this.finishCreate(successMsg),
+              error: () => {
+                // Kurs oluştu ama dersler eklenirken hata oldu — yine de Yönet sayfasına yönlendir
+                this.saving.set(false);
+                this.notification.error(
+                  'Eğitim oluşturuldu ancak bazı dersler eklenemedi. Yönet sayfasından tekrar ekleyebilirsin.'
+                );
+                this.router.navigate(['/instructor/courses', created.id]);
+              },
+            });
         },
         error: () => {
           this.saving.set(false);
           this.notification.error('Eğitim kaydedilemedi. Lütfen tekrar dene.');
         },
       });
+  }
+
+  // Taslak dersi API'nin beklediği CreateLesson biçimine çevir
+  private toCreateLesson(l: DraftLesson): CreateLesson {
+    return {
+      section: l.section,
+      title: l.title,
+      description: l.description ?? null,
+      durationMin: l.durationMin || 0,
+      contentType: l.contentType,
+      contentUrl: l.contentType !== 'Text' ? (l.contentUrl ?? null) : null,
+      textContent: l.contentType === 'Text' ? (l.textContent ?? null) : null,
+      notes: l.notes ?? null,
+    };
+  }
+
+  // Kurs + dersler başarıyla oluşturuldu: bildir ve listeye dön
+  private finishCreate(msg: string): void {
+    this.notification.success(msg);
+    this.router.navigate(['/instructor/courses']);
   }
 
   // Taslak olarak kaydet: yalnızca eğitmen görür, öğrencilere yayınlanmaz

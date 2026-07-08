@@ -87,6 +87,13 @@
   padding: 20px;
 }
 
+// Boş liste mesajı (örn. henüz katılımcı yokken)
+.empty-text {
+  color: #707881;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
 $primary: #006194;
 $primary-light: #cce5ff;
 $outline-dim: #e0e3e5;

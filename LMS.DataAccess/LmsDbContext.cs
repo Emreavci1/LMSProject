@@ -14,6 +14,8 @@ public class LmsDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+    public DbSet<Lesson> Lessons => Set<Lesson>();
+    public DbSet<LessonCompletion> LessonCompletions => Set<LessonCompletion>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -58,6 +60,44 @@ public class LmsDbContext : DbContext
             entity.HasOne(e => e.Course)
                   .WithMany(c => c.Enrollments)
                   .HasForeignKey(e => e.CourseId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // --- Lesson ---
+        modelBuilder.Entity<Lesson>(entity =>
+        {
+            entity.Property(l => l.Section).HasMaxLength(150).IsRequired();
+            entity.Property(l => l.Title).HasMaxLength(200).IsRequired();
+            entity.Property(l => l.Description).HasMaxLength(1000);
+            entity.Property(l => l.ContentUrl).HasMaxLength(1000);
+            entity.Property(l => l.Notes).HasMaxLength(4000);
+            // TextContent uzun olabilir (okuma metni) — sınır koymuyoruz (nvarchar(max))
+
+            // Bir kursun birçok dersi olur. Kurs silinince dersleri de silinsin (Cascade):
+            // ders, kursu olmadan var olamaz.
+            entity.HasOne(l => l.Course)
+                  .WithMany(c => c.Lessons)
+                  .HasForeignKey(l => l.CourseId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // --- LessonCompletion ---
+        modelBuilder.Entity<LessonCompletion>(entity =>
+        {
+            // Aynı kullanıcı aynı dersi iki kez "tamamlanmış" olarak işaretleyemez
+            entity.HasIndex(lc => new { lc.UserId, lc.LessonId }).IsUnique();
+
+            // Ders silinince tamamlama kayıtları da silinsin (kayıt dersi olmadan anlamsız)
+            entity.HasOne(lc => lc.Lesson)
+                  .WithMany()
+                  .HasForeignKey(lc => lc.LessonId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // Kullanıcı tarafında Restrict (Enrollment ile aynı yaklaşım):
+            // kullanıcı zaten soft-delete ile pasifleştiriliyor, kayıtları korunur.
+            entity.HasOne(lc => lc.User)
+                  .WithMany()
+                  .HasForeignKey(lc => lc.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
     }

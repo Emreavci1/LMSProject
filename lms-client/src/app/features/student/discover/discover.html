@@ -73,14 +73,9 @@
 
   <!-- Course Grid -->
   <div class="course-grid">
-    @for (course of filteredCourses(); track course.key) {
-      <!-- Gerçek kurs kartı her yerinden tıklanınca detay sayfasına gider;
-           demo kartların detay sayfası yok (routerLink null → pasif) -->
-      <div
-        class="course-card"
-        [class.clickable]="course.isReal"
-        [routerLink]="course.isReal ? ['/courses', course.id] : null"
-      >
+    @for (course of filteredCourses(); track course.id) {
+      <!-- Kart her yerinden tıklanınca detay sayfasına gider -->
+      <div class="course-card clickable" [routerLink]="['/courses', course.id]">
         <!-- Card Image (yüklenen kapak görseli veya gradient) -->
         <div class="card-img" [style.background]="course.cover">
           <span class="category-tag">{{ course.category }}</span>
@@ -91,11 +86,7 @@
 
         <!-- Card Content -->
         <div class="card-content">
-          @if (course.isReal) {
-            <h3 class="course-title">{{ course.title }}</h3>
-          } @else {
-            <h3 class="course-title static">{{ course.title }}</h3>
-          }
+          <h3 class="course-title">{{ course.title }}</h3>
 
           <div class="instructor">
             <div class="instructor-avatar">{{ course.instructorName[0] }}</div>
@@ -109,7 +100,7 @@
             </div>
             <div class="stat">
               <mat-icon>schedule</mat-icon>
-              <span>{{ course.durationHours }} Saat</span>
+              <span>{{ course.durationLabel }}</span>
             </div>
           </div>
 
@@ -119,7 +110,7 @@
               <mat-icon>check</mat-icon>
               Katıldın
             </button>
-          } @else if (isStudent() || !course.isReal) {
+          } @else if (isStudent()) {
             <button class="join-btn" (click)="enroll(course); $event.stopPropagation()">Katıl</button>
           }
         </div>

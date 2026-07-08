@@ -6,24 +6,16 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
-import { MockLesson } from '../../../core/models/mock.models';
+import { Course } from '../../../core/models/course.models';
+import { Lesson } from '../../../core/models/lesson.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
-
-// Oynatıcının ihtiyaç duyduğu kurs bilgisi — hem gerçek Course DTO'su
-// hem MockCourse bu alanları karşılar.
-interface PlayerCourse {
-  title: string;
-  description: string;
-  lessonCount: number;
-  durationHours: number;
-  level?: string | null;
-  instructorName: string;
-}
+import { LessonService } from '../../../core/services/lesson.service';
+import { ProgressService } from '../../../core/services/progress.service';
+import { formatCourseHours, sumLessonMinutes } from '../../../core/utils/duration.util';
 
 // Öğrenci: Ders izleme ekranı (Udemy tarzı).
 // Solda içerik alanı (video / okuma metni / döküman), sağda bölüm/ders listesi.
-// İki rota kullanır: /learn/:id (gerçek kurs, API) ve /learn/demo/:id (demo kurs, mock).
 @Component({
   selector: 'app-player',
   imports: [
@@ -38,37 +30,35 @@ interface PlayerCourse {
   styleUrl: './player.scss',
 })
 export class Player implements OnInit {
-  readonly id = input.required<string>(); // route: /learn/:id veya /learn/demo/:id
-  readonly demo = input(false); // route data'dan bağlanır (withComponentInputBinding)
+  readonly id = input.required<string>(); // route: /learn/:id
 
-  protected mock = inject(MockDataService);
+  private progressService = inject(ProgressService);
   private courseService = inject(CourseService);
+  private lessonService = inject(LessonService);
   private sanitizer = inject(DomSanitizer);
+  private auth = inject(AuthService);
 
   readonly courseId = computed(() => Number(this.id()));
 
-  // Gerçek kurs API'den yüklenir; demo kurs mock'tan okunur
-  private readonly realCourse = signal<PlayerCourse | null>(null);
+  // Eğitmen/Admin "Önizle" ile geldiyse geri dönüş kendi eğitim listesine gider
+  readonly isPreview = computed(
+    () => this.auth.role() === 'Instructor' || this.auth.role() === 'Admin'
+  );
+  readonly backLink = computed(() =>
+    this.isPreview() ? '/instructor/courses' : '/my-courses'
+  );
+
+  readonly course = signal<Course | null>(null);
   readonly loading = signal(true);
 
-  readonly course = computed<PlayerCourse | null>(() =>
-    this.demo()
-      ? this.mock.courses().find((c) => c.id === this.courseId()) ?? null
-      : this.realCourse()
-  );
+  // Dersler (ngOnInit'te API'den doldurulur)
+  readonly lessons = signal<Lesson[]>([]);
 
-  // Dersler: demo kursta seed veriden, gerçek kursta managed depodan
-  readonly lessons = computed<MockLesson[]>(() =>
-    this.demo()
-      ? this.mock.lessonsOf(this.courseId())
-      : this.mock.managedLessonsOf(this.courseId())
-  );
-
-  readonly activeLesson = signal<MockLesson | null>(null);
+  readonly activeLesson = signal<Lesson | null>(null);
 
   // Dersleri bölümlere grupla: [{ section, lessons }]
   readonly sections = computed(() => {
-    const groups: { section: string; lessons: MockLesson[] }[] = [];
+    const groups: { section: string; lessons: Lesson[] }[] = [];
     for (const lesson of this.lessons()) {
       const group = groups.find((g) => g.section === lesson.section);
       if (group) group.lessons.push(lesson);
@@ -77,11 +67,18 @@ export class Player implements OnInit {
     return groups;
   });
 
-  readonly progress = computed(() =>
-    this.demo()
-      ? this.mock.progressOf(this.courseId())
-      : this.mock.managedProgressOf(this.courseId())
-  );
+  // İlerleme: tamamlanan ders / toplam ders (tamamlananlar backend'de)
+  readonly progress = computed(() => {
+    const lessons = this.lessons();
+    if (lessons.length === 0) return 0;
+    const done = lessons.filter((l) =>
+      this.progressService.completedLessonIds().has(l.id)
+    ).length;
+    return Math.round((done / lessons.length) * 100);
+  });
+
+  // Kursun toplam takribi süresi: toplam dakika en yakın saate yuvarlanır (98 dk → "2 saat")
+  readonly courseDurationLabel = computed(() => formatCourseHours(sumLessonMinutes(this.lessons())));
 
   // Aktif dersin listedeki sırası — önceki/sonraki butonları için
   readonly activeIndex = computed(() => {
@@ -107,44 +104,51 @@ export class Player implements OnInit {
   });
 
   constructor() {
+    // Tamamlanan dersleri backend'den çek (ilerleme çubuğu ve işaretler için)
+    this.progressService.load();
+
     // Dersler hazır olunca ilk tamamlanmamış dersi (yoksa ilk dersi) aktif yap.
     // effect input'lar bağlandıktan sonra çalışır — constructor'da input okumak güvenli değil.
     effect(() => {
       const lessons = this.lessons();
       if (lessons.length > 0 && this.activeLesson() === null) {
-        const firstIncomplete = lessons.find((l) => !this.mock.completedLessonIds().has(l.id));
+        const firstIncomplete = lessons.find(
+          (l) => !this.progressService.completedLessonIds().has(l.id)
+        );
         this.activeLesson.set(firstIncomplete ?? lessons[0]);
       }
     });
   }
 
-  // Route input'ları (id, demo) ngOnInit'te hazırdır
+  // Route input'ı (id) ngOnInit'te hazırdır
   ngOnInit(): void {
-    if (this.demo()) {
-      this.loading.set(false);
-      return;
-    }
+    const courseId = this.courseId();
 
-    // Gerçek kurs bilgisini API'den çek (başlık, açıklama vs. için)
-    this.courseService.getById(this.courseId()).subscribe({
+    this.courseService.getById(courseId).subscribe({
       next: (c) => {
-        this.realCourse.set(c);
+        this.course.set(c);
         this.loading.set(false);
       },
       error: () => this.loading.set(false), // course null kalır → "bulunamadı" ekranı
     });
+    this.lessonService.getByCourse(courseId).subscribe({
+      next: (list) => this.lessons.set(list),
+      error: () => this.lessons.set([]),
+    });
   }
 
-  selectLesson(lesson: MockLesson): void {
+  selectLesson(lesson: Lesson): void {
     this.activeLesson.set(lesson);
   }
 
   isCompleted(lessonId: number): boolean {
-    return this.mock.completedLessonIds().has(lessonId);
+    return this.progressService.isCompleted(lessonId);
   }
 
-  toggleCompleted(lesson: MockLesson): void {
-    this.mock.toggleLessonCompleted(lesson.id);
+  toggleCompleted(lesson: Lesson): void {
+    // Önizleme (eğitmen/admin): ilerleme kaydedilmez, backend zaten reddeder
+    if (this.isPreview()) return;
+    this.progressService.toggle(lesson.id);
   }
 
   goPrev(): void {
@@ -160,14 +164,15 @@ export class Player implements OnInit {
     const current = this.activeLesson();
     if (!current) return;
 
-    if (!this.isCompleted(current.id)) {
-      this.mock.toggleLessonCompleted(current.id);
+    // Önizlemede yalnızca gezinilir, tamamlama kaydedilmez
+    if (!this.isPreview() && !this.isCompleted(current.id)) {
+      this.progressService.toggle(current.id);
     }
     this.goNext();
   }
 
   // İçerik tipine göre panel simgesi (ders listesi için)
-  lessonIcon(lesson: MockLesson): string {
+  lessonIcon(lesson: Lesson): string {
     switch (lesson.contentType) {
       case 'Video': return 'play_circle';
       case 'Document': return 'description';

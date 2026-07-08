@@ -4,13 +4,14 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { Course } from '../../../core/models/course.models';
 import { CourseAttendee } from '../../../core/models/enrollment.models';
-import { MockLesson } from '../../../core/models/mock.models';
+import { Lesson } from '../../../core/models/lesson.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
+import { LessonService } from '../../../core/services/lesson.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { coverCss } from '../../../core/utils/cover.util';
+import { formatCourseHours } from '../../../core/utils/duration.util';
 
 // Kurs detay sayfası (Udemy tarzı): kapak hero + açıklama + müfredat.
 // Katılımcı buradan kursa katılır; katıldıysa "Eğitime Git" ile oynatıcıya geçer.
@@ -30,15 +31,16 @@ export class CourseDetail implements OnInit {
 
   private courseService = inject(CourseService);
   private enrollmentService = inject(EnrollmentService);
+  private lessonService = inject(LessonService);
   private notification = inject(NotificationService);
   private router = inject(Router);
-  private mock = inject(MockDataService);
   protected auth = inject(AuthService);
 
   readonly loading = signal(true);
   readonly course = signal<Course | null>(null);
   readonly isEnrolled = signal(false);
   readonly enrolling = signal(false);
+  readonly unenrolling = signal(false);
 
   // Sahibi/admin için katılımcı listesi
   readonly attendees = signal<CourseAttendee[]>([]);
@@ -54,15 +56,12 @@ export class CourseDetail implements OnInit {
     return url;
   });
 
-  // Müfredat: dersler managed depodan (backend'de ders modülü yok — spec gereği)
-  readonly lessons = computed<MockLesson[]>(() => {
-    const c = this.course();
-    return c ? this.mock.managedLessonsOf(c.id) : [];
-  });
+  // Müfredat: dersler backend API'den gelir (kurs yüklenince çekilir)
+  readonly lessons = signal<Lesson[]>([]);
 
   // Dersleri bölümlere grupla
   readonly sections = computed(() => {
-    const groups: { section: string; lessons: MockLesson[] }[] = [];
+    const groups: { section: string; lessons: Lesson[] }[] = [];
     for (const lesson of this.lessons()) {
       const group = groups.find((g) => g.section === lesson.section);
       if (group) group.lessons.push(lesson);
@@ -71,8 +70,9 @@ export class CourseDetail implements OnInit {
     return groups;
   });
 
-  readonly totalMinutes = computed(() =>
-    this.lessons().reduce((sum, l) => sum + (l.durationMin || 0), 0)
+  // Kursun toplam takribi süresi: toplam dakika en yakın saate yuvarlanır (98 dk → "2 saat")
+  readonly courseDurationLabel = computed(() =>
+    formatCourseHours(this.course()?.durationMinutes ?? 0)
   );
 
   // Bu kullanıcı kursu düzenleyebilir mi? (sahibi Instructor veya Admin)
@@ -90,7 +90,7 @@ export class CourseDetail implements OnInit {
   readonly isAttendee = computed(() => this.auth.role() === 'CourseAttendee');
 
   // İçerik tipine göre ders simgesi
-  lessonIcon(lesson: MockLesson): string {
+  lessonIcon(lesson: Lesson): string {
     switch (lesson.contentType) {
       case 'Video': return 'play_circle';
       case 'Document': return 'description';
@@ -115,6 +115,11 @@ export class CourseDetail implements OnInit {
         this.course.set(course);
         this.loading.set(false);
         this.loadRoleSpecificData(courseId);
+        // Müfredatı (dersleri) API'den çek
+        this.lessonService.getByCourse(courseId).subscribe({
+          next: (list) => this.lessons.set(list),
+          error: () => this.lessons.set([]),
+        });
       },
       error: (err) => {
         this.loading.set(false);
@@ -157,6 +162,25 @@ export class CourseDetail implements OnInit {
       error: (err) => {
         this.enrolling.set(false);
         this.notification.fromHttpError(err, 'Kursa katılınamadı.');
+      },
+    });
+  }
+
+  unenroll(): void {
+    const c = this.course();
+    if (!c) return;
+    if (!confirm(`"${c.title}" eğitiminden ayrılmak istediğine emin misin?`)) return;
+
+    this.unenrolling.set(true);
+    this.enrollmentService.unenroll(c.id).subscribe({
+      next: () => {
+        this.isEnrolled.set(false);
+        this.unenrolling.set(false);
+        this.notification.success('Eğitimden ayrıldın.');
+      },
+      error: (err) => {
+        this.unenrolling.set(false);
+        this.notification.fromHttpError(err, 'Eğitimden ayrılınamadı.');
       },
     });
   }

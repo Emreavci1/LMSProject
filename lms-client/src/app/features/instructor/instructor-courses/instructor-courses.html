@@ -71,6 +71,10 @@
             <a mat-stroked-button color="primary" [routerLink]="['/instructor/courses', course.id]">
               <mat-icon>tune</mat-icon> Yönet
             </a>
+            <!-- Önizleme: katılımcının gördüğü oynatıcı arayüzünü açar -->
+            <a mat-stroked-button [routerLink]="['/learn', course.id]">
+              <mat-icon>visibility</mat-icon> Önizle
+            </a>
             <button mat-stroked-button color="warn" (click)="remove(course)">
               <mat-icon>delete</mat-icon> Sil
             </button>

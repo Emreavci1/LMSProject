@@ -75,8 +75,8 @@
       <div class="bento-col-right">
         <div class="bento-card full-height">
           <h3 class="bento-title">Kapak Görseli</h3>
-          <p class="bento-desc">Eğitiminiz için dikkat çekici bir kapak görseli yükleyin. (Önerilen: 1920x1080px)</p>
-          
+          <p class="bento-desc">Eğitiminiz için bir kapak görseli yükleyin (önerilen: 1920x1080px) veya aşağıdan bir renk seçin — foto yüklemek zorunlu değil.</p>
+
           <div class="upload-drag-area" [class.has-image]="coverImagePreview()" (click)="fileInput.click()">
             @if (coverImagePreview()) {
               <img [src]="coverImagePreview()" alt="Cover Preview" class="cover-preview" />
@@ -93,6 +93,46 @@
               <button class="custom-btn-outline">Dosya Seç</button>
             }
             <input #fileInput type="file" accept="image/*" (change)="onFileSelected($event)" style="display: none;" />
+          </div>
+
+          @if (coverImagePreview()) {
+            <button type="button" class="remove-cover-btn" (click)="removeCoverImage()">
+              <mat-icon>delete_outline</mat-icon> Görseli kaldır
+            </button>
+          }
+
+          <!-- Renk seçimi: foto yüklenmediyse kapak arka planı bu renkten üretilir -->
+          <div class="color-pick">
+            <p class="color-label">Kapak rengi</p>
+            <div class="swatches">
+              @for (color of coverColors; track color) {
+                <button
+                  type="button"
+                  class="swatch"
+                  [style.background]="color"
+                  [class.selected]="coverColor() === color"
+                  (click)="coverColor.set(coverColor() === color ? null : color)"
+                  [attr.aria-label]="'Renk ' + color"
+                ></button>
+              }
+              <!-- Özel renk (renk tekerleği) -->
+              <input
+                type="color"
+                class="swatch custom-swatch"
+                [value]="coverColor() ?? '#0284C7'"
+                (input)="coverColor.set($any($event.target).value)"
+                title="Özel renk seç"
+              />
+            </div>
+
+            @if (coverColorGradient() && !coverImagePreview()) {
+              <div class="color-preview" [style.background]="coverColorGradient()">
+                <span>Kapak önizlemesi</span>
+              </div>
+            }
+            @if (coverColor() && coverImagePreview()) {
+              <p class="color-note">Foto yüklüyken kapakta foto kullanılır; fotoyu kaldırırsan seçtiğin renk geçerli olur.</p>
+            }
           </div>
         </div>
       </div>
@@ -183,6 +223,12 @@
                 </div>
               }
             }
+          </div>
+
+          <!-- Ders notları: oynatıcıdaki "Notlar" sekmesinde öğrenciye gösterilir -->
+          <div class="form-group">
+            <label>Ders Notları <span class="optional-label">(Opsiyonel)</span></label>
+            <textarea class="custom-textarea" [ngModel]="newNotes()" (ngModelChange)="newNotes.set($event)" rows="3" placeholder="Öğrencinin ders sırasında görebileceği notlar (kaynaklar, ipuçları, hatırlatmalar)..."></textarea>
           </div>
 
           <div class="action-right mt-4">
@@ -282,7 +328,7 @@
       <div class="player-grid">
         <!-- Sol: oynatıcı sahnesi -->
         <div class="player-main">
-          <div class="player-stage" [style.background-image]="coverImagePreview() ? 'url(' + coverImagePreview() + ')' : null">
+          <div class="player-stage" [style.background-image]="effectiveCover() ? coverCss(effectiveCover()) : null">
             @if (activePreview(); as lesson) {
               @switch (lesson.contentType) {
                 @case ('Video') {

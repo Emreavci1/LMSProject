@@ -15,4 +15,6 @@ export interface CourseAttendee {
   fullName: string;
   email: string;
   enrollDate: string;
+  // İlerleme yüzdesi (0-100): tamamlanan ders / kurstaki toplam ders
+  progress: number;
 }

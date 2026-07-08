@@ -8,6 +8,7 @@ interface MenuItem {
   label: string;
   icon: string;
   route: string;
+  exact?: boolean; // kök '/' (Ana Sayfa) için tam eşleşme gerekir
 }
 
 // Tüm korumalı sayfaları saran panel düzeni:
@@ -40,6 +41,7 @@ export class PanelLayout {
     switch (this.auth.role()) {
       case 'CourseAttendee':
         return [
+          { label: 'Ana Sayfa', icon: 'home', route: '/', exact: true },
           { label: 'Eğitimleri Keşfet', icon: 'explore', route: '/discover' },
           { label: 'Eğitimlerim', icon: 'school', route: '/my-courses' },
           { label: 'Bakiyem', icon: 'account_balance_wallet', route: '/balance' },
@@ -48,6 +50,7 @@ export class PanelLayout {
         ];
       case 'Instructor':
         return [
+          { label: 'Ana Sayfa', icon: 'home', route: '/', exact: true },
           { label: 'Eğitimlerim', icon: 'school', route: '/instructor/courses' },
           { label: 'Eğitim Aç', icon: 'add_circle', route: '/instructor/courses/new' },
           { label: 'Program', icon: 'calendar_month', route: '/instructor/schedule' },
@@ -56,6 +59,7 @@ export class PanelLayout {
         ];
       case 'Admin':
         return [
+          { label: 'Ana Sayfa', icon: 'home', route: '/', exact: true },
           { label: 'Genel Bakış', icon: 'dashboard', route: '/admin/overview' },
           { label: 'Kullanıcılar', icon: 'group', route: '/admin/users' },
           { label: 'Eğitimler', icon: 'school', route: '/admin/courses' },

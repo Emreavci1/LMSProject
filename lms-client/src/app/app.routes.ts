@@ -32,14 +32,7 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/student/my-courses/my-courses').then((m) => m.MyCourses),
       },
-      // Demo kurs oynatıcı (mock veriden) — gerçek rotadan ÖNCE gelmeli
-      {
-        path: 'learn/demo/:id',
-        loadComponent: () =>
-          import('./features/student/player/player').then((m) => m.Player),
-        data: { demo: true },
-      },
-      // Gerçek kurs oynatıcı (kurs API'den, dersler managed depodan)
+      // Kurs oynatıcı (kurs + dersler backend API'den)
       {
         path: 'learn/:id',
         loadComponent: () =>

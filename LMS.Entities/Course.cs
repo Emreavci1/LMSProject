@@ -30,4 +30,7 @@ public class Course
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+
+    // Kursun dersleri (müfredat). Kurs silinince dersleri de silinir (cascade).
+    public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
 }

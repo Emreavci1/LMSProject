@@ -299,6 +299,21 @@ $green: #16a34a;
       background: rgba($primary, 0.06);
     }
   }
+
+  &.danger {
+    background: $surface-lowest;
+    color: #b91c1c;
+    border: 1px solid #b91c1c;
+
+    &:hover {
+      background: rgba(#b91c1c, 0.06);
+    }
+
+    &:disabled {
+      opacity: 0.7;
+      cursor: default;
+    }
+  }
 }
 
 .action-card {

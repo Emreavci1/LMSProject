@@ -13,4 +13,7 @@ public interface IEnrollmentRepository : IRepository<Enrollment>
 
     // Bir kursa katılanlar (kullanıcı bilgisiyle)
     Task<List<Enrollment>> GetByCourseWithUserAsync(int courseId);
+
+    // Kullanıcının belirli bir kursa ait kaydı (ayrılma işlemi için)
+    Task<Enrollment?> GetByUserAndCourseAsync(int userId, int courseId);
 }
