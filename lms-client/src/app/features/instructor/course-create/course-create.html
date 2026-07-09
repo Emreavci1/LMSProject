@@ -152,7 +152,7 @@
     <div class="bento-single-col">
       <div class="bento-card">
         <h3 class="bento-title">Müfredat ve Materyaller</h3>
-        <p class="bento-desc mb-4">Eğitiminize ait video, sunum (PDF) veya okuma metinlerini buradan sırasıyla ekleyebilirsiniz.</p>
+        <p class="bento-desc mb-4">Eğitiminize ait URL bağlantısı, fotoğraf, okuma metni, sunum/PDF veya video içeriklerini buradan sırasıyla ekleyebilirsiniz.</p>
         
         <div class="add-lesson-box">
           <div class="form-row">
@@ -167,7 +167,7 @@
             <div class="form-group flex-1">
               <label>İçerik Tipi</label>
               <div class="select-wrapper">
-                <select class="custom-select" [ngModel]="newContentType()" (ngModelChange)="newContentType.set($event)">
+                <select class="custom-select" [ngModel]="newContentType()" (ngModelChange)="onContentTypeChange($event)">
                   @for (type of contentTypes; track type.value) {
                     <option [value]="type.value">{{ type.label }}</option>
                   }
@@ -177,18 +177,19 @@
             </div>
           </div>
 
+          <!-- Ders özeti: dersin kısa yazılı anlatımı, oynatıcının "Genel Bakış" sekmesinde gösterilir -->
           <div class="form-group">
-            <label>Açıklama <span class="optional-label">(Opsiyonel)</span></label>
-            <textarea class="custom-textarea" [ngModel]="newDescription()" (ngModelChange)="newDescription.set($event)" rows="2" placeholder="Bu içeriğin ne anlattığını kısaca özetleyin..."></textarea>
+            <label>Ders Özeti <span class="optional-label">(Opsiyonel)</span></label>
+            <textarea class="custom-textarea" [ngModel]="newDescription()" (ngModelChange)="newDescription.set($event)" rows="4" maxlength="2000" placeholder="Dersin kısa yazılı anlatımı: bu derste ne öğrenilecek, hangi konulara değinilecek? Öğrenci bu özeti dersin 'Genel Bakış' sekmesinde görür..."></textarea>
           </div>
 
           <div class="dynamic-content-area">
             @switch (newContentType()) {
-              @case ('Video') {
+              @case ('Link') {
                 <div class="form-row">
                   <div class="form-group flex-2">
-                    <label>Video Linki (URL)</label>
-                    <input class="custom-input" [ngModel]="newContentUrl()" (ngModelChange)="newContentUrl.set($event)" placeholder="https://youtube.com/..." />
+                    <label>Bağlantı Adresi (URL)</label>
+                    <input class="custom-input" [ngModel]="newContentUrl()" (ngModelChange)="newContentUrl.set($event)" placeholder="https://... (YouTube linkleri oynatıcıda gömülü açılır)" />
                   </div>
                   <div class="form-group flex-1">
                     <label>Süre (Dk)</label>
@@ -196,18 +197,18 @@
                   </div>
                 </div>
               }
-              @case ('Document') {
+              @case ('Image') {
                 <div class="form-row items-center">
                   <div class="form-group flex-2">
-                    <label>Döküman (PDF / Sunum)</label>
-                    <div class="document-upload" [class.has-file]="newContentUrl()" (click)="docInput.click()">
-                      <mat-icon>upload_file</mat-icon>
-                      <span>{{ newContentUrl() ? 'Belge Seçildi: ' + newContentUrl() : 'PDF veya Sunum Yükle' }}</span>
-                      <input #docInput type="file" accept=".pdf,.ppt,.pptx" (change)="onMaterialFileSelected($event)" style="display:none;" />
+                    <label>Fotoğraf (JPG / PNG / GIF / WebP — en fazla 5 MB)</label>
+                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="imageInput.click()">
+                      <mat-icon>{{ uploadingFile() ? 'hourglass_top' : (newContentUrl() ? 'check_circle' : 'add_photo_alternate') }}</mat-icon>
+                      <span>{{ uploadingFile() ? 'Yükleniyor...' : (newUploadedFileName() || 'Fotoğraf Yükle') }}</span>
+                      <input #imageInput type="file" accept=".jpg,.jpeg,.png,.gif,.webp" (change)="onLessonFileSelected($event)" style="display:none;" />
                     </div>
                   </div>
                   <div class="form-group flex-1">
-                    <label>Tahmini Süre</label>
+                    <label>Süre (Dk)</label>
                     <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
                   </div>
                 </div>
@@ -220,6 +221,38 @@
                 <div class="form-group max-w-xs">
                   <label>Tahmini Okuma Süresi (Dk)</label>
                   <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
+                </div>
+              }
+              @case ('Document') {
+                <div class="form-row items-center">
+                  <div class="form-group flex-2">
+                    <label>Sunum / PDF (PDF / PPT / DOC — en fazla 25 MB)</label>
+                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="docInput.click()">
+                      <mat-icon>{{ uploadingFile() ? 'hourglass_top' : (newContentUrl() ? 'check_circle' : 'upload_file') }}</mat-icon>
+                      <span>{{ uploadingFile() ? 'Yükleniyor...' : (newUploadedFileName() || 'Sunum / PDF Yükle') }}</span>
+                      <input #docInput type="file" accept=".pdf,.ppt,.pptx,.doc,.docx" (change)="onLessonFileSelected($event)" style="display:none;" />
+                    </div>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Tahmini Süre</label>
+                    <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
+                  </div>
+                </div>
+              }
+              @case ('Video') {
+                <div class="form-row items-center">
+                  <div class="form-group flex-2">
+                    <label>Video (MP4 / WebM — en fazla 300 MB)</label>
+                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="videoInput.click()">
+                      <mat-icon>{{ uploadingFile() ? 'hourglass_top' : (newContentUrl() ? 'check_circle' : 'video_file') }}</mat-icon>
+                      <span>{{ uploadingFile() ? 'Yükleniyor... (büyük dosyalar zaman alabilir)' : (newUploadedFileName() || 'Video Yükle') }}</span>
+                      <input #videoInput type="file" accept=".mp4,.webm" (change)="onLessonFileSelected($event)" style="display:none;" />
+                    </div>
+                  </div>
+                  <div class="form-group flex-1">
+                    <label>Süre (Dk)</label>
+                    <input type="number" class="custom-input" [ngModel]="newDuration()" (ngModelChange)="newDuration.set($event)" placeholder="Opsiyonel" />
+                  </div>
                 </div>
               }
             }
@@ -253,7 +286,7 @@
                   <mat-icon class="drag-handle" cdkDragHandle>drag_indicator</mat-icon>
                   <span class="order">{{ i + 1 }}</span>
                   <div class="icon-box" [class.video]="lesson.contentType === 'Video'" [class.doc]="lesson.contentType === 'Document'" [class.txt]="lesson.contentType === 'Text'">
-                    <mat-icon>{{ lesson.contentType === 'Video' ? 'play_circle' : lesson.contentType === 'Document' ? 'picture_as_pdf' : 'article' }}</mat-icon>
+                    <mat-icon>{{ contentTypeIcon(lesson.contentType) }}</mat-icon>
                   </div>
                   <div class="info-box" (click)="togglePreview(i)">
                     <strong>{{ lesson.title }}</strong>
@@ -268,7 +301,7 @@
                 @if (previewIndex() === i) {
                   <div class="lesson-preview">
                     @switch (lesson.contentType) {
-                      @case ('Video') {
+                      @case ('Link') {
                         @if (videoEmbedUrl(lesson.contentUrl); as safe) {
                           <div class="video-frame">
                             <iframe [src]="safe" allowfullscreen></iframe>
@@ -279,13 +312,31 @@
                           </a>
                         }
                       }
-                      @case ('Document') {
-                        <div class="doc-chip">
-                          <mat-icon>picture_as_pdf</mat-icon> <span>{{ lesson.contentUrl }}</span>
-                        </div>
-                      }
                       @case ('Text') {
                         <div class="text-block">{{ lesson.textContent }}</div>
+                      }
+                      @case ('Image') {
+                        @if (lesson.contentUrl) {
+                          <img class="preview-image" [src]="fileUrl(lesson.contentUrl)" [alt]="lesson.title" />
+                        }
+                      }
+                      @case ('Video') {
+                        @if (lesson.contentUrl) {
+                          <video class="preview-video" controls [src]="fileUrl(lesson.contentUrl)"></video>
+                        }
+                      }
+                      @default {
+                        <!-- Document: yüklenen dosyayı yeni sekmede aç -->
+                        @if (lesson.contentUrl) {
+                          <a [href]="fileUrl(lesson.contentUrl)" target="_blank" rel="noopener" class="ext-link">
+                            <mat-icon>picture_as_pdf</mat-icon> {{ lesson.fileName || 'Dosyayı Aç' }}
+                          </a>
+                        } @else {
+                          <div class="doc-chip">
+                            <mat-icon>{{ contentTypeIcon(lesson.contentType) }}</mat-icon>
+                            <span>{{ contentTypeLabel(lesson.contentType) }} — dosya eklenmemiş</span>
+                          </div>
+                        }
                       }
                     }
                   </div>
@@ -331,29 +382,50 @@
           <div class="player-stage" [style.background-image]="effectiveCover() ? coverCss(effectiveCover()) : null">
             @if (activePreview(); as lesson) {
               @switch (lesson.contentType) {
-                @case ('Video') {
+                @case ('Link') {
                   @if (videoEmbedUrl(lesson.contentUrl); as safe) {
                     <iframe class="stage-frame" [src]="safe" allowfullscreen></iframe>
                   } @else {
                     <div class="stage-placeholder">
-                      <mat-icon class="stage-icon">play_circle</mat-icon>
+                      <mat-icon class="stage-icon">link</mat-icon>
                       <p>{{ lesson.title }}</p>
-                      <span>Video (harici bağlantı)</span>
+                      <span>{{ lesson.contentUrl }}</span>
                     </div>
                   }
-                }
-                @case ('Document') {
-                  <div class="stage-placeholder">
-                    <mat-icon class="stage-icon">picture_as_pdf</mat-icon>
-                    <p>{{ lesson.title }}</p>
-                    <span>{{ lesson.contentUrl || 'Döküman' }}</span>
-                  </div>
                 }
                 @case ('Text') {
                   <div class="stage-placeholder">
                     <mat-icon class="stage-icon">article</mat-icon>
                     <p>{{ lesson.title }}</p>
                     <span>Okuma metni</span>
+                  </div>
+                }
+                @case ('Image') {
+                  @if (lesson.contentUrl) {
+                    <img class="stage-image" [src]="fileUrl(lesson.contentUrl)" [alt]="lesson.title" />
+                  } @else {
+                    <div class="stage-placeholder">
+                      <mat-icon class="stage-icon">image</mat-icon>
+                      <p>{{ lesson.title }}</p>
+                    </div>
+                  }
+                }
+                @case ('Video') {
+                  @if (lesson.contentUrl) {
+                    <video class="stage-video" controls [src]="fileUrl(lesson.contentUrl)"></video>
+                  } @else {
+                    <div class="stage-placeholder">
+                      <mat-icon class="stage-icon">play_circle</mat-icon>
+                      <p>{{ lesson.title }}</p>
+                    </div>
+                  }
+                }
+                @default {
+                  <!-- Document: sahnede dosya adıyla gösterilir, oynatıcıda açılır -->
+                  <div class="stage-placeholder">
+                    <mat-icon class="stage-icon">{{ contentTypeIcon(lesson.contentType) }}</mat-icon>
+                    <p>{{ lesson.title }}</p>
+                    <span>{{ lesson.fileName || contentTypeLabel(lesson.contentType) }}</span>
                   </div>
                 }
               }
@@ -371,7 +443,7 @@
                 <strong>{{ lesson.title }}</strong>
                 <span>{{ lesson.section }} @if (lesson.durationMin) { · {{ lesson.durationMin }} dk }</span>
               </div>
-              <span class="type-tag">{{ lesson.contentType === 'Video' ? 'Video' : lesson.contentType === 'Document' ? 'Döküman' : 'Metin' }}</span>
+              <span class="type-tag">{{ contentTypeLabel(lesson.contentType) }}</span>
             </div>
           }
 
@@ -393,7 +465,7 @@
                     [class.video]="row.lesson.contentType === 'Video'"
                     [class.doc]="row.lesson.contentType === 'Document'"
                     [class.txt]="row.lesson.contentType === 'Text'">
-                    {{ row.lesson.contentType === 'Video' ? 'play_circle' : row.lesson.contentType === 'Document' ? 'description' : 'article' }}
+                    {{ contentTypeIcon(row.lesson.contentType) }}
                   </mat-icon>
                   <span class="cp-title">{{ row.lesson.title }}</span>
                   @if (row.lesson.durationMin) {

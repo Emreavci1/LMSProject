@@ -68,7 +68,8 @@ public class LmsDbContext : DbContext
         {
             entity.Property(l => l.Section).HasMaxLength(150).IsRequired();
             entity.Property(l => l.Title).HasMaxLength(200).IsRequired();
-            entity.Property(l => l.Description).HasMaxLength(1000);
+            // Ders özeti (kısa yazılı anlatım) — oynatıcının "Genel Bakış" sekmesinde gösterilir
+            entity.Property(l => l.Description).HasMaxLength(2000);
             entity.Property(l => l.ContentUrl).HasMaxLength(1000);
             entity.Property(l => l.Notes).HasMaxLength(4000);
             // TextContent uzun olabilir (okuma metni) — sınır koymuyoruz (nvarchar(max))

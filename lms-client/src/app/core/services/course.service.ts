@@ -24,6 +24,11 @@ export class CourseService {
     return this.http.get<Course[]>(`${this.base}/my`);
   }
 
+  // TÜM kurslar, pasif/taslak dahil (yalnızca Admin — eğitim yönetimi sayfası)
+  getAllForAdmin(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.base}/all`);
+  }
+
   create(course: CreateCourse): Observable<Course> {
     return this.http.post<Course>(this.base, course);
   }

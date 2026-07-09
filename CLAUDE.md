@@ -174,10 +174,34 @@ Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, ta
     18 sahte ders (Discover/Eğitimlerim/Dashboard/Player'da gerçek kurslarla birleştiriliyordu)
     kaldırıldı. Bu sayfalar artık yalnızca backend'deki gerçek kursları/kayıtları gösteriyor.
     `MockDataService.courses` yalnızca Admin panelinin henüz backend'e bağlanmamış sayfalarında
-    (Tüm Kurslar, Kategoriler, Genel Bakış) kullanılmaya devam ediyor.
-  - **HÂLÂ ERTELENDİ — Doğrudan dosya yükleme:** video/sunumların Udemy/Moodle tarzı sisteme
-    yüklenmesi (dosya depolama + upload API). Büyük iş; şimdilik içerik URL olarak veriliyor.
-    Kullanıcı kararı: "şimdilik url kısmı kalsın".
+    (Kategoriler, Genel Bakış) kullanılmaya devam ediyor.
+  - **YAPILDI (2026-07-09) — Admin eğitim yönetimi gerçek veriye bağlandı:** Yeni endpoint
+    `GET /api/courses/all` (yalnızca Admin; pasif/taslak dahil TÜM kurslar). Admin "Eğitim
+    Yönetimi" sayfası (`admin-course-list`) mock'tan koparıldı: liste/kategori filtresi gerçek
+    veriden, aktif-pasif toggle `PUT /api/courses/{id}` ile DB'ye yazıyor, "Detay" butonu kurs
+    yönetim sayfasına (`/instructor/courses/:id`) gidiyor. Ayrıca `GET /api/courses/{id}`
+    düzeltildi: pasif kursun detayını artık sahibi eğitmen ve Admin görebiliyor (yönetim için
+    gerekli), katılımcıya yine 404. Aynı gün: eğitmen dashboard'undaki "Toplam Ders" kutusu
+    "Toplam Eğitim" (kurs sayısı) olarak değiştirildi (kullanıcı isteği).
+  - **YAPILDI (2026-07-09) — 5 içerik tipi + ders özeti:** `LessonContentType` enum'a `Link` ve
+    `Image` eklendi (int saklandığı için migration gerekmedi). Yeni taksonomi: `Link` (URL
+    bağlantısı; YouTube ise player'da gömülür, değilse "Bağlantıyı Aç" butonu) ve `Text` bugün
+    tam çalışır; `Image`/`Document`/`Video` dosya YÜKLEME tipleri — depolama altyapısı gelene
+    kadar formlarda "yükleme yakında" kutusu gösterilir ve ders içeriksiz kaydedilebilir
+    (validator: URL yalnızca `Link` tipinde zorunlu). Eski URL'li `Video` dersleri çalışmaya
+    devam eder. Ayrıca `Lesson.Description` = "Ders Özeti" (dersin kısa yazılı anlatımı,
+    player'ın Genel Bakış sekmesinde): 1000→2000 karakter (migration `ExpandLessonDescription`).
+  - **YAPILDI (2026-07-09) — Doğrudan dosya yükleme (yerel disk):** Senior onaylı plan uygulandı.
+    `IFileStorageService`/`FileStorageService` (LMS.Business; uzantı beyaz listesi + boyut sınırı:
+    foto 5MB, sunum/PDF 25MB, video 300MB; GUID dosya adı) + `POST /api/uploads`
+    (Instructor/Admin, multipart) + `app.UseStaticFiles()` ile `wwwroot/uploads` sunumu.
+    DB'de yalnızca dosya YOLU tutulur (`ContentUrl` = `/uploads/images/xxx.png` gibi).
+    Frontend: `UploadService` + iki ders formunda gerçek dosya seçici (seçince hemen yüklenir),
+    player'da foto `<img>`, PDF gömülü `<iframe>` (+ yeni sekmede aç), diğer dökümanlar
+    indirme butonu, yüklenen video `<video controls>`. Yükleme tiplerinde dosya artık zorunlu
+    (frontend'de; backend validator hâlâ esnek). `uploads` klasörü git'e DAHİL (kullanıcı
+    kararı: repo çekilince dosyalar da gelsin). Not: statik dosyalar token istemez —
+    kapalı kurum içi sistem için kabul edildi, canlıda korumalı sunum düşünülebilir.
 - Sertifika sistemi
 - Periyodik eğitim mekanizması (yıllık tekrar, hatırlatma vb.)
 - İlerleme (progress) ölçümü:

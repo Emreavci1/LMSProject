@@ -78,7 +78,8 @@ LMS.DTO          → API'nin dışa açtığı veri şekilleri (Business ve Api 
 ```
 lms-client/src/app/
 ├── core/                 → Uygulamanın altyapısı
-│   ├── services/         → API çağrıları (auth, course, enrollment, user)
+│   ├── services/         → API çağrıları (auth, course, lesson, enrollment,
+│   │                        progress, user)
 │   ├── guards/           → Sayfa erişim bekçileri (authGuard, roleGuard)
 │   ├── interceptors/     → Her API isteğine JWT token'ı otomatik ekler
 │   ├── models/           → Backend DTO'larının TypeScript karşılıkları
@@ -177,18 +178,31 @@ Bu akışı anlatabiliyorsan mimarinin %80'ini anlatabiliyorsun demektir.
 
 ```
 Users (Id, FullName, Email[unique], PasswordHash, Role, IsActive, CreatedDate)
-  │ 1
-  │
-  │ n
+  │ 1                                          │ 1
+  │ n                                          │ n
 Courses (Id, Title, Description, InstructorId → Users, Category, Level,
          DurationHours, LessonCount, Status, PublishDate, CoverImageUrl,
-         IsActive, CreatedDate)
+         IsActive, CreatedDate)                Enrollments (Id, UserId → Users,
+  │ 1                                                       CourseId → Courses, EnrollDate)
+  │ n                                            ► (UserId, CourseId) UNIQUE — aynı kişi
+Lessons (Id, CourseId → Courses, Section,          aynı kursa iki kez kaydolamaz
+         Title, Description, DurationMin,
+         ContentType, ContentUrl, TextContent,
+         Notes, Order, CreatedDate)
   │ 1
-  │
   │ n
-Enrollments (Id, UserId → Users, CourseId → Courses, EnrollDate)
-  ► (UserId, CourseId) UNIQUE — aynı kişi aynı kursa iki kez kaydolamaz
+LessonCompletions (Id, UserId → Users, LessonId → Lessons, CompletedDate)
+  ► (UserId, LessonId) UNIQUE — aynı ders iki kez "tamamlandı" işaretlenemez
 ```
+
+- **Lesson.ContentType** (enum): `Link` (URL bağlantısı — YouTube ise oynatıcıda
+  gömülü açılır), `Text` (doğrudan metin), `Image`/`Document`/`Video` (dosya yükleme:
+  dosya sunucudaki `uploads` klasörüne kaydedilir, `ContentUrl` alanında yalnızca
+  dosyanın YOLU tutulur — dosyanın kendisi veritabanına girmez). Kurs silinince
+  dersleri de silinir (Cascade); ders silinince tamamlama kayıtları da silinir (Cascade).
+- **İlerleme (progress):** Kullanıcının bir kurstaki ilerlemesi = tamamladığı ders
+  sayısı / kursun toplam ders sayısı (yüzde). `LessonCompletions` tablosundan hesaplanır,
+  tarayıcıda tutulmaz — bu yüzden farklı cihazdan girildiğinde de doğru görünür.
 
 - **Course.Status:** `Draft` (taslak — sadece eğitmen görür) → `Scheduled`
   (ileri tarihli) → `Published` (katılımcılara açık). Katalog endpoint'i yalnızca
@@ -245,24 +259,34 @@ Enrollments (Id, UserId → Users, CourseId → Courses, EnrollDate)
 
 Sorulduğunda saklamak yerine "biliyoruz, planı şu" diyebilmen için:
 
-1. **Ders içerikleri henüz veritabanında değil.** Video linki/metin gibi ders
-   içerikleri şimdilik tarayıcının localStorage'ında tutuluyor. **Neden:** Proje
-   spesifikasyonunda ders içerik modülü "netleşince yapılacak" listesinde.
-   **Plan:** İçerikler Udemy tarzı doğrudan dosya yükleme ile backend'e taşınacak
-   (Lesson tablosu + dosya depolama + upload API).
-   **Sonucu:** Farklı cihazdan giren katılımcı ders içeriğini göremez (kurs ve
-   katılım bilgileri veritabanında olduğu için onlar her yerden görünür).
-2. **Bazı ekran verileri göstermelik (mock).** Katalogdaki 3 demo kurs, admin
-   panelindeki grafikler, bakiye sayfası vb. arayüz geliştirme amaçlı sahte veridir;
-   gerçek kurs/katılım/kullanıcı akışları ise gerçek API'ye bağlıdır.
+1. **Dosya yükleme yerel diske yapılıyor (bulut yok).** 5 içerik tipinin tamamı
+   çalışıyor: `Link` (URL) ve `Text` (okuma metni) + dosya yüklemeli
+   `Image`/`Document`/`Video`. Yüklenen dosya sunucuda `wwwroot/uploads` klasörüne
+   GUID adla kaydedilir; veritabanında yalnızca dosyanın **yolu** tutulur, dosyanın
+   kendisi değil (senior onaylı yaklaşım — veritabanı şişmez). Güvenlik: uzantı
+   beyaz listesi (`.exe` gibi dosyalar reddedilir), tipe göre boyut sınırı (foto
+   5 MB, sunum/PDF 25 MB, video 300 MB), dosya adı kullanıcıdan alınmaz (GUID),
+   yükleme yalnızca eğitmen/admin rolüne açık. `uploads/` klasörü git'e dahildir:
+   repo başka bilgisayara çekilince dosyalar da gelir. **Bilinen sınırlar:**
+   dosyalar token'sız erişilebilir (URL'i bilen açar — kapalı kurum içi sistem için
+   kabul edildi, canlıda korumalı sunum düşünülmeli) ve ders silinince dosya diskte
+   kalıyor (öksüz dosya temizliği ileride eklenebilir).
+2. **Bazı ekran verileri hâlâ göstermelik (mock).** Yalnızca Admin panelinin
+   backend'e henüz bağlanmamış sayfaları: Tüm Kurslar, Kategoriler, Genel Bakış
+   (grafikler/bakiye). Kurs/ders/katılım/ilerleme/kullanıcı akışlarının tamamı
+   gerçek API'ye bağlı — katalogdaki demo kurslar da temizlendi.
 3. **AutoMapper paketinde bilinen güvenlik uyarısı var** (derlemede NU1903 uyarısı).
    Kütüphanenin güvenli sürümüne yükseltme yapılmalı — yapılacaklar listesinde.
 4. **Kapak görselleri base64 metin olarak veritabanında.** Çalışır ama büyük
    görsellerde verimsizdir; dosya yükleme altyapısı gelince dosya olarak saklanacak.
+   Foto yüklemek istemeyen eğitmen için alternatif olarak **kapak rengi seçimi**
+   eklendi (renkten gradient kapak üretilir, foto zorunlu değil).
 5. **JWT gizli anahtarı `appsettings.json`'da.** Geliştirme için normal; canlıya
    çıkarken ortam değişkenine/gizli kasaya (secret store) taşınmalı.
 6. **Zamanlanmış kurslar otomatik yayına girmiyor.** `Scheduled` kurs, tarihi
    gelince el ile yayınlanmalı; otomatik iş (background job) ileride eklenebilir.
+7. **Duyurular (announcements) modülü yok.** Kullanıcı kararıyla ertelendi;
+   oynatıcıdaki "Duyurular" sekmesi şimdilik boş görünür.
 
 ---
 
@@ -344,6 +368,15 @@ kursları döner; taslağı yalnızca sahibi görür.
 **S: Uygulama mobilde çalışıyor mu?**
 C: Evet, tüm sayfalar responsive (mobile-first); ayrı mobil uygulama değil,
 aynı web arayüzü her ekrana uyum sağlıyor.
+
+**S: Bir katılımcının ilerlemesi nasıl hesaplanıyor?**
+C: Tamamladığı ders sayısı / kursun toplam ders sayısı. `LessonCompletions`
+tablosunda tutulur (tarayıcıda değil), bu yüzden eğitmen de katılımcı listesinde
+gerçek yüzdeyi görür ve katılımcı farklı cihazdan girse de ilerlemesi korunur.
+
+**S: Eğitmen kendi kursunu katılımcı gibi görebilir mi?**
+C: Evet, "Önizle" ile aynı oynatıcı arayüzü açılır ama önizleme modunda ders
+tamamlama işaretlenmez (backend zaten katılımcı olmayan biri için bu isteği reddeder).
 
 ---
 

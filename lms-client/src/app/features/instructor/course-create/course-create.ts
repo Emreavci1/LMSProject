@@ -17,10 +17,14 @@ import { CreateLesson } from '../../../core/models/lesson.models';
 import { LessonService } from '../../../core/services/lesson.service';
 import { MockDataService } from '../../../core/services/mock-data.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { UploadService } from '../../../core/services/upload.service';
 import { coverCss } from '../../../core/utils/cover.util';
+import { fileUrl } from '../../../core/utils/file-url.util';
 import { ImageCropperDialog } from '../../../shared/components/image-cropper-dialog/image-cropper-dialog';
 
-export type ContentType = 'Video' | 'Document' | 'Text';
+import { LessonContentType } from '../../../core/models/lesson.models';
+
+export type ContentType = LessonContentType;
 
 export interface DraftLesson {
   title: string;
@@ -32,6 +36,8 @@ export interface DraftLesson {
   textContent?: string;
   // Eğitmenin ders notları (oynatıcıdaki "Notlar" sekmesinde gösterilir)
   notes?: string;
+  // Yüklenen dosyanın orijinal adı (yalnızca listede göstermek için, API'ye gitmez)
+  fileName?: string;
 }
 
 @Component({
@@ -57,6 +63,7 @@ export class CourseCreate {
   private auth = inject(AuthService);
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
+  private uploadService = inject(UploadService);
   private notification = inject(NotificationService);
   private router = inject(Router);
   private dialog = inject(MatDialog);
@@ -67,6 +74,8 @@ export class CourseCreate {
 
   // Template'ten kapak CSS'i üretmek için (gradient/url ayrımını util yapar)
   protected readonly coverCss = coverCss;
+  // Göreli /uploads yolunu tam adrese çevirir (önizlemelerde img/video/a için)
+  protected readonly fileUrl = fileUrl;
 
   // MANUEL STEP KONTROLÜ
   readonly currentStep = signal<number>(1);
@@ -77,11 +86,36 @@ export class CourseCreate {
   readonly instructorName = computed(() => this.auth.currentUser()?.fullName ?? 'Eğitmen');
 
   readonly levels = ['Başlangıç', 'Orta', 'İleri'] as const;
+  // 5 içerik tipi. Link ve Text bugün tam çalışır;
+  // Image/Document/Video dosya yükleme ile çalışacak (depolama altyapısı yakında).
   readonly contentTypes: { value: ContentType, label: string }[] = [
-    { value: 'Video', label: 'Video Bağlantısı' },
-    { value: 'Document', label: 'Döküman (PDF / Sunum)' },
-    { value: 'Text', label: 'Okuma Metni' }
+    { value: 'Link', label: 'URL Bağlantısı' },
+    { value: 'Image', label: 'Fotoğraf Yükle' },
+    { value: 'Text', label: 'Okuma Metni' },
+    { value: 'Document', label: 'Sunum / PDF Yükle' },
+    { value: 'Video', label: 'Video Yükle' }
   ];
+
+  // Tip başına gösterim etiketi/ikonu (template'lerde iç içe ternary yerine)
+  contentTypeLabel(type: ContentType): string {
+    switch (type) {
+      case 'Link': return 'URL Bağlantısı';
+      case 'Image': return 'Fotoğraf';
+      case 'Text': return 'Okuma Metni';
+      case 'Document': return 'Sunum / PDF';
+      case 'Video': return 'Video';
+    }
+  }
+
+  contentTypeIcon(type: ContentType): string {
+    switch (type) {
+      case 'Link': return 'link';
+      case 'Image': return 'image';
+      case 'Text': return 'article';
+      case 'Document': return 'picture_as_pdf';
+      case 'Video': return 'play_circle';
+    }
+  }
 
   readonly coverImagePreview = signal<string | null>(null);
 
@@ -135,11 +169,45 @@ export class CourseCreate {
   readonly newTitle = signal('');
   readonly newDescription = signal('');
   readonly newSection = signal('');
-  readonly newContentType = signal<ContentType>('Video');
+  readonly newContentType = signal<ContentType>('Link');
   readonly newDuration = signal<number | null>(null);
   readonly newContentUrl = signal('');
   readonly newTextContent = signal('');
   readonly newNotes = signal('');
+  // Dosya yükleme durumu (Image/Document/Video tipleri için)
+  readonly uploadingFile = signal(false);
+  readonly newUploadedFileName = signal('');
+
+  // İçerik tipi değişince önceki tipe ait içerik alanlarını sıfırla
+  // (örn. Link'ten Image'a geçince eski URL yeni derse sızmasın)
+  onContentTypeChange(type: ContentType): void {
+    this.newContentType.set(type);
+    this.newContentUrl.set('');
+    this.newTextContent.set('');
+    this.newUploadedFileName.set('');
+  }
+
+  // Dosya seçilir seçilmez sunucuya yüklenir; dönen yol ContentUrl olarak saklanır
+  onLessonFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.uploadingFile.set(true);
+    this.uploadService.upload(file, this.newContentType()).subscribe({
+      next: (result) => {
+        this.newContentUrl.set(result.url);
+        this.newUploadedFileName.set(result.fileName);
+        this.uploadingFile.set(false);
+        this.notification.success(`"${result.fileName}" yüklendi.`);
+      },
+      error: (err) => {
+        this.uploadingFile.set(false);
+        this.notification.fromHttpError(err, 'Dosya yüklenemedi.');
+      },
+    });
+    input.value = ''; // aynı dosya tekrar seçilebilsin
+  }
 
   addDraftLesson(): void {
     const title = this.newTitle().trim();
@@ -148,16 +216,21 @@ export class CourseCreate {
       return;
     }
     const type = this.newContentType();
-    if (type === 'Video' && !this.newContentUrl().trim()) {
-      this.notification.error('Video linki girmelisiniz.');
-      return;
-    }
-    if (type === 'Document' && !this.newContentUrl().trim()) {
-      this.notification.error('Döküman yüklemelisiniz.');
+    if (type === 'Link' && !this.newContentUrl().trim()) {
+      this.notification.error('Bağlantı adresi (URL) girmelisiniz.');
       return;
     }
     if (type === 'Text' && !this.newTextContent().trim()) {
       this.notification.error('Okuma metni içeriği boş olamaz.');
+      return;
+    }
+    // Yükleme tipleri artık dosya ister (upload çalışıyor; ders sonradan düzenlenemiyor)
+    if ((type === 'Image' || type === 'Document' || type === 'Video') && !this.newContentUrl()) {
+      this.notification.error('Önce dosyayı yüklemelisiniz.');
+      return;
+    }
+    if (this.uploadingFile()) {
+      this.notification.error('Dosya yüklemesi sürüyor, lütfen bekleyin.');
       return;
     }
 
@@ -171,7 +244,8 @@ export class CourseCreate {
         durationMin: this.newDuration() || null,
         contentUrl: type !== 'Text' ? this.newContentUrl().trim() : undefined,
         textContent: type === 'Text' ? this.newTextContent().trim() : undefined,
-        notes: this.newNotes().trim() || undefined
+        notes: this.newNotes().trim() || undefined,
+        fileName: this.newUploadedFileName() || undefined
       },
     ]);
 
@@ -181,14 +255,7 @@ export class CourseCreate {
     this.newContentUrl.set('');
     this.newTextContent.set('');
     this.newNotes.set('');
-  }
-
-  onMaterialFileSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      this.newContentUrl.set(`fake-url-for-${file.name}`);
-      this.notification.success(`${file.name} başarıyla eklendi (Mock).`);
-    }
+    this.newUploadedFileName.set('');
   }
 
   removeDraftLesson(index: number): void {
@@ -341,6 +408,7 @@ export class CourseCreate {
       description: l.description ?? null,
       durationMin: l.durationMin || 0,
       contentType: l.contentType,
+      // Link harici URL, yükleme tipleri sunucudaki dosya yolunu (/uploads/...) taşır
       contentUrl: l.contentType !== 'Text' ? (l.contentUrl ?? null) : null,
       textContent: l.contentType === 'Text' ? (l.textContent ?? null) : null,
       notes: l.notes ?? null,

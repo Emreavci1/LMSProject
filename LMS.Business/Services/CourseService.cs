@@ -29,10 +29,21 @@ public class CourseService : ICourseService
         return _mapper.Map<List<CourseDto>>(courses);
     }
 
-    public async Task<ServiceResult<CourseDto>> GetByIdAsync(int id)
+    public async Task<List<CourseDto>> GetAllCoursesAsync()
+    {
+        // Admin eğitim yönetimi: pasif ve taslak kurslar da listelenir
+        var courses = await _courseRepository.GetAllWithInstructorAsync();
+        return _mapper.Map<List<CourseDto>>(courses);
+    }
+
+    public async Task<ServiceResult<CourseDto>> GetByIdAsync(int id, int currentUserId, bool isAdmin)
     {
         var course = await _courseRepository.GetByIdWithInstructorAsync(id);
-        if (course is null || !course.IsActive)
+        if (course is null)
+            return ServiceResult<CourseDto>.Fail(ServiceErrorType.NotFound, "Kurs bulunamadı.");
+
+        // Pasif kurs katılımcıya görünmez; sahibi olan eğitmen ve Admin yönetim için görebilir
+        if (!course.IsActive && !isAdmin && course.InstructorId != currentUserId)
             return ServiceResult<CourseDto>.Fail(ServiceErrorType.NotFound, "Kurs bulunamadı.");
 
         return ServiceResult<CourseDto>.Ok(_mapper.Map<CourseDto>(course));

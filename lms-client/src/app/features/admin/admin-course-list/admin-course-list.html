@@ -24,7 +24,7 @@
     <div class="filter-controls">
       <select [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event || null)">
         <option value="">Tüm Kategoriler</option>
-        @for (cat of mock.categories(); track cat) {
+        @for (cat of categories(); track cat) {
           <option [value]="cat">{{ cat }}</option>
         }
       </select>
@@ -55,7 +55,7 @@
             <tr>
               <td>
                 <div class="course-cell">
-                  <div class="course-thumb" [style.background]="course.cover">
+                  <div class="course-thumb" [style.background-image]="coverCss(course.coverImageUrl)">
                     <mat-icon>school</mat-icon>
                   </div>
                   <div>
@@ -73,20 +73,20 @@
                 </div>
               </td>
               <td>
-                <span class="category-badge">{{ course.category }}</span>
+                <span class="category-badge">{{ course.category || 'Genel' }}</span>
               </td>
               <td class="text-center">
-                <span class="student-count">{{ course.students }}</span>
+                <span class="student-count">{{ course.studentCount }}</span>
               </td>
               <td class="text-center">
                 <mat-slide-toggle
                   [checked]="course.isActive"
-                  (change)="toggleStatus(course.id)"
+                  (change)="toggleStatus(course)"
                 ></mat-slide-toggle>
                 <span class="toggle-label">{{ course.isActive ? 'Aktif' : 'Pasif' }}</span>
               </td>
               <td class="text-right">
-                <button class="detail-btn">Detay</button>
+                <button class="detail-btn" [routerLink]="['/instructor/courses', course.id]">Detay</button>
               </td>
             </tr>
           }
@@ -107,8 +107,8 @@
     @for (course of filteredCourses(); track course.id) {
       <div class="course-card-mobile">
         <div class="card-top">
-          <div class="course-cell">
-            <div class="course-thumb" [style.background]="course.cover">
+          <div class="course-cell" [routerLink]="['/instructor/courses', course.id]">
+            <div class="course-thumb" [style.background-image]="coverCss(course.coverImageUrl)">
               <mat-icon>school</mat-icon>
             </div>
             <div>
@@ -118,18 +118,18 @@
           </div>
           <mat-slide-toggle
             [checked]="course.isActive"
-            (change)="toggleStatus(course.id)"
+            (change)="toggleStatus(course)"
           ></mat-slide-toggle>
         </div>
         <div class="card-bottom">
-          <span class="category-badge">{{ course.category }}</span>
-          <span class="course-meta"><mat-icon>group</mat-icon> {{ course.students }} öğrenci</span>
+          <span class="category-badge">{{ course.category || 'Genel' }}</span>
+          <span class="course-meta"><mat-icon>group</mat-icon> {{ course.studentCount }} öğrenci</span>
         </div>
       </div>
     }
   </div>
 
-  @if (filteredCourses().length === 0) {
+  @if (!loading() && filteredCourses().length === 0) {
     <div class="empty">
       <mat-icon>search_off</mat-icon>
       <p>Bu filtrelere uygun eğitim bulunamadı.</p>

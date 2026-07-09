@@ -13,6 +13,7 @@ import { CourseService } from '../../../core/services/course.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ProgressService } from '../../../core/services/progress.service';
 import { formatCourseHours, sumLessonMinutes } from '../../../core/utils/duration.util';
+import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
 
 // Öğrenci: Ders izleme ekranı (Udemy tarzı).
 // Solda içerik alanı (video / okuma metni / döküman), sağda bölüm/ders listesi.
@@ -90,10 +91,12 @@ export class Player implements OnInit {
     () => this.activeIndex() >= 0 && this.activeIndex() < this.lessons().length - 1
   );
 
-  // Aktif ders video ise gömülebilir YouTube URL'i (değilse null)
+  // Aktif ders URL taşıyorsa (Link, veya URL ile kaydedilmiş eski Video dersleri)
+  // gömülebilir YouTube URL'i (değilse null)
   readonly videoUrl = computed<SafeResourceUrl | null>(() => {
     const lesson = this.activeLesson();
-    if (!lesson || lesson.contentType !== 'Video' || !lesson.contentUrl) return null;
+    if (!lesson || !lesson.contentUrl) return null;
+    if (lesson.contentType !== 'Video' && lesson.contentType !== 'Link') return null;
     const match = lesson.contentUrl.match(
       /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/
     );
@@ -101,6 +104,36 @@ export class Player implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(
       `https://www.youtube.com/embed/${match[1]}`
     );
+  });
+
+  // --- Sunucuya yüklenmiş dosyalar (/uploads/...) ---
+
+  // Video dersi yüklenmiş dosyaysa <video> etiketiyle oynatılacak tam adres
+  readonly uploadedVideoUrl = computed<string | null>(() => {
+    const lesson = this.activeLesson();
+    if (!lesson || lesson.contentType !== 'Video') return null;
+    return isUploadedFile(lesson.contentUrl) ? fileUrl(lesson.contentUrl) : null;
+  });
+
+  // Fotoğraf dersinin görsel adresi
+  readonly imageUrl = computed<string | null>(() => {
+    const lesson = this.activeLesson();
+    if (!lesson || lesson.contentType !== 'Image' || !lesson.contentUrl) return null;
+    return fileUrl(lesson.contentUrl);
+  });
+
+  // Döküman dersinin dosya adresi ("Aç/İndir" butonu için)
+  readonly documentHref = computed<string | null>(() => {
+    const lesson = this.activeLesson();
+    if (!lesson || lesson.contentType !== 'Document' || !lesson.contentUrl) return null;
+    return fileUrl(lesson.contentUrl);
+  });
+
+  // PDF ise sayfada gömülü gösterilir (iframe src'i güvenlik onayı ister)
+  readonly pdfUrl = computed<SafeResourceUrl | null>(() => {
+    const href = this.documentHref();
+    if (!href || !href.toLowerCase().endsWith('.pdf')) return null;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(href);
   });
 
   constructor() {
@@ -177,6 +210,8 @@ export class Player implements OnInit {
       case 'Video': return 'play_circle';
       case 'Document': return 'description';
       case 'Text': return 'menu_book';
+      case 'Link': return 'link';
+      case 'Image': return 'image';
       default: return 'play_circle';
     }
   }

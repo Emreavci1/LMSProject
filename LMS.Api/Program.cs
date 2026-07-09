@@ -36,6 +36,11 @@ builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
+// Dosya depolama: ders içerik dosyaları (foto/sunum/video) wwwroot/uploads altına
+// kaydedilir; DB'de yalnızca dosyanın yolu tutulur. Singleton yeterli (durumu yok).
+var uploadsRoot = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads");
+builder.Services.AddSingleton<IFileStorageService>(new FileStorageService(uploadsRoot));
+
 // AutoMapper: MappingProfile'daki Entity ↔ DTO kurallarını yükle
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 
@@ -120,6 +125,11 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// wwwroot altındaki dosyaları sun (yüklenen ders içerikleri: /uploads/...).
+// Not: statik dosyalar token istemez — URL'i bilen erişebilir. Kapalı kurum içi
+// sistem için şimdilik kabul edilebilir; canlıda korumalı sunum düşünülebilir.
+app.UseStaticFiles();
 
 app.UseCors("AllowAngularClient");
 

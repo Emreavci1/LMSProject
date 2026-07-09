@@ -191,6 +191,9 @@ table {
   display: grid;
   place-items: center;
   border: 1px solid rgba($outline-variant, 0.5);
+  // Kapak foto ise kutuyu doldursun (gradient'te etkisiz)
+  background-size: cover;
+  background-position: center;
 
   mat-icon {
     font-size: 20px;

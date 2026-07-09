@@ -42,23 +42,71 @@
               </div>
               <p class="text-body">{{ lesson.textContent }}</p>
             </div>
-          } @else if (lesson.contentType === 'Document') {
-            <!-- Döküman: şimdilik indirme/açma bağlantısı -->
+          } @else if (lesson.contentType === 'Link') {
+            <!-- URL bağlantısı (YouTube değilse gömülemez): yeni sekmede açılır -->
             <div class="video-area">
-              <mat-icon class="play-icon">description</mat-icon>
+              <mat-icon class="play-icon">link</mat-icon>
               <p class="video-title">{{ lesson.title }}</p>
-              <span class="video-note">Döküman içeriği — dosya yükleme backend'e eklenince burada görüntülenecek</span>
+              @if (lesson.contentUrl) {
+                <a mat-flat-button color="primary" class="open-link-btn" [href]="lesson.contentUrl" target="_blank" rel="noopener">
+                  <mat-icon>open_in_new</mat-icon> Bağlantıyı Aç
+                </a>
+              } @else {
+                <span class="video-note">Bağlantı bulunamadı</span>
+              }
             </div>
+          } @else if (uploadedVideoUrl(); as vurl) {
+            <!-- Sunucuya yüklenmiş video dosyası -->
+            <div class="video-frame">
+              <video class="uploaded-video" controls [src]="vurl"></video>
+            </div>
+          } @else if (lesson.contentType === 'Image') {
+            <!-- Fotoğraf içeriği -->
+            @if (imageUrl(); as iurl) {
+              <div class="image-frame">
+                <img [src]="iurl" [alt]="lesson.title" />
+              </div>
+            } @else {
+              <div class="video-area">
+                <mat-icon class="play-icon">image</mat-icon>
+                <p class="video-title">{{ lesson.title }}</p>
+                <span class="video-note">Bu ders için fotoğraf eklenmemiş</span>
+              </div>
+            }
+          } @else if (lesson.contentType === 'Document') {
+            <!-- Sunum/PDF: PDF sayfada gömülü açılır, diğerleri indirilir -->
+            @if (pdfUrl(); as purl) {
+              <div class="pdf-frame">
+                <iframe [src]="purl" title="Ders dökümanı"></iframe>
+              </div>
+              <a mat-stroked-button class="doc-open-btn" [href]="documentHref()" target="_blank" rel="noopener">
+                <mat-icon>open_in_new</mat-icon> Yeni Sekmede Aç
+              </a>
+            } @else if (documentHref(); as dhref) {
+              <div class="video-area">
+                <mat-icon class="play-icon">description</mat-icon>
+                <p class="video-title">{{ lesson.title }}</p>
+                <a mat-flat-button color="primary" class="open-link-btn" [href]="dhref" target="_blank" rel="noopener">
+                  <mat-icon>download</mat-icon> Dosyayı Aç / İndir
+                </a>
+              </div>
+            } @else {
+              <div class="video-area">
+                <mat-icon class="play-icon">description</mat-icon>
+                <p class="video-title">{{ lesson.title }}</p>
+                <span class="video-note">Bu ders için döküman eklenmemiş</span>
+              </div>
+            }
           } @else {
-            <!-- Video linki gömülemedi veya içerik tipi yok (demo dersler) -->
+            <!-- Video: eski URL'li ders gömülemedi ya da dosya yok -->
             <div class="video-area">
               <mat-icon class="play-icon">play_circle</mat-icon>
               <p class="video-title">{{ lesson.title }}</p>
               <span class="video-note">
-                @if (lesson.contentType === 'Video') {
+                @if (lesson.contentType === 'Video' && lesson.contentUrl) {
                   Video bağlantısı gömülemedi — yalnızca YouTube linkleri destekleniyor
                 } @else {
-                  Video içeriği yakında eklenecek
+                  Bu ders için video eklenmemiş
                 }
               </span>
             </div>

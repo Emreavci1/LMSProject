@@ -1,6 +1,9 @@
 // Ders (Lesson) DTO karşılıkları — backend LMS.DTO.Lessons ile birebir
 
-export type LessonContentType = 'Video' | 'Document' | 'Text';
+// Link: URL bağlantısı, Text: okuma metni.
+// Video/Document/Image dosya yükleme ile çalışacak (depolama altyapısı yakında);
+// eski Video dersleri URL (YouTube) ile kaydedildi, oynatıcı desteklemeye devam eder.
+export type LessonContentType = 'Link' | 'Image' | 'Text' | 'Document' | 'Video';
 
 // GET /api/courses/{courseId}/lessons cevabı (LessonDto)
 export interface Lesson {

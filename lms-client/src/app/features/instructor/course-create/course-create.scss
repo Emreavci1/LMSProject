@@ -390,10 +390,11 @@ $on-surface-variant: #5c647a;
   }
 }
 
-.document-upload {
+// Ders içerik dosyası yükleme kutusu (Image/Document/Video)
+.upload-box {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 10px 14px;
   background: $surface;
   border: 2px dashed $outline-dim;
@@ -404,8 +405,27 @@ $on-surface-variant: #5c647a;
   font-weight: 500;
   transition: all 0.2s;
 
+  mat-icon { flex-shrink: 0; }
+
   &:hover { border-color: $primary; background: $surface-container; }
   &.has-file { border: 2px solid $primary; background: #fff; color: $primary; }
+  &.busy { pointer-events: none; opacity: 0.7; }
+}
+
+// Taslak ders önizlemesinde yüklenen foto/video
+.preview-image {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 8px;
+  display: block;
+}
+
+.preview-video {
+  width: 100%;
+  max-height: 360px;
+  border-radius: 8px;
+  background: #0f172a;
+  display: block;
 }
 
 /* Draft List */
@@ -928,6 +948,19 @@ $on-surface-variant: #5c647a;
     border: 0;
     z-index: 2;
   }
+
+  // Yüklenen foto/video sahneyi kaplar (iframe ile aynı katman)
+  .stage-image,
+  .stage-video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background: #0f172a;
+  }
+
+  .stage-image { object-fit: contain; }
 
   .stage-placeholder {
     position: relative;

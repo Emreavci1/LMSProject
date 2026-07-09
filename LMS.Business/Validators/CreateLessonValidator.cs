@@ -17,20 +17,26 @@ public class CreateLessonValidator : AbstractValidator<CreateLessonDto>
         RuleFor(x => x.DurationMin)
             .GreaterThanOrEqualTo(0).WithMessage("Süre negatif olamaz.");
 
+        // Ders özeti (kısa yazılı anlatım)
+        RuleFor(x => x.Description)
+            .MaximumLength(2000).WithMessage("Ders özeti en fazla 2000 karakter olabilir.");
+
         RuleFor(x => x.Notes)
             .MaximumLength(4000).WithMessage("Ders notları en fazla 4000 karakter olabilir.");
 
         // Okuma metni (Text) dersinde metin zorunlu
         RuleFor(x => x.TextContent)
             .NotEmpty().WithMessage("Okuma metni boş olamaz.")
-            .When(x => IsTextType(x.ContentType));
+            .When(x => IsType(x.ContentType, "Text"));
 
-        // Video/Document dersinde içerik bağlantısı (URL) zorunlu
+        // URL bağlantısı (Link) dersinde adres zorunlu.
+        // Video/Document/Image dosya yükleme ile çalışacak (depolama yakında) —
+        // şimdilik içeriksiz kaydedilebilirler, bu yüzden onlarda URL zorunlu değil.
         RuleFor(x => x.ContentUrl)
-            .NotEmpty().WithMessage("İçerik bağlantısı (URL) boş olamaz.")
-            .When(x => !IsTextType(x.ContentType));
+            .NotEmpty().WithMessage("Bağlantı adresi (URL) boş olamaz.")
+            .When(x => IsType(x.ContentType, "Link"));
     }
 
-    private static bool IsTextType(string? contentType)
-        => string.Equals(contentType, "Text", StringComparison.OrdinalIgnoreCase);
+    private static bool IsType(string? contentType, string expected)
+        => string.Equals(contentType, expected, StringComparison.OrdinalIgnoreCase);
 }

@@ -29,11 +29,18 @@ public class CourseController : ApiControllerBase
     public async Task<ActionResult<List<CourseDto>>> GetMyCourses()
         => Ok(await _courseService.GetMyCoursesAsync(CurrentUserId));
 
+    // GET /api/courses/all — TÜM kurslar, pasif/taslak dahil (yalnızca Admin)
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<CourseDto>>> GetAllForAdmin()
+        => Ok(await _courseService.GetAllCoursesAsync());
+
     // GET /api/courses/{id} — kurs detayı
+    // (pasif kursu yalnızca sahibi veya Admin görebilir — kontrol service'te)
     [HttpGet("{id:int}")]
     public async Task<ActionResult<CourseDto>> GetById(int id)
     {
-        var result = await _courseService.GetByIdAsync(id);
+        var result = await _courseService.GetByIdAsync(id, CurrentUserId, IsAdmin);
         if (!result.Success)
             return ToErrorResponse(result);
 

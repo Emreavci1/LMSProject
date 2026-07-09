@@ -23,6 +23,15 @@ public class CourseRepository : Repository<Course>, ICourseRepository
             .OrderByDescending(c => c.CreatedDate)
             .ToListAsync();
 
+    public async Task<List<Course>> GetAllWithInstructorAsync()
+        => await _dbSet
+            .Include(c => c.Instructor)
+            .Include(c => c.Lessons)
+            .Include(c => c.Enrollments)
+            // Admin tüm kursları görür: pasifler ve taslaklar dahil
+            .OrderByDescending(c => c.CreatedDate)
+            .ToListAsync();
+
     public async Task<Course?> GetByIdWithInstructorAsync(int id)
         => await _dbSet
             .Include(c => c.Instructor)

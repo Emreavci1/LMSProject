@@ -197,7 +197,8 @@ $secondary: #565e74;
   }
 }
 
-.document-upload {
+// Ders içerik dosyası yükleme kutusu (Image/Document/Video)
+.upload-box {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -211,8 +212,27 @@ $secondary: #565e74;
   font-weight: 500;
   transition: all 0.2s;
 
+  mat-icon { flex-shrink: 0; }
+
   &:hover { border-color: $primary; background: $surface-container; }
   &.has-file { border: 2px solid $primary; color: $primary; }
+  &.busy { pointer-events: none; opacity: 0.7; }
+}
+
+// Ders önizlemesinde yüklenen foto/video
+.preview-image {
+  max-width: 100%;
+  max-height: 320px;
+  border-radius: 8px;
+  display: block;
+}
+
+.preview-video {
+  width: 100%;
+  max-height: 360px;
+  border-radius: 8px;
+  background: #0f172a;
+  display: block;
 }
 
 .action-right {

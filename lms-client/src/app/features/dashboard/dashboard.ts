@@ -148,10 +148,8 @@ export class Dashboard {
     this.myCourses().reduce((sum, c) => sum + c.studentCount, 0)
   );
 
-  // Toplam açılan ders sayısı
-  readonly totalLessons = computed(() =>
-    this.myCourses().reduce((sum, c) => sum + c.lessonCount, 0)
-  );
+  // Toplam açılan eğitim (kurs) sayısı
+  readonly totalCourseCount = computed(() => this.myCourses().length);
 
   // Toplam içerik süresi (takribi saat gösterimi — kurs süresi kuralıyla aynı)
   readonly totalContentLabel = computed(() =>

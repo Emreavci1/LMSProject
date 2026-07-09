@@ -6,7 +6,12 @@ namespace LMS.Business.Services;
 public interface ICourseService
 {
     Task<List<CourseDto>> GetActiveCoursesAsync();
-    Task<ServiceResult<CourseDto>> GetByIdAsync(int id);
+
+    // TÜM kurslar (pasif/taslak dahil) — yalnızca Admin eğitim yönetimi kullanır
+    Task<List<CourseDto>> GetAllCoursesAsync();
+
+    // currentUserId + isAdmin: pasif kursun detayını yalnızca sahibi veya Admin görebilir
+    Task<ServiceResult<CourseDto>> GetByIdAsync(int id, int currentUserId, bool isAdmin);
     Task<List<CourseDto>> GetMyCoursesAsync(int instructorId);
     Task<ServiceResult<CourseDto>> CreateAsync(CreateCourseDto dto, int instructorId);
 

@@ -12,13 +12,15 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
 import { Course } from '../../../core/models/course.models';
 import { CourseAttendee } from '../../../core/models/enrollment.models';
-import { CreateLesson, Lesson } from '../../../core/models/lesson.models';
+import { CreateLesson, Lesson, LessonContentType } from '../../../core/models/lesson.models';
 import { CourseService } from '../../../core/services/course.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { UploadService } from '../../../core/services/upload.service';
 import { coverCss } from '../../../core/utils/cover.util';
+import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
 
-export type ContentType = 'Video' | 'Document' | 'Text';
+export type ContentType = LessonContentType;
 
 // Eğitmen: Eğitim Detayı — kurs, dersler ve katılımcılar API'den yüklenir
 @Component({
@@ -43,11 +45,15 @@ export class CourseManage {
 
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
+  private uploadService = inject(UploadService);
   private notification = inject(NotificationService);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
 
   protected readonly coverCss = coverCss;
+  // Göreli /uploads yolunu tam adrese çevirir; isUploadedFile = harici link mi dosya mı ayrımı
+  protected readonly fileUrl = fileUrl;
+  protected readonly isUploadedFile = isUploadedFile;
 
   readonly course = signal<Course | null>(null);
   readonly loading = signal(true);
@@ -100,16 +106,74 @@ export class CourseManage {
   readonly newLessonDescription = signal('');
   readonly newLessonSection = signal('');
   readonly newLessonDuration = signal<number>(15);
-  readonly newContentType = signal<ContentType>('Video');
+  readonly newContentType = signal<ContentType>('Link');
   readonly newContentUrl = signal('');
   readonly newTextContent = signal('');
   readonly newLessonNotes = signal('');
+  // Dosya yükleme durumu (Image/Document/Video tipleri için)
+  readonly uploadingFile = signal(false);
+  readonly newUploadedFileName = signal('');
 
+  // İçerik tipi değişince önceki tipe ait içerik alanlarını sıfırla
+  onContentTypeChange(type: ContentType): void {
+    this.newContentType.set(type);
+    this.newContentUrl.set('');
+    this.newTextContent.set('');
+    this.newUploadedFileName.set('');
+  }
+
+  // Dosya seçilir seçilmez sunucuya yüklenir; dönen yol ContentUrl olarak saklanır
+  onLessonFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.uploadingFile.set(true);
+    this.uploadService.upload(file, this.newContentType()).subscribe({
+      next: (result) => {
+        this.newContentUrl.set(result.url);
+        this.newUploadedFileName.set(result.fileName);
+        this.uploadingFile.set(false);
+        this.notification.success(`"${result.fileName}" yüklendi.`);
+      },
+      error: (err) => {
+        this.uploadingFile.set(false);
+        this.notification.fromHttpError(err, 'Dosya yüklenemedi.');
+      },
+    });
+    input.value = ''; // aynı dosya tekrar seçilebilsin
+  }
+
+  // 5 içerik tipi. Link ve Text bugün tam çalışır;
+  // Image/Document/Video dosya yükleme ile çalışacak (depolama altyapısı yakında).
   readonly contentTypes: { value: ContentType, label: string }[] = [
-    { value: 'Video', label: 'Video Bağlantısı' },
-    { value: 'Document', label: 'Döküman (PDF / Sunum)' },
-    { value: 'Text', label: 'Okuma Metni' }
+    { value: 'Link', label: 'URL Bağlantısı' },
+    { value: 'Image', label: 'Fotoğraf Yükle' },
+    { value: 'Text', label: 'Okuma Metni' },
+    { value: 'Document', label: 'Sunum / PDF Yükle' },
+    { value: 'Video', label: 'Video Yükle' }
   ];
+
+  // Tip başına gösterim etiketi/ikonu (template'de iç içe ternary yerine)
+  contentTypeLabel(type: ContentType): string {
+    switch (type) {
+      case 'Link': return 'URL Bağlantısı';
+      case 'Image': return 'Fotoğraf';
+      case 'Text': return 'Okuma Metni';
+      case 'Document': return 'Sunum / PDF';
+      case 'Video': return 'Video';
+    }
+  }
+
+  contentTypeIcon(type: ContentType): string {
+    switch (type) {
+      case 'Link': return 'link';
+      case 'Image': return 'image';
+      case 'Text': return 'article';
+      case 'Document': return 'picture_as_pdf';
+      case 'Video': return 'play_circle';
+    }
+  }
 
   // Ortalama tamamlama: katılımcıların ilerleme yüzdelerinin ortalaması
   readonly completionRate = computed(() => {
@@ -127,16 +191,21 @@ export class CourseManage {
     }
 
     const type = this.newContentType();
-    if (type === 'Video' && !this.newContentUrl().trim()) {
-      this.notification.error('Video linki girmelisiniz.');
-      return;
-    }
-    if (type === 'Document' && !this.newContentUrl().trim()) {
-      this.notification.error('Döküman yüklemelisiniz.');
+    if (type === 'Link' && !this.newContentUrl().trim()) {
+      this.notification.error('Bağlantı adresi (URL) girmelisiniz.');
       return;
     }
     if (type === 'Text' && !this.newTextContent().trim()) {
       this.notification.error('Okuma metni içeriği boş olamaz.');
+      return;
+    }
+    // Yükleme tipleri dosya ister (upload çalışıyor; ders sonradan düzenlenemiyor)
+    if ((type === 'Image' || type === 'Document' || type === 'Video') && !this.newContentUrl()) {
+      this.notification.error('Önce dosyayı yüklemelisiniz.');
+      return;
+    }
+    if (this.uploadingFile()) {
+      this.notification.error('Dosya yüklemesi sürüyor, lütfen bekleyin.');
       return;
     }
 
@@ -146,6 +215,7 @@ export class CourseManage {
       description: this.newLessonDescription().trim() || null,
       durationMin: this.newLessonDuration() || 15,
       contentType: type,
+      // Link harici URL, yükleme tipleri sunucudaki dosya yolunu (/uploads/...) taşır
       contentUrl: type !== 'Text' ? this.newContentUrl().trim() : null,
       textContent: type === 'Text' ? this.newTextContent().trim() : null,
       notes: this.newLessonNotes().trim() || null,
@@ -161,19 +231,12 @@ export class CourseManage {
         this.newContentUrl.set('');
         this.newTextContent.set('');
         this.newLessonNotes.set('');
+        this.newUploadedFileName.set('');
         this.showAddForm.set(false);
         this.notification.success('Ders eklendi.');
       },
       error: (err) => this.notification.fromHttpError(err, 'Ders eklenemedi.'),
     });
-  }
-
-  onMaterialFileSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
-    if (file) {
-      this.newContentUrl.set(`fake-url-for-${file.name}`);
-      this.notification.success(`${file.name} başarıyla eklendi (Mock).`);
-    }
   }
 
   removeLesson(lessonId: number): void {
