@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { forkJoin, map, of, switchMap } from 'rxjs';
@@ -30,12 +31,15 @@ const DEFAULT_COVER = 'linear-gradient(135deg, #0284C7, #0F172A)';
 // Öğrenci için gerçek istatistikleri (katılınan/tamamlanan kurs, öğrenme süresi) hesaplar.
 @Component({
   selector: 'app-dashboard',
-  imports: [MatCardModule, MatIconModule, RouterLink],
+  imports: [MatCardModule, MatIconModule, MatDatepickerModule, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
   protected readonly auth = inject(AuthService);
+
+  // Takvimde bugünü işaretlemek için (dümenden eklendi, ileride etkinliklerle geliştirilecek)
+  protected readonly today = new Date();
   private progressService = inject(ProgressService);
   private courseService = inject(CourseService);
   private enrollmentService = inject(EnrollmentService);

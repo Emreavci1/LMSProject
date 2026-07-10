@@ -195,6 +195,11 @@
                 <span>Planlanan etkinlikler burada görünecek.</span>
               </div>
             </div>
+
+            <!-- Takvim: şimdilik yalnızca bugünü işaretliyor, ileride etkinliklerle geliştirilecek -->
+            <div class="glass-card calendar-card">
+              <mat-calendar [selected]="today"></mat-calendar>
+            </div>
           </div>
         </div>
       </div>

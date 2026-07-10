@@ -405,5 +405,96 @@ tamamlama işaretlenmez (backend zaten katılımcı olmayan biri için bu isteğ
 
 ---
 
+## 13. Sprint Sunumu — Konuşma Rehberi (2026-07-10)
+
+> Teknik ekibe/mentöre sunum için hazırlanmış konuşma akışı. Buradaki her madde
+> yukarıdaki bölümlere referans veriyor — detay lazım olursa oraya bak.
+
+### 13.1 Açılış (30 saniye)
+
+"LÖSEV için kapalı devre bir Eğitim Yönetim Sistemi geliştiriyorum. Microsoft
+yığını (.NET + SQL Server) backend'de, Angular frontend'de. Bu sprintte temel
+sistemi kurdum: kimlik doğrulama, kurs/ders yönetimi, katılım ve ilerleme
+takibi, dosya yükleme." *(bkz. Bölüm 1-2)*
+
+### 13.2 Mimariyi anlatırken (1-2 dakika)
+
+Sırayla söyle, tahtaya/slayta katman şemasını çiz (Bölüm 3.1):
+
+1. "Backend 5 ayrı projeye bölünmüş, her biri tek bir işten sorumlu — Api,
+   Business, DataAccess, Entities, DTO."
+2. "Yön tek yönlü: Api sadece Business'ı çağırır, Business sadece
+   DataAccess'i, DataAccess veritabanını konuşur. Controller hiçbir zaman
+   DbContext'e dokunmaz."
+3. "Entity asla dışarı dönmez, her zaman DTO'ya çeviriyorum — mesela `User`
+   entity'sinde `PasswordHash` var ama `UserDto`'da yok. Bu, hassas veri
+   sızıntısını yapı gereği imkânsız kılıyor."
+
+**Neden böyle sorulursa:** "Hata ayıklarken nerede arayacağımı biliyorum;
+ileride mobil istemci eklense bile Business katmanı değişmeden kullanılır."
+
+### 13.3 Bir isteğin uçtan uca akışını anlat (en güçlü bölüm — Bölüm 4)
+
+Somut örnek üzerinden anlat: "Eğitmen kurs oluşturuyor" senaryosu.
+Adım adım söyle: Angular → Interceptor token ekler → JWT doğrulanır (401
+ihtimali) → `[Authorize(Roles=...)]` rol kontrolü (403 ihtimali) →
+FluentValidation (400 ihtimali) → Service `InstructorId`'yi **token'dan**
+alır, istemciden gelen değere güvenmez → Repository EF Core ile SQL üretir →
+AutoMapper DTO'ya çevirir → 201 Created.
+
+Kapanış cümlesi: "Bu akışı anlatabiliyorsam mimarinin büyük kısmını
+anlatmış oluyorum."
+
+### 13.4 Güvenlik vurgusu — en çok soru gelen yer (Bölüm 5)
+
+En kritik noktayı öne çıkar: **rol kontrolü tek başına yetmiyor.**
+"İki eğitmen de 'Instructor' rolünde — rol kontrolü ikisini de endpoint'e
+sokar. Ama Service katmanında ayrıca 'bu kurs gerçekten sana mı ait?'
+kontrolü var (`course.InstructorId != currentUserId` → 403). Yani
+Eğitmen A, Postman ile doğrudan API'yi çağırıp Eğitmen B'nin kursunu
+değiştiremez." Bunu somut örnekle anlatmak, "yetkilendirme yaptım" demekten
+çok daha ikna edici.
+
+Ardından hızlıca: şifre hash'leme (PBKDF2, tek yönlü), JWT süresi (60 dk),
+frontend guard'ların sadece UX olduğu, gerçek güvenliğin backend'de tekrar
+doğrulandığı.
+
+### 13.5 Bu sprintte eklenen özellikleri anlat (Bölüm 5.1 CLAUDE.md kayıtları)
+
+- **Ders modülü:** Kurslara video/döküman/link/metin içerik ekleniyor,
+  veritabanında kalıcı (önceden localStorage'daydı, kaldırıldı).
+- **İlerleme takibi:** `LessonCompletions` tablosu (UserId+LessonId unique).
+  İlerleme = tamamlanan ders / toplam ders. Sunucuda tutulduğu için farklı
+  cihazdan girilse de doğru; eğitmen katılımcı listesinde gerçek yüzdeyi
+  görüyor.
+- **Gerçek dosya yükleme:** Foto/PDF/video sunucuda `wwwroot/uploads`'a GUID
+  adla kaydediliyor; veritabanında sadece **yol** tutuluyor, dosyanın kendisi
+  değil (veritabanı şişmesin diye — bilinçli mimari karar). Güvenlik: uzantı
+  beyaz listesi, tipe göre boyut sınırı, dosya adı kullanıcıdan alınmıyor.
+- **Admin Eğitim Yönetimi:** Artık sahte veri değil, `GET /api/courses/all`
+  ile gerçek veriye bağlı.
+
+### 13.6 Dürüstçe söylenecek bilinen sınırlar (Bölüm 9 — sorulursa sakla, sorulmazsa gönüllü söyleme gerekmez ama sorulursa kaçma)
+
+Kısa liste halinde hazır tut: yüklenen dosyalar token'sız erişilebiliyor
+(kapalı kurum içi sistem için kabul edilebilir, canlıda değişmeli), JWT
+secret şu an appsettings.json'da (canlıda secret store'a taşınmalı),
+zamanlanmış kurslar otomatik yayına girmiyor (el ile yayınlanıyor),
+duyurular modülü kullanıcı kararıyla ertelendi.
+
+### 13.7 Olası sorular
+
+Bölüm 11'deki SSS listesinin tamamına göz at, en olası 3-4 tanesini ezberle:
+şifre nasıl saklanıyor, sahiplik kontrolü nasıl çalışıyor, SQL injection'a
+karşı önlem, ilerleme nasıl hesaplanıyor.
+
+### 13.8 Kanıt göstermek istersen
+
+`git log --oneline` ile 3 commit'i göster (Bölüm 10.1) — "İlk sürüm",
+"Ders modülü + ilerleme takibi", "Dosya yükleme + admin eğitim yönetimi".
+Swagger'ı aç (`/swagger`), canlı endpoint listesini göster (Bölüm 10.2).
+
+---
+
 *Bu doküman proje geliştikçe güncellenmelidir — önemli her mimari karar ve yeni
 modül buraya bir bölüm olarak eklenmeli.*
