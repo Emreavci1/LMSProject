@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -17,8 +18,13 @@ interface EnrolledCard {
   category: string;
   durationMinutes: number; // göstermelik toplam süre (30 dk yuvarlı)
   cover: string; // CSS background değeri
-  // İlerleme ve tamamlanan dakika hesabı için (dakika = GERÇEK süre)
-  lessons: { id: number; durationMin: number }[];
+  // Kurum eğitimi (Admin açtı) — kartta öne çıkan rozetle gösterilir
+  isOfficial: boolean;
+  // Zorunlu eğitim ataması: son tamamlama tarihi kartta gösterilir
+  isAssigned: boolean;
+  dueDate?: string | null;
+  // İlerleme (yük ağırlıklı) ve tamamlanan dakika hesabı için
+  lessons: { id: number; durationMin: number; weight: number }[];
   playerLink: string[]; // /learn/:id
 }
 
@@ -27,7 +33,7 @@ interface EnrolledCard {
 // GERÇEK dakika toplamı (kurs süresi ise göstermelik/yuvarlı).
 @Component({
   selector: 'app-my-courses',
-  imports: [MatIconModule, MatButtonModule, RouterLink],
+  imports: [DatePipe, MatIconModule, MatButtonModule, RouterLink],
   templateUrl: './my-courses.html',
   styleUrl: './my-courses.scss',
 })
@@ -39,6 +45,17 @@ export class MyCourses {
 
   // Katılımlar (kurs + ders bilgileriyle birleşmiş)
   readonly allCards = signal<EnrolledCard[]>([]);
+
+  // Filtre sekmeleri: Tümü / Devam Edenler / Tamamlananlar
+  readonly filter = signal<'all' | 'active' | 'done'>('all');
+
+  readonly filteredCards = computed(() => {
+    const filter = this.filter();
+    if (filter === 'all') return this.allCards();
+    return this.allCards().filter((c) =>
+      filter === 'done' ? this.progressOf(c) === 100 : this.progressOf(c) < 100
+    );
+  });
 
   constructor() {
     // Tamamlanan dersler backend'den (ilerleme hesabı için)
@@ -64,7 +81,10 @@ export class MyCourses {
                     category: course?.category || 'Genel',
                     durationMinutes: course?.durationMinutes ?? 0,
                     cover: coverCss(course?.coverImageUrl),
-                    lessons: lessons.map((l) => ({ id: l.id, durationMin: l.durationMin })),
+                    isOfficial: course?.isOfficial ?? false,
+                    isAssigned: e.isAssigned,
+                    dueDate: e.dueDate,
+                    lessons: lessons.map((l) => ({ id: l.id, durationMin: l.durationMin, weight: l.weight || 1 })),
                     playerLink: ['/learn', String(e.courseId)],
                   })
                 )
@@ -81,13 +101,20 @@ export class MyCourses {
       });
   }
 
-  // İlerleme her render'da canlı hesaplanır (ders tamamlama anında yansısın)
+  // Zorunlu eğitimde son tarih (saatli, kesin an) geçti ve eğitim hâlâ bitmedi mi?
+  isOverdue(card: EnrolledCard): boolean {
+    if (!card.dueDate || this.progressOf(card) === 100) return false;
+    return new Date(card.dueDate).getTime() < Date.now();
+  }
+
+  // İlerleme: ders yükü (kredi) ağırlıklı — her render'da canlı hesaplanır
   progressOf(card: EnrolledCard): number {
-    if (card.lessons.length === 0) return 0;
-    const done = card.lessons.filter((l) =>
-      this.progressService.completedLessonIds().has(l.id)
-    ).length;
-    return Math.round((done / card.lessons.length) * 100);
+    const totalWeight = card.lessons.reduce((sum, l) => sum + l.weight, 0);
+    if (totalWeight === 0) return 0;
+    const doneWeight = card.lessons
+      .filter((l) => this.progressService.completedLessonIds().has(l.id))
+      .reduce((sum, l) => sum + l.weight, 0);
+    return Math.round((doneWeight / totalWeight) * 100);
   }
 
   // Bu kartta tamamlanan derslerin GERÇEK dakika toplamı

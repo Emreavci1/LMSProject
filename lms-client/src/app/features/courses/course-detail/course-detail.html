@@ -84,7 +84,7 @@
             } @else {
               @for (att of attendees(); track att.userId) {
                 <div class="attendee-row">
-                  <div class="attendee-avatar">{{ att.fullName[0] }}</div>
+                  <img class="attendee-avatar" [src]="avatarSrc(att.avatarUrl)" [alt]="att.fullName" />
                   <div class="attendee-info">
                     <span class="attendee-name">{{ att.fullName }}</span>
                     <span class="attendee-email">{{ att.email }}</span>
@@ -102,6 +102,18 @@
           <!-- Katılımcı: katıl / eğitime git -->
           @if (isAttendee()) {
             @if (isEnrolled()) {
+              @if (myEnrollment()?.isAssigned) {
+                <!-- Zorunlu eğitim: atama bilgisi + son tamamlama tarihi -->
+                <p class="mandatory-note">
+                  <mat-icon>gavel</mat-icon>
+                  <span>
+                    Bu eğitim sana atandı (zorunlu).
+                    @if (myEnrollment()?.dueDate; as due) {
+                      <strong>Son tarih: {{ due | date: 'dd.MM.yyyy HH:mm' }}</strong>
+                    }
+                  </span>
+                </p>
+              }
               <p class="enrolled-note">
                 <mat-icon>check_circle</mat-icon> Bu eğitime katıldın
               </p>
@@ -109,14 +121,17 @@
                 <mat-icon>play_arrow</mat-icon>
                 Derse Devam Et
               </a>
-              <button class="cta-btn danger" (click)="unenroll()" [disabled]="unenrolling()">
-                @if (unenrolling()) {
-                  <mat-spinner diameter="20" />
-                } @else {
-                  <mat-icon>logout</mat-icon>
-                  Dersten Ayrıl / Çık
-                }
-              </button>
+              <!-- Atanmış (zorunlu) kayıttan ayrılınamaz — buton yalnızca gönüllü katılımda -->
+              @if (!myEnrollment()?.isAssigned) {
+                <button class="cta-btn danger" (click)="unenroll()" [disabled]="unenrolling()">
+                  @if (unenrolling()) {
+                    <mat-spinner diameter="20" />
+                  } @else {
+                    <mat-icon>logout</mat-icon>
+                    Dersten Ayrıl / Çık
+                  }
+                </button>
+              }
             } @else {
               <button class="cta-btn primary" (click)="enroll()" [disabled]="enrolling()">
                 @if (enrolling()) {

@@ -18,5 +18,8 @@ public class LessonDto
     // Eğitmenin ders notları ("Notlar" sekmesi)
     public string? Notes { get; set; }
 
+    // Ders yükü (kredi): 1 | 2 | 3 — ilerleme yüzdesindeki ağırlığı
+    public int Weight { get; set; }
+
     public int Order { get; set; }
 }

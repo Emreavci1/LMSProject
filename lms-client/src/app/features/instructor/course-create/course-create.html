@@ -68,6 +68,21 @@
             <label for="course-desc">Açıklama <span class="required">*</span></label>
             <textarea id="course-desc" formControlName="description" rows="6" maxlength="2000" placeholder="Eğitimin içeriği, hedef kitlesi ve kazanımları hakkında detaylı bilgi verin..." class="custom-textarea"></textarea>
           </div>
+
+          <!-- Zorunlu eğitim: eğitmen ve Admin işaretleyebilir; katılımcı atamasını Admin yapar -->
+          <div class="form-group mandatory-toggle">
+            <label class="mandatory-label">
+              <input
+                type="checkbox"
+                [checked]="isMandatory()"
+                (change)="isMandatory.set($any($event.target).checked)"
+              />
+              <span>
+                <strong>Zorunlu eğitim</strong>
+                <small>Katalogda listelenmez; katılımcılar bu eğitime yalnızca Admin atamasıyla katılır ve kendi isteğiyle ayrılamaz.</small>
+              </span>
+            </label>
+          </div>
         </form>
       </div>
 
@@ -140,7 +155,7 @@
 
     <!-- Action Buttons -->
     <div class="action-footer">
-      <button class="custom-btn-outline" routerLink="/instructor">İptal</button>
+      <button class="custom-btn-outline" [routerLink]="coursesLink()">İptal</button>
       <button class="custom-btn-primary" (click)="nextStep()" [disabled]="infoForm.invalid">
         Sonraki Adım <mat-icon>arrow_forward</mat-icon>
       </button>
@@ -171,6 +186,18 @@
                   @for (type of contentTypes; track type.value) {
                     <option [value]="type.value">{{ type.label }}</option>
                   }
+                </select>
+                <mat-icon class="select-icon">expand_more</mat-icon>
+              </div>
+            </div>
+            <!-- Ders yükü (kredi): ilerleme yüzdesindeki ağırlık — opsiyonel, varsayılan 1 -->
+            <div class="form-group flex-1">
+              <label>Ders Yükü <span class="optional-label">(Opsiyonel)</span></label>
+              <div class="select-wrapper">
+                <select class="custom-select" [ngModel]="newWeight()" (ngModelChange)="newWeight.set(+$event)">
+                  <option [value]="1">1 — Normal</option>
+                  <option [value]="2">2 — Ağır</option>
+                  <option [value]="3">3 — Çok Ağır</option>
                 </select>
                 <mat-icon class="select-icon">expand_more</mat-icon>
               </div>
@@ -483,10 +510,13 @@
         <h3><mat-icon>rocket_launch</mat-icon> Yayınlama</h3>
         <p>Eğitimi hemen yayınlayabilir, ileri bir tarihe zamanlayabilir ya da taslak olarak saklayıp Eğitimlerim'den sonra yayınlayabilirsin.</p>
         <div class="form-group max-w-xs">
-          <label>Yayın Tarihi (opsiyonel)</label>
-          <input type="date" class="custom-input" [min]="todayStr" [ngModel]="publishDate()" (ngModelChange)="publishDate.set($event)" />
+          <label>Yayın Tarihi ve Saati (opsiyonel)</label>
+          <div class="publish-inputs">
+            <input type="date" class="custom-input" [min]="todayStr" [ngModel]="publishDate()" (ngModelChange)="publishDate.set($event)" />
+            <input type="time" class="custom-input publish-time" [ngModel]="publishTime()" (ngModelChange)="publishTime.set($event)" />
+          </div>
           @if (isFutureDate()) {
-            <span class="schedule-hint"><mat-icon>event_available</mat-icon> Eğitim {{ publishDate() }} tarihinde otomatik yayınlanacak.</span>
+            <span class="schedule-hint"><mat-icon>event_available</mat-icon> Eğitim {{ publishDate() }} {{ publishTime() }} itibarıyla otomatik yayınlanacak.</span>
           }
         </div>
       </div>

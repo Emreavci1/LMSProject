@@ -24,6 +24,11 @@ export class CourseService {
     return this.http.get<Course[]>(`${this.base}/my`);
   }
 
+  // Yaklaşan (zamanlanmış + yayın tarihi belli) eğitimler — takvim göstergesi
+  getUpcoming(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.base}/upcoming`);
+  }
+
   // TÜM kurslar, pasif/taslak dahil (yalnızca Admin — eğitim yönetimi sayfası)
   getAllForAdmin(): Observable<Course[]> {
     return this.http.get<Course[]>(`${this.base}/all`);

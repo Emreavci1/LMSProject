@@ -27,5 +27,12 @@ public class CourseDto
     public DateTime? PublishDate { get; set; }
 
     public bool IsActive { get; set; }
+
+    // Zorunlu eğitim: katalogda listelenmez, katılım yalnızca Admin atamasıyla olur
+    public bool IsMandatory { get; set; }
+
+    // Kurum eğitimi: kursu açan kişi Admin (katılımcı arayüzünde öne çıkarılır)
+    public bool IsOfficial { get; set; }
+
     public DateTime CreatedDate { get; set; }
 }

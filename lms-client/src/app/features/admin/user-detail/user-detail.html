@@ -1,0 +1,140 @@
+<div class="page">
+  <a mat-button routerLink="/admin/users" class="back-link">
+    <mat-icon>arrow_back</mat-icon> Kullanıcılar
+  </a>
+
+  @if (loading()) {
+    <div class="center-box"><mat-spinner diameter="40" /></div>
+  } @else if (!user()) {
+    <div class="center-box">
+      <p class="muted">Kullanıcı bulunamadı.</p>
+    </div>
+  } @else {
+    @let u = user()!;
+
+    <!-- Kimlik kartı -->
+    <div class="profile-card">
+      <img class="big-avatar" [src]="avatarSrc(u.avatarUrl)" alt="Profil fotoğrafı" />
+      <div class="profile-info">
+        <div class="name-line">
+          <h1>{{ u.fullName }}</h1>
+          <span class="role-chip" [class]="'role-chip ' + u.role">{{ roleLabels[u.role] }}</span>
+          @if (u.isActive) {
+            <span class="status active">Aktif</span>
+          } @else {
+            <span class="status inactive">Pasif</span>
+          }
+        </div>
+        <p class="detail-line"><mat-icon>mail</mat-icon> {{ u.email }}</p>
+        <p class="detail-line"><mat-icon>event</mat-icon> Kayıt tarihi: {{ u.createdDate | date: 'dd.MM.yyyy' }}</p>
+      </div>
+    </div>
+
+    @if (u.role === 'CourseAttendee') {
+      <!-- Katılımcı istatistikleri -->
+      <div class="stat-row">
+        <div class="stat-tile">
+          <mat-icon>school</mat-icon>
+          <strong>{{ enrollments().length }}</strong>
+          <span>Katıldığı Eğitim</span>
+        </div>
+        <div class="stat-tile">
+          <mat-icon>task_alt</mat-icon>
+          <strong>{{ completedCount() }}</strong>
+          <span>Tamamladığı</span>
+        </div>
+        <div class="stat-tile" [class.alert]="overdueCount() > 0">
+          <mat-icon>warning</mat-icon>
+          <strong>{{ overdueCount() }}</strong>
+          <span>Geciken Zorunlu</span>
+        </div>
+      </div>
+
+      <!-- Katıldığı eğitimler -->
+      <div class="section-card">
+        <h2>Katıldığı Eğitimler</h2>
+        @if (enrollments().length === 0) {
+          <p class="muted">Henüz bir eğitime katılmamış.</p>
+        } @else {
+          <div class="row-list">
+            @for (e of enrollments(); track e.courseId) {
+              <a class="row-item" [routerLink]="['/instructor/courses', e.courseId]">
+                <div class="row-main">
+                  <strong>{{ e.courseTitle }}</strong>
+                  <span class="row-meta">
+                    {{ e.category || 'Genel' }} · {{ e.instructorName }} ·
+                    Katılım: {{ e.enrollDate | date: 'dd.MM.yyyy' }}
+                  </span>
+                  @if (e.isAssigned && e.dueDate) {
+                    <span class="row-meta" [class.overdue-text]="e.isOverdue">
+                      <mat-icon>gavel</mat-icon>
+                      Zorunlu · Son tarih: {{ e.dueDate | date: 'dd.MM.yyyy HH:mm' }}
+                    </span>
+                  }
+                </div>
+
+                @if (e.progress === 100) {
+                  <span class="status-chip done">Tamamladı</span>
+                } @else if (e.isOverdue) {
+                  <span class="status-chip overdue">Başarısız</span>
+                } @else {
+                  <span class="status-chip in-progress">Devam ediyor</span>
+                }
+
+                <div class="row-progress">
+                  <mat-progress-bar mode="determinate" [value]="e.progress" />
+                  <span>%{{ e.progress }}</span>
+                </div>
+              </a>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Eğitmen/Admin istatistikleri -->
+      <div class="stat-row">
+        <div class="stat-tile">
+          <mat-icon>school</mat-icon>
+          <strong>{{ courses().length }}</strong>
+          <span>Açtığı Eğitim</span>
+        </div>
+        <div class="stat-tile">
+          <mat-icon>group</mat-icon>
+          <strong>{{ totalStudents() }}</strong>
+          <span>Toplam Katılımcı</span>
+        </div>
+      </div>
+
+      <!-- Açtığı eğitimler -->
+      <div class="section-card">
+        <h2>Açtığı Eğitimler</h2>
+        @if (courses().length === 0) {
+          <p class="muted">Henüz bir eğitim açmamış.</p>
+        } @else {
+          <div class="row-list">
+            @for (c of courses(); track c.id) {
+              <a class="row-item" [routerLink]="['/instructor/courses', c.id]">
+                <div class="row-main">
+                  <strong>{{ c.title }}</strong>
+                  <span class="row-meta">
+                    {{ c.category || 'Genel' }} · {{ c.lessonCount }} ders ·
+                    {{ c.studentCount }} katılımcı
+                  </span>
+                </div>
+
+                @if (c.isMandatory) {
+                  <span class="status-chip overdue">Zorunlu</span>
+                }
+                @switch (c.status) {
+                  @case ('Published') { <span class="status-chip done">Yayında</span> }
+                  @case ('Scheduled') { <span class="status-chip in-progress">Zamanlanmış</span> }
+                  @default { <span class="status-chip draft">Taslak</span> }
+                }
+              </a>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

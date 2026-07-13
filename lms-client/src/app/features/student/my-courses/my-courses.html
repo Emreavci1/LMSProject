@@ -7,9 +7,9 @@
     </div>
     
     <div class="filter-tabs hidden-mobile">
-      <button class="active">Tümü</button>
-      <button>Devam Edenler</button>
-      <button>Tamamlananlar</button>
+      <button [class.active]="filter() === 'all'" (click)="filter.set('all')">Tümü</button>
+      <button [class.active]="filter() === 'active'" (click)="filter.set('active')">Devam Edenler</button>
+      <button [class.active]="filter() === 'done'" (click)="filter.set('done')">Tamamlananlar</button>
     </div>
   </div>
 
@@ -58,10 +58,18 @@
       <p>Henüz bir eğitime kayıtlı değilsin.</p>
       <button class="btn btn-primary mt-4" routerLink="/discover">Eğitimleri Keşfet</button>
     </div>
+  } @else if (filteredCards().length === 0) {
+    <!-- Filtreye uyan kurs yok (örn. hiç tamamlanan yokken "Tamamlananlar") -->
+    <div class="empty">
+      <mat-icon>filter_alt_off</mat-icon>
+      <p>
+        {{ filter() === 'done' ? 'Henüz tamamladığın bir eğitim yok.' : 'Devam eden eğitimin yok.' }}
+      </p>
+    </div>
   } @else {
     <!-- Course Grid -->
     <div class="course-grid">
-      @for (course of allCards(); track course.id) {
+      @for (course of filteredCards(); track course.id) {
         @let progress = progressOf(course);
         @let isCompleted = progress === 100;
 
@@ -76,6 +84,10 @@
             } @else {
               <span class="status-tag bg-primary">Devam Ediyor</span>
             }
+            <!-- Kurum eğitimi (Admin açtı): öne çıkan rozet -->
+            @if (course.isOfficial) {
+              <span class="official-tag"><mat-icon>verified</mat-icon> Kurum Eğitimi</span>
+            }
           </div>
           
           <!-- Content -->
@@ -88,6 +100,15 @@
             </div>
             
             <h3 class="course-title">{{ course.title }}</h3>
+
+            <!-- Zorunlu eğitim: son tamamlama tarihi (gecikmişse kırmızı vurgulanır) -->
+            @if (course.isAssigned && course.dueDate) {
+              <p class="deadline-tag" [class.overdue]="isOverdue(course)">
+                <mat-icon>event</mat-icon>
+                Zorunlu · Son tarih: {{ course.dueDate | date: 'dd.MM.yyyy HH:mm' }}
+                @if (isOverdue(course)) { <strong>— Süresi doldu (Başarısız)</strong> }
+              </p>
+            }
             
             <!-- Last accessed / Certificate box -->
             @if (isCompleted) {

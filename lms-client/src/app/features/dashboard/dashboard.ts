@@ -1,9 +1,13 @@
+import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { forkJoin, map, of, switchMap } from 'rxjs';
+import {
+  CalendarEvent,
+  EventCalendar,
+  timeLabel,
+} from '../../shared/components/event-calendar/event-calendar';
 import { AuthService } from '../../core/services/auth.service';
 import { Course } from '../../core/models/course.models';
 import { CourseService } from '../../core/services/course.service';
@@ -19,8 +23,11 @@ interface DashboardCard {
   title: string;
   category: string;
   cover: string; // CSS background değeri
-  // İlerleme + öğrenme süresi hesabı için (dakika = GERÇEK süre)
-  lessons: { id: number; durationMin: number }[];
+  // Zorunlu eğitim ataması: son tarih takvimde ve yaklaşan etkinliklerde gösterilir
+  isAssigned: boolean;
+  dueDate?: string | null;
+  // İlerleme (yük ağırlıklı) + öğrenme süresi hesabı için
+  lessons: { id: number; durationMin: number; weight: number }[];
   playerLink: string[];
 }
 
@@ -31,15 +38,14 @@ const DEFAULT_COVER = 'linear-gradient(135deg, #0284C7, #0F172A)';
 // Öğrenci için gerçek istatistikleri (katılınan/tamamlanan kurs, öğrenme süresi) hesaplar.
 @Component({
   selector: 'app-dashboard',
-  imports: [MatCardModule, MatIconModule, MatDatepickerModule, RouterLink],
+  imports: [DatePipe, MatIconModule, RouterLink, EventCalendar],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard {
   protected readonly auth = inject(AuthService);
+  private router = inject(Router);
 
-  // Takvimde bugünü işaretlemek için (dümenden eklendi, ileride etkinliklerle geliştirilecek)
-  protected readonly today = new Date();
   private progressService = inject(ProgressService);
   private courseService = inject(CourseService);
   private enrollmentService = inject(EnrollmentService);
@@ -51,7 +57,16 @@ export class Dashboard {
   // Eğitmenin açtığı kurslar (API'den) — yalnızca eğitmen için çekilir
   readonly myCourses = signal<Course[]>([]);
 
+  // Yaklaşan (zamanlanmış) eğitimler — takvimde mavi işaret olarak gösterilir
+  readonly upcomingCourses = signal<Course[]>([]);
+
   constructor() {
+    // Admin'in ayrı bir ana sayfası yok: doğrudan Genel Bakış'a yönlendir
+    if (this.auth.role() === 'Admin') {
+      this.router.navigate(['/admin/overview'], { replaceUrl: true });
+      return;
+    }
+
     // Eğitmen: kendi kurslarını çek (istatistikler + eğitim listesi)
     if (this.auth.role() === 'Instructor') {
       this.courseService.getMyCourses().subscribe({
@@ -66,6 +81,14 @@ export class Dashboard {
     if (this.auth.role() === 'CourseAttendee') {
       // Tamamlanan dersler backend'den (ilerleme hesabı için)
       this.progressService.load();
+
+      // Yaklaşan eğitimler (takvimdeki mavi yayın işaretleri)
+      this.courseService.getUpcoming().subscribe({
+        next: (courses) => this.upcomingCourses.set(courses),
+        error: () => {
+          /* takvim işaretsiz kalır */
+        },
+      });
 
       // Katılımlarım + yayındaki kurslar, ardından her kursun dersleri
       forkJoin({
@@ -85,7 +108,9 @@ export class Dashboard {
                       title: course?.title ?? e.courseTitle,
                       category: course?.category || 'Genel',
                       cover: coverCss(course?.coverImageUrl) || DEFAULT_COVER,
-                      lessons: lessons.map((l) => ({ id: l.id, durationMin: l.durationMin })),
+                      isAssigned: e.isAssigned,
+                      dueDate: e.dueDate,
+                      lessons: lessons.map((l) => ({ id: l.id, durationMin: l.durationMin, weight: l.weight || 1 })),
                       playerLink: ['/learn', String(e.courseId)],
                     })
                   )
@@ -103,13 +128,14 @@ export class Dashboard {
     }
   }
 
-  // İlerleme her render'da canlı hesaplanır (ders tamamlama anında yansısın)
+  // İlerleme: ders yükü (kredi) ağırlıklı — her render'da canlı hesaplanır
   progressOf(card: DashboardCard): number {
-    if (card.lessons.length === 0) return 0;
-    const done = card.lessons.filter((l) =>
-      this.progressService.completedLessonIds().has(l.id)
-    ).length;
-    return Math.round((done / card.lessons.length) * 100);
+    const totalWeight = card.lessons.reduce((sum, l) => sum + l.weight, 0);
+    if (totalWeight === 0) return 0;
+    const doneWeight = card.lessons
+      .filter((l) => this.progressService.completedLessonIds().has(l.id))
+      .reduce((sum, l) => sum + l.weight, 0);
+    return Math.round((doneWeight / totalWeight) * 100);
   }
 
   // Bu kartta tamamlanan derslerin GERÇEK dakika toplamı
@@ -164,4 +190,54 @@ export class Dashboard {
   courseCover(course: Course): string {
     return coverCss(course.coverImageUrl);
   }
+
+  // --- Yaklaşan etkinlikler + takvim (zorunlu eğitim son tarihleri) ---
+
+  // Bitmemiş zorunlu eğitimlerin son tarihleri: en yakından uzağa, ilk 3
+  readonly upcomingDeadlines = computed(() =>
+    this.allCards()
+      .filter((c) => c.isAssigned && c.dueDate && this.progressOf(c) < 100)
+      .sort((a, b) => new Date(a.dueDate!).getTime() - new Date(b.dueDate!).getTime())
+      .slice(0, 3)
+  );
+
+  // Son tarihe kalan gün (negatif = gecikti)
+  private daysLeft(card: DashboardCard): number {
+    const due = new Date(card.dueDate!);
+    due.setHours(0, 0, 0, 0);
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return Math.round((due.getTime() - now.getTime()) / 86_400_000);
+  }
+
+  isOverdue(card: DashboardCard): boolean {
+    return this.daysLeft(card) < 0;
+  }
+
+  deadlineLabel(card: DashboardCard): string {
+    const days = this.daysLeft(card);
+    if (days < 0) return 'Süresi doldu — Başarısız';
+    if (days === 0) return 'Bugün son gün';
+    if (days === 1) return 'Yarın son gün';
+    return `${days} gün kaldı`;
+  }
+
+  // Takvim olayları: zorunlu eğitim son tarihleri (kırmızı) + yaklaşan yayınlar (mavi).
+  // Tooltip metinleri EventCalendar bileşenince hücrelere yazılır.
+  readonly calendarEvents = computed<CalendarEvent[]>(() => [
+    ...this.allCards()
+      .filter((c) => c.isAssigned && c.dueDate)
+      .map((c) => ({
+        date: c.dueDate!,
+        label: `Zorunlu eğitim son tarihi (${timeLabel(c.dueDate!)}): ${c.title}`,
+        kind: 'deadline' as const,
+      })),
+    ...this.upcomingCourses()
+      .filter((c) => c.publishDate)
+      .map((c) => ({
+        date: c.publishDate!,
+        label: `Yayına girecek eğitim (${timeLabel(c.publishDate!)}): ${c.title}`,
+        kind: 'publish' as const,
+      })),
+  ]);
 }

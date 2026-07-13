@@ -68,14 +68,16 @@ export class Player implements OnInit {
     return groups;
   });
 
-  // İlerleme: tamamlanan ders / toplam ders (tamamlananlar backend'de)
+  // İlerleme: DERS YÜKÜ (kredi) ağırlıklı —
+  // tamamlanan derslerin yük toplamı / kurstaki toplam yük (backend ile aynı kural)
   readonly progress = computed(() => {
     const lessons = this.lessons();
-    if (lessons.length === 0) return 0;
-    const done = lessons.filter((l) =>
-      this.progressService.completedLessonIds().has(l.id)
-    ).length;
-    return Math.round((done / lessons.length) * 100);
+    const totalWeight = lessons.reduce((sum, l) => sum + (l.weight || 1), 0);
+    if (totalWeight === 0) return 0;
+    const doneWeight = lessons
+      .filter((l) => this.progressService.completedLessonIds().has(l.id))
+      .reduce((sum, l) => sum + (l.weight || 1), 0);
+    return Math.round((doneWeight / totalWeight) * 100);
   });
 
   // Kursun toplam takribi süresi: toplam dakika en yakın saate yuvarlanır (98 dk → "2 saat")

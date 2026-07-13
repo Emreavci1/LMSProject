@@ -57,3 +57,117 @@ body {
   max-width: 100%;
   overflow-x: hidden;
 }
+
+// --- LAPTOP ÖLÇEKLEMESİ ---
+// Tasarım px tabanlı olduğundan küçük/OS-ölçekli (%125) laptop ekranlarında
+// her şey olduğundan büyük görünür. Orta genişlikte arayüzü topluca hafif
+// küçültüyoruz; büyük monitörler (1440px+) etkilenmez, mobil düzeni (<1024px)
+// kendi responsive kuralları yönettiği için ona da dokunmuyoruz.
+@media (min-width: 1024px) and (max-width: 1280px) {
+  body { zoom: 0.85; }
+}
+
+@media (min-width: 1281px) and (max-width: 1440px) {
+  body { zoom: 0.9; }
+}
+
+// --- GLOBAL VARIABLES ---
+// DİKKAT: src/app/_tokens.scss ile EŞ tutulmalı (SCSS tarafı orada;
+// rgba()/darken() gibi fonksiyonlar CSS var() ile çalışmadığı için ikili yapı).
+:root {
+  --color-primary: #006194;
+  --color-primary-container: #007bb9;
+  --color-primary-fixed: #cce5ff;
+  --color-primary-light: rgba(0, 97, 148, 0.1);
+  --color-secondary: #565e74;
+  --color-secondary-light: rgba(86, 94, 116, 0.1);
+  --color-secondary-dark: rgba(86, 94, 116, 0.8);
+  --color-secondary-container: #dae2fd;
+  --color-on-secondary-container: #5c647a;
+  --color-tertiary: #bb0112;
+  --color-tertiary-light: rgba(187, 1, 18, 0.1);
+  --color-surface: #f7f9fb;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #f2f4f6;
+  --color-surface-high: #e6e8ea;
+  --color-surface-container: #eceef0;
+  --color-surface-variant: #e0e3e5;
+  --color-on-surface: #191c1e;
+  --color-on-surface-variant: #3f4850;
+  --color-on-surface-muted: #5c647a;
+  --color-outline-variant: #bfc7d2;
+  --color-outline-strong: #707881;
+  --color-success: #16a34a;
+  --color-success-bg: #e8f5e9;
+  --color-error: #e02928;
+}
+
+// --- GLOBAL COMPONENTS ---
+
+// Genel Resim Taşmasını Engelleme
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// Glass Card (Dashboard kartları için kullanılan ortak stil)
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--color-surface-variant);
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+  border-radius: 12px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+// Butonlar
+.btn {
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center; 
+  gap: 8px;
+  padding: 8px 24px; 
+  border-radius: 8px; 
+  font-size: 14px; 
+  font-weight: 600; 
+  cursor: pointer; 
+  border: none; 
+  transition: all 0.2s;
+  text-decoration: none; 
+  box-sizing: border-box;
+
+  &.btn-primary { 
+    background: var(--color-primary); 
+    color: #fff; 
+    &:hover { background: #00507a; } /* darken proxy */
+  }
+
+  &.btn-outline { 
+    background: transparent; 
+    border: 1px solid var(--color-outline-variant); 
+    color: var(--color-on-surface); 
+    &:hover { background: var(--color-surface-low); } 
+  }
+
+  &.full-width { width: 100%; }
+
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+}
+
+// Helper (Yardımcı) Class'lar
+.text-primary { color: var(--color-primary) !important; }
+.text-tertiary { color: var(--color-tertiary) !important; }
+.bg-primary { background: var(--color-primary) !important; }
+.bg-surface-high { background: var(--color-surface-high) !important; }
+.bg-secondary-container { background: var(--color-secondary-container) !important; }
+.text-on-secondary { color: var(--color-on-secondary-container) !important; }
+.text-on-surface { color: var(--color-on-surface) !important; }
+.text-muted { color: var(--color-on-surface-variant) !important; }
+.bold { font-weight: bold !important; }
+.text-center { text-align: center !important; }
+.mt-24 { margin-top: 24px !important; }

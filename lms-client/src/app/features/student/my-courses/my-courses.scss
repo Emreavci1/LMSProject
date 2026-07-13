@@ -1,16 +1,7 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
+@use '../../../tokens' as *;
+
 // Öğrenci: Eğitimlerim — Stitch Tasarımı
-$primary: #006194;
-$primary-light: rgba(0, 97, 148, 0.1);
-$secondary: #565e74;
-$secondary-light: rgba(86, 94, 116, 0.1);
-$secondary-dark: rgba(86, 94, 116, 0.8);
-$tertiary: #bb0112;
-$tertiary-light: rgba(187, 1, 18, 0.1);
-$surface-lowest: #ffffff;
-$surface-low: #f2f4f6;
-$outline-variant: #bfc7d2;
-$on-surface: #191c1e;
-$on-surface-variant: #3f4850;
 
 .page {
   padding: 24px 16px;
@@ -381,5 +372,54 @@ $on-surface-variant: #3f4850;
     height: 48px;
     opacity: 0.5;
     margin-bottom: 12px;
+  }
+}
+
+// Kurum eğitimi rozeti (Admin'in açtığı eğitim) — kart görselinin altında öne çıkar
+.card-img .official-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #bb0112;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+}
+
+// Zorunlu eğitim son tarih etiketi (kart içi)
+.deadline-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 0 8px;
+  width: fit-content;
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
+
+  &.overdue {
+    color: #b91c1c;
+    background: #fee2e2;
   }
 }

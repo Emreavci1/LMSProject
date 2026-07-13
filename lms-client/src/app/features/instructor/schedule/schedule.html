@@ -1,22 +1,49 @@
 <div class="page">
   <h1>Program</h1>
-  <p class="subtitle">Bu haftaki ders ve etkinliklerin.</p>
+  <p class="subtitle">Eğitim yayın tarihlerin ve kurslarındaki zorunlu eğitim son tarihleri.</p>
 
-  <div class="week-grid">
-    @for (day of days; track day; let i = $index) {
-      <div class="day-column">
-        <div class="day-header">{{ day }}</div>
-        @if (eventsOf(i).length === 0) {
-          <div class="no-event">—</div>
+  @if (loading()) {
+    <div class="center-box">
+      <mat-spinner diameter="40" />
+    </div>
+  } @else {
+    <div class="schedule-grid">
+      <!-- Sol: olay listesi (yakından uzağa) -->
+      <div class="event-panel">
+        <h2>Yaklaşan Olaylar</h2>
+        @if (listItems().length === 0) {
+          <div class="empty-events">
+            <mat-icon>event_busy</mat-icon>
+            <p>Planlanmış olay yok.</p>
+            <span>Zamanlanmış eğitimlerin ve katılımcı son tarihleri burada görünür.</span>
+          </div>
         } @else {
-          @for (event of eventsOf(i); track event.title) {
-            <div class="event" [style.border-left-color]="event.color">
-              <strong>{{ event.title }}</strong>
-              <span><mat-icon>schedule</mat-icon> {{ event.start }} – {{ event.end }}</span>
-            </div>
-          }
+          <div class="event-list">
+            @for (item of listItems(); track item.title + item.date) {
+              <a class="event-row" [routerLink]="item.link" [class.past]="isPast(item.date)">
+                <div class="event-date" [class.deadline]="item.kind === 'deadline'">
+                  <span class="day">{{ item.date | date: 'dd' }}</span>
+                  <span class="month">{{ item.date | date: 'MM.yyyy' }}</span>
+                </div>
+                <div class="event-info">
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.info }} · {{ item.date | date: 'HH:mm' }}{{ isPast(item.date) ? ' · geçti' : '' }}</span>
+                </div>
+                <mat-icon class="event-go">chevron_right</mat-icon>
+              </a>
+            }
+          </div>
         }
       </div>
-    }
-  </div>
+
+      <!-- Sağ: takvim (hover'da detay) -->
+      <div class="calendar-panel">
+        <app-event-calendar [events]="calendarEvents()" />
+        <div class="calendar-legend">
+          <span><i class="dot deadline"></i> Katılımcı son tarihi</span>
+          <span><i class="dot publish"></i> Eğitim yayını</span>
+        </div>
+      </div>
+    </div>
+  }
 </div>

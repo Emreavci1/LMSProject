@@ -13,4 +13,14 @@ public interface IEnrollmentService
 
     // Kursa katılanları yalnızca kursun sahibi Instructor veya Admin görebilir
     Task<ServiceResult<List<CourseAttendeeDto>>> GetCourseAttendeesAsync(int courseId, int currentUserId, bool isAdmin);
+
+    // Zorunlu eğitime katılımcı atama (yalnızca Admin çağırır — kontrol controller'da)
+    Task<ServiceResult<EnrollmentDto>> AssignAsync(AssignEnrollmentDto dto);
+
+    // Atamayı kaldır (yalnızca Admin). Katılım kaydı silinir,
+    // tamamlama kayıtları (LessonCompletions) korunur.
+    Task<ServiceResult> UnassignAsync(int courseId, int userId);
+
+    // Admin kullanıcı detayı: bir kullanıcının tüm katılımları + ilerlemeleri
+    Task<List<UserEnrollmentDto>> GetUserEnrollmentsForAdminAsync(int userId);
 }

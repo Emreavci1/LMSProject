@@ -30,7 +30,12 @@
 
     <!-- Kullanıcı özeti -->
     <div class="user-summary">
-      <div class="avatar" [title]="auth.currentUser()?.fullName">{{ initials() }}</div>
+      <img
+        class="avatar"
+        [src]="avatarSrc(auth.currentUser()?.avatarUrl)"
+        [title]="auth.currentUser()?.fullName"
+        alt="Profil fotoğrafı"
+      />
       @if (!sidebarCollapsed()) {
         <div class="user-info">
           <strong>{{ auth.currentUser()?.fullName }}</strong>

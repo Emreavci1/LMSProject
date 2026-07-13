@@ -1,11 +1,7 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
+@use '../../../tokens' as *;
+
 // Kurs detay — Udemy tarzı: kapak hero + içerik/müfredat + aksiyon kutusu
-$primary: #006194;
-$on-surface: #191c1e;
-$on-surface-variant: #3f4850;
-$outline-variant: #bfc7d2;
-$surface-lowest: #ffffff;
-$surface-low: #f2f4f6;
-$green: #16a34a;
 
 .page {
   max-width: 1100px;
@@ -221,11 +217,8 @@ $green: #16a34a;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba($primary, 0.12);
-    color: $primary;
-    display: grid;
-    place-items: center;
-    font-weight: 700;
+    object-fit: cover; // profil fotoğrafı (img)
+    flex-shrink: 0;
   }
 
   .attendee-info {
@@ -340,6 +333,29 @@ $green: #16a34a;
       width: 20px;
       height: 20px;
     }
+  }
+
+  // Zorunlu eğitim uyarısı: atama + son tamamlama tarihi
+  .mandatory-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: #fee2e2;
+    color: #b91c1c;
+    font-size: 13px;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin: 0 0 12px;
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    strong { display: block; margin-top: 2px; }
   }
 }
 

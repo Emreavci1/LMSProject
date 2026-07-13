@@ -82,6 +82,10 @@
           @if (course.level === 'Başlangıç') {
             <span class="free-tag">Ücretsiz</span>
           }
+          <!-- Kurum eğitimi (Admin açtı): öne çıkan rozet -->
+          @if (course.isOfficial) {
+            <span class="official-tag"><mat-icon>verified</mat-icon> Kurum Eğitimi</span>
+          }
         </div>
 
         <!-- Card Content -->

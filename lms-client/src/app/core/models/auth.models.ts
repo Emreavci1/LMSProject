@@ -16,6 +16,8 @@ export interface LoginResponse {
   fullName: string;
   email: string;
   role: UserRole;
+  // Profil fotoğrafı: dosya URL'i, "preset:..." veya null (varsayılan silüet)
+  avatarUrl?: string | null;
 }
 
 // localStorage'da saklanan oturum bilgisi
@@ -24,5 +26,6 @@ export interface AuthUser {
   fullName: string;
   email: string;
   role: UserRole;
+  avatarUrl?: string | null;
   expiresAt: string;
 }

@@ -21,6 +21,10 @@ export interface Course {
   status: CourseStatus;
   publishDate?: string | null;
   isActive: boolean;
+  // Zorunlu eğitim: katalogda listelenmez, katılım yalnızca Admin atamasıyla
+  isMandatory: boolean;
+  // Kurum eğitimi: kursu açan Admin (katılımcı arayüzünde rozetle öne çıkar)
+  isOfficial: boolean;
   createdDate: string;
 }
 
@@ -36,6 +40,8 @@ export interface CreateCourse {
   lessonCount?: number;
   status?: CourseStatus;
   publishDate?: string | null;
+  // Yalnızca Admin gönderirse dikkate alınır (backend kuralı)
+  isMandatory?: boolean;
 }
 
 // PUT /api/courses/{id} isteği (UpdateCourseDto)
@@ -50,4 +56,6 @@ export interface UpdateCourse {
   status?: CourseStatus;
   publishDate?: string | null;
   isActive?: boolean;
+  // Yalnızca Admin gönderirse dikkate alınır; gönderilmezse korunur
+  isMandatory?: boolean;
 }

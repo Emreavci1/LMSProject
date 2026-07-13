@@ -2,6 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../api.config';
+import { Course } from '../models/course.models';
+import { UserEnrollment } from '../models/enrollment.models';
 import { CreateUser, UpdateUser, User } from '../models/user.models';
 
 // Kullanıcı yönetimi — yalnızca Admin (backend zaten [Authorize(Roles="Admin")])
@@ -24,5 +26,15 @@ export class UserService {
 
   deactivate(id: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/${id}`);
+  }
+
+  // Kullanıcı detayı: katıldığı kurslar + ilerlemeleri
+  getEnrollments(id: number): Observable<UserEnrollment[]> {
+    return this.http.get<UserEnrollment[]>(`${this.base}/${id}/enrollments`);
+  }
+
+  // Kullanıcı detayı: (eğitmen/admin) açtığı kurslar
+  getCourses(id: number): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.base}/${id}/courses`);
   }
 }

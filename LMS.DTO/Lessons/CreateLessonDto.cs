@@ -16,4 +16,8 @@ public class CreateLessonDto
 
     // Opsiyonel eğitmen notları
     public string? Notes { get; set; }
+
+    // Ders yükü (kredi): 1 | 2 | 3 — opsiyonel, gönderilmezse 1.
+    // İlerleme yüzdesine etkisini belirler (3 = en yüksek etki).
+    public int? Weight { get; set; }
 }

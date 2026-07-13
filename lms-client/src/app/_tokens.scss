@@ -1,0 +1,38 @@
+// TASARIM TOKEN'LARI — TEK KAYNAK (SCSS tarafı)
+// Tüm bileşen .scss dosyaları renkleri buradan alır (@use '..._tokens' as *).
+// rgba($primary, .1) / darken() gibi SCSS fonksiyonları CSS var() ile çalışmadığı
+// için derleme zamanında bu SCSS değişkenleri kullanılır.
+// DİKKAT: styles.scss'teki :root --color-* değerleriyle EŞ tutulmalı —
+// bir renk değişecekse iki dosyada birden güncelle.
+
+$primary: #006194;
+$primary-container: #007bb9;
+$primary-fixed: #cce5ff;
+$primary-light: rgba(0, 97, 148, 0.1);
+
+$secondary: #565e74;
+$secondary-light: rgba(86, 94, 116, 0.1);
+$secondary-dark: rgba(86, 94, 116, 0.8);
+$secondary-container: #dae2fd;
+$on-secondary-container: #5c647a;
+
+$tertiary: #bb0112;
+$tertiary-light: rgba(187, 1, 18, 0.1);
+
+$surface: #f7f9fb;
+$surface-lowest: #ffffff;
+$surface-low: #f2f4f6;
+$surface-high: #e6e8ea;
+$surface-container: #eceef0;
+$surface-variant: #e0e3e5;
+
+$on-surface: #191c1e;
+$on-surface-variant: #3f4850;
+$on-surface-muted: #5c647a;
+
+$outline-variant: #bfc7d2;
+$outline-strong: #707881;
+
+$green: #16a34a;
+$green-bg: #e8f5e9;
+$red: #e02928;

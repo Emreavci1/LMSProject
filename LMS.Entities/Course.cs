@@ -16,6 +16,11 @@ public class Course
     // Soft delete: kurs silinmez, pasifleştirilir
     public bool IsActive { get; set; } = true;
 
+    // Zorunlu eğitim: katılımcılar kendisi katılamaz, Admin atar (Enrollment.IsAssigned).
+    // Zorunlu kurslar genel katalogda (Keşfet) listelenmez, yalnızca atananlar görür.
+    // Bu işareti yalnızca Admin koyabilir/kaldırabilir.
+    public bool IsMandatory { get; set; }
+
     // Yeni Eklenen Alanlar
     public string? CoverImageUrl { get; set; }
     public string? Category { get; set; }

@@ -1,39 +1,171 @@
-import { Component, inject } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { MockDataService } from '../../../core/services/mock-data.service';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { catchError, forkJoin, map, of } from 'rxjs';
+import {
+  CalendarEvent,
+  EventCalendar,
+  timeLabel,
+} from '../../../shared/components/event-calendar/event-calendar';
+import { Course } from '../../../core/models/course.models';
+import { CourseAttendee } from '../../../core/models/enrollment.models';
+import { User } from '../../../core/models/user.models';
+import { CourseService } from '../../../core/services/course.service';
+import { UserService } from '../../../core/services/user.service';
 
-// Admin: Genel Bakış — analitik dashboard
-// KPI kartları, kayıt trendi, popüler kategoriler, son aktiviteler, popüler kurslar tablosu
+// Kurs + katılımcıları (aktivite/gecikme/takvim hesapları için)
+interface CourseWithAttendees {
+  course: Course;
+  attendees: CourseAttendee[];
+}
+
+// Son aktivite satırı: katılım veya gecikme uyarısı
+interface ActivityItem {
+  text: string;
+  date: string;
+  overdue: boolean; // gecikme uyarıları kırmızı gösterilir
+}
+
+// Admin: Genel Bakış — GERÇEK verilerle KPI'lar, takvim,
+// en çok katılınan kategoriler ve son aktiviteler (gecikme uyarılı).
 @Component({
   selector: 'app-overview',
-  imports: [MatIconModule],
+  imports: [DatePipe, MatIconModule, MatProgressSpinnerModule, EventCalendar],
   templateUrl: './overview.html',
   styleUrl: './overview.scss',
 })
 export class Overview {
-  protected mock = inject(MockDataService);
+  private courseService = inject(CourseService);
+  private userService = inject(UserService);
 
-  // KPI verileri (mock; backend genişleyince servisten çekilecek)
-  readonly kpis = [
-    { icon: 'group', label: 'Toplam Kullanıcı', value: '1,450', trend: -2, trendUp: false },
-    { icon: 'school', label: 'Aktif Eğitimler', value: '48', trend: 12, trendUp: true },
-    { icon: 'task_alt', label: 'Tamamlanan Dersler', value: '12,340', trend: 5, trendUp: true },
-    { icon: 'insights', label: 'Aylık Aktif Öğrenci', value: '890', trend: 8, trendUp: true },
-  ];
+  readonly loading = signal(true);
+  readonly users = signal<User[]>([]);
+  readonly data = signal<CourseWithAttendees[]>([]);
 
-  // Popüler kategoriler (mock)
-  readonly popularCategories = [
-    { name: 'Sağlık & İletişim', percent: 45 },
-    { name: 'Teknoloji & Yazılım', percent: 30 },
-    { name: 'Kişisel Gelişim', percent: 25 },
-  ];
+  constructor() {
+    forkJoin({
+      courses: this.courseService.getAllForAdmin(),
+      users: this.userService.getAll(),
+    }).subscribe({
+      next: ({ courses, users }) => {
+        this.users.set(users);
+        if (courses.length === 0) {
+          this.loading.set(false);
+          return;
+        }
+        // Her kursun katılımcıları (gecikme + aktivite + takvim için)
+        forkJoin(
+          courses.map((course) =>
+            this.courseService.getAttendees(course.id).pipe(
+              map((attendees) => ({ course, attendees })),
+              catchError(() => of({ course, attendees: [] as CourseAttendee[] }))
+            )
+          )
+        ).subscribe({
+          next: (list) => {
+            this.data.set(list);
+            this.loading.set(false);
+          },
+          error: () => this.loading.set(false),
+        });
+      },
+      error: () => this.loading.set(false),
+    });
+  }
 
-  // Popüler kurslar tablosu (mock.courses'dan türetilmiş)
-  readonly topCourses = this.mock.courses()
-    .filter((c) => c.isActive)
-    .sort((a, b) => b.students - a.students)
-    .slice(0, 4);
+  // --- KPI'lar ---
+  readonly totalUsers = computed(() => this.users().filter((u) => u.isActive).length);
+  readonly activeCourses = computed(
+    () => this.data().filter((d) => d.course.isActive && d.course.status === 'Published').length
+  );
+  readonly totalEnrollments = computed(() =>
+    this.data().reduce((sum, d) => sum + d.attendees.length, 0)
+  );
+  // Geciken zorunlu eğitim sayısı (katılımcı bazında) — admin için kritik metrik
+  readonly overdueCount = computed(() =>
+    this.data().reduce((sum, d) => sum + d.attendees.filter((a) => a.isOverdue).length, 0)
+  );
 
-  // Aylık bar chart max değeri (saf CSS bar genişlikleri için)
-  readonly maxEnrollment = Math.max(...this.mock.monthlyEnrollments().map((m) => m.count));
+  // --- Takvim: zorunlu eğitim son tarihleri + zamanlanmış yayınlar ---
+  readonly calendarEvents = computed<CalendarEvent[]>(() => {
+    const events: CalendarEvent[] = [];
+
+    for (const { course, attendees } of this.data()) {
+      // Aynı kurs + aynı güne düşen son tarihleri grupla
+      const byDay = new Map<string, { date: string; count: number }>();
+      for (const a of attendees) {
+        if (!a.isAssigned || !a.dueDate) continue;
+        const key = new Date(a.dueDate).toDateString();
+        const entry = byDay.get(key) ?? { date: a.dueDate, count: 0 };
+        entry.count++;
+        byDay.set(key, entry);
+      }
+      for (const { date, count } of byDay.values()) {
+        events.push({
+          date,
+          label: `${course.title} — ${count} katılımcının son tarihi (${timeLabel(date)})`,
+          kind: 'deadline',
+        });
+      }
+
+      if (course.status === 'Scheduled' && course.publishDate) {
+        events.push({
+          date: course.publishDate,
+          label: `Yayınlanacak (${timeLabel(course.publishDate)}): ${course.title}`,
+          kind: 'publish',
+        });
+      }
+    }
+    return events;
+  });
+
+  // --- En çok katılınan kategoriler (katılım sayısına göre ilk 4) ---
+  readonly topCategories = computed(() => {
+    const byCategory = new Map<string, number>();
+    let total = 0;
+    for (const { course, attendees } of this.data()) {
+      const name = course.category || 'Genel';
+      byCategory.set(name, (byCategory.get(name) ?? 0) + attendees.length);
+      total += attendees.length;
+    }
+    return [...byCategory.entries()]
+      .filter(([, count]) => count > 0)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 4)
+      .map(([name, count]) => ({
+        name,
+        count,
+        percent: total === 0 ? 0 : Math.round((count / total) * 100),
+      }));
+  });
+
+  // --- Son aktiviteler: gecikme uyarıları (önce) + son katılımlar ---
+  readonly activities = computed<ActivityItem[]>(() => {
+    const overdues: ActivityItem[] = [];
+    const enrollments: ActivityItem[] = [];
+
+    for (const { course, attendees } of this.data()) {
+      for (const a of attendees) {
+        if (a.isOverdue) {
+          overdues.push({
+            text: `${a.fullName}, "${course.title}" zorunlu eğitimini süresinde tamamlamadı`,
+            date: a.dueDate!,
+            overdue: true,
+          });
+        }
+        enrollments.push({
+          text: `${a.fullName}, "${course.title}" eğitimine katıldı`,
+          date: a.enrollDate,
+          overdue: false,
+        });
+      }
+    }
+
+    overdues.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    enrollments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    // Gecikmeler her zaman en üstte; kalan yer son katılımlarla dolar
+    return [...overdues, ...enrollments].slice(0, 8);
+  });
 }

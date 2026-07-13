@@ -28,8 +28,19 @@ public class ProgressService : IProgressService
             return ServiceResult<LessonCompletionStateDto>.Fail(ServiceErrorType.NotFound, "Ders bulunamadı.");
 
         // KAYIT KONTROLÜ: yalnızca kursa katılmış kullanıcı ders tamamlayabilir
-        if (!await _enrollmentRepository.ExistsAsync(userId, lesson.CourseId))
+        var enrollment = await _enrollmentRepository.GetByUserAndCourseAsync(userId, lesson.CourseId);
+        if (enrollment is null)
             return ServiceResult<LessonCompletionStateDto>.Fail(ServiceErrorType.Forbidden, "Bu kursa kayıtlı değilsiniz.");
+
+        // OTOMATİK BAŞARISIZ: zorunlu eğitimin son tarihi (saatli, kesin an) geçtiyse
+        // artık ders tamamlanamaz (eğitim "Başarısız" sayılır; işaret kaldırma da kapalı).
+        // Dialog varsayılanı 23:59 olduğundan yalnızca tarih seçen için gün sonu davranışı korunur.
+        if (enrollment.IsAssigned && enrollment.DueDate.HasValue
+            && DateTime.UtcNow >= enrollment.DueDate.Value)
+        {
+            return ServiceResult<LessonCompletionStateDto>.Fail(ServiceErrorType.Forbidden,
+                "Bu zorunlu eğitimin süresi doldu; ders tamamlama işlemi yapılamaz.");
+        }
 
         var existing = await _completionRepository.GetByUserAndLessonAsync(userId, lessonId);
         bool completed;

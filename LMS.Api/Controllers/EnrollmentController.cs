@@ -42,6 +42,30 @@ public class EnrollmentController : ApiControllerBase
         return NoContent();
     }
 
+    // POST /api/enrollments/assign — zorunlu eğitime katılımcı ata (yalnızca Admin)
+    [HttpPost("assign")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<EnrollmentDto>> Assign([FromBody] AssignEnrollmentDto dto)
+    {
+        var result = await _enrollmentService.AssignAsync(dto);
+        if (!result.Success)
+            return ToErrorResponse(result);
+
+        return CreatedAtAction(nameof(GetCourseAttendees), new { courseId = dto.CourseId }, result.Data);
+    }
+
+    // DELETE /api/enrollments/assign/{courseId}/{userId} — atamayı kaldır (yalnızca Admin)
+    [HttpDelete("assign/{courseId:int}/{userId:int}")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> Unassign(int courseId, int userId)
+    {
+        var result = await _enrollmentService.UnassignAsync(courseId, userId);
+        if (!result.Success)
+            return ToErrorResponse(result);
+
+        return NoContent();
+    }
+
     // GET /api/enrollments/my — kendi katıldığım kurslar
     [HttpGet("my")]
     public async Task<ActionResult<List<EnrollmentDto>>> GetMyEnrollments()

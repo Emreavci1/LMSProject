@@ -72,6 +72,8 @@ public class LmsDbContext : DbContext
             entity.Property(l => l.Description).HasMaxLength(2000);
             entity.Property(l => l.ContentUrl).HasMaxLength(1000);
             entity.Property(l => l.Notes).HasMaxLength(4000);
+            // Ders yükü: mevcut kayıtlar dahil varsayılan 1 (migration'da DEFAULT 1)
+            entity.Property(l => l.Weight).HasDefaultValue(1);
             // TextContent uzun olabilir (okuma metni) — sınır koymuyoruz (nvarchar(max))
 
             // Bir kursun birçok dersi olur. Kurs silinince dersleri de silinsin (Cascade):

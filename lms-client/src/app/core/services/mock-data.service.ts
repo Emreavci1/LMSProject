@@ -21,7 +21,13 @@ export class MockDataService {
     { id: 3, title: 'Etkili İletişim Teknikleri', description: 'Aile ve hasta iletişiminde empati, dinleme ve doğru ifade becerileri.', category: 'Kişisel Gelişim', level: 'Orta', durationHours: 10, lessonCount: 8, instructorName: 'Eğitmen Bir', students: 65, rating: 4.7, isActive: true, status: 'Published', cover: 'linear-gradient(135deg, #7C3AED, #0F172A)' },
   ]);
 
-  readonly categories = signal<string[]>(['Genel', 'Sağlık', 'Teknoloji', 'Kişisel Gelişim', 'Sanat']);
+  // Kategoriler: localStorage'da kalıcı (backend kategori tablosu olana kadar).
+  // Kurs oluşturma formu ve admin kategori yönetimi bu listeyi kullanır.
+  readonly categories = signal<string[]>(
+    JSON.parse(localStorage.getItem('lms-categories') ?? 'null') ?? [
+      'Genel', 'Sağlık', 'Teknoloji', 'Kişisel Gelişim', 'Sanat',
+    ]
+  );
 
   // --- Bakiye ---
   readonly balance = signal(250);
@@ -105,10 +111,16 @@ export class MockDataService {
   addCategory(name: string): void {
     if (!this.categories().includes(name)) {
       this.categories.update((list) => [...list, name]);
+      this.persistCategories();
     }
   }
 
   removeCategory(name: string): void {
     this.categories.update((list) => list.filter((c) => c !== name));
+    this.persistCategories();
+  }
+
+  private persistCategories(): void {
+    localStorage.setItem('lms-categories', JSON.stringify(this.categories()));
   }
 }

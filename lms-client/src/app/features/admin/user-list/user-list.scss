@@ -41,6 +41,31 @@
   margin: 2px 0;
 }
 
+// Rol rozeti: role göre renk (sıralama gruplarını görünür kılar)
+.role-chip {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 12px;
+  border-radius: 12px;
+  white-space: nowrap;
+
+  &.Admin {
+    background: #ede9fe;
+    color: #6d28d9;
+  }
+
+  &.Instructor {
+    background: #e0f2fe;
+    color: #0369a1;
+  }
+
+  &.CourseAttendee {
+    background: #f1f5f9;
+    color: #475569;
+  }
+}
+
 // --- Responsive: masaüstünde tablo, mobilde kart ---
 .table-wrapper {
   display: none;
@@ -86,4 +111,24 @@
   display: flex;
   justify-content: center;
   padding: 48px;
+}
+
+// Pasif kullanıcıyı aktifleştirme butonu (yeşil)
+.reactivate-btn {
+  color: #15803d;
+}
+
+// Ad hücresi: avatar + isim yan yana
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.list-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }

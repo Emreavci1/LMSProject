@@ -77,3 +77,41 @@ h1 {
     align-self: flex-start;
   }
 }
+
+// --- Profil fotoğrafı / hazır avatar seçimi ---
+img.big-avatar {
+  object-fit: cover;
+  background: none;
+}
+
+.avatar-upload-btn {
+  margin-top: 12px;
+}
+
+.preset-label {
+  font-size: 12px;
+  color: #5c647a;
+  margin: 12px 0 6px;
+}
+
+.preset-row {
+  display: flex;
+  gap: 10px;
+}
+
+.preset-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  background: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+
+  img { width: 100%; height: 100%; display: block; }
+
+  &:hover { transform: scale(1.08); }
+  &.selected { border-color: #006194; }
+}

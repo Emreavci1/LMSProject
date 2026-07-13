@@ -54,7 +54,9 @@ export class Login {
   readonly quickLoginUsers = [
     { label: 'Admin', email: 'admin@losev.org.tr', password: 'Admin123!', icon: 'shield_person' },
     { label: 'Eğitmen', email: 'egitmen1@losev.org.tr', password: 'Egitmen123!', icon: 'school' },
-    { label: 'Katılımcı', email: 'katilimci1@losev.org.tr', password: 'Katilimci123!', icon: 'person' },
+    { label: 'Katılımcı 1', email: 'katilimci1@losev.org.tr', password: 'Katilimci123!', icon: 'person' },
+    { label: 'Katılımcı 2', email: 'katilimci2@losev.org.tr', password: 'Katilimci123!', icon: 'person' },
+    { label: 'Katılımcı 3', email: 'katilimci3@losev.org.tr', password: 'Katilimci123!', icon: 'person' },
   ];
 
   quickLogin(email: string, password: string): void {

@@ -11,6 +11,10 @@ export function fileUrl(path: string | null | undefined): string {
 }
 
 // Bu ContentUrl bizim sunucuya yüklenmiş bir dosya mı? (harici link değil)
+// İki depolama biçimi tanınır:
+//  - yerel disk: /uploads/... (backend wwwroot)
+//  - MinIO: http://host:9000/lms-uploads/... (bucket adı appsettings ile eş)
 export function isUploadedFile(path: string | null | undefined): boolean {
-  return !!path && path.startsWith('/uploads/');
+  if (!path) return false;
+  return path.startsWith('/uploads/') || /^https?:\/\/[^/]+\/lms-uploads\//.test(path);
 }

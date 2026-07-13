@@ -14,4 +14,8 @@ public interface ILessonCompletionRepository : IRepository<LessonCompletion>
     // Bir kurstaki tamamlama sayıları: kullanıcı id → tamamlanan ders sayısı
     // (eğitmenin katılımcı listesindeki ilerleme yüzdeleri için)
     Task<Dictionary<int, int>> GetCompletedCountsByCourseAsync(int courseId);
+
+    // Bir kurstaki tamamlamalar: kullanıcı id → tamamlanan ders id'leri
+    // (ders yükü ağırlıklı ilerleme hesabı için)
+    Task<Dictionary<int, List<int>>> GetCompletedLessonIdsByCourseAsync(int courseId);
 }

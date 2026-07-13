@@ -28,12 +28,23 @@ export class AuthService {
           fullName: response.fullName,
           email: response.email,
           role: response.role,
+          avatarUrl: response.avatarUrl,
           expiresAt: response.expiresAt,
         };
         localStorage.setItem(USER_KEY, JSON.stringify(user));
         this.currentUser.set(user);
       })
     );
+  }
+
+  // Profil fotoğrafı değişince oturumdaki kullanıcıyı güncelle
+  // (sidebar/profil anında yeni avatarı göstersin)
+  updateAvatar(avatarUrl: string | null): void {
+    const user = this.currentUser();
+    if (!user) return;
+    const updated: AuthUser = { ...user, avatarUrl };
+    localStorage.setItem(USER_KEY, JSON.stringify(updated));
+    this.currentUser.set(updated);
   }
 
   logout(): void {

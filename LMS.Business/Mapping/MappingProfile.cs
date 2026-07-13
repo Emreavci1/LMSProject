@@ -4,6 +4,7 @@ using LMS.DTO.Enrollments;
 using LMS.DTO.Lessons;
 using LMS.DTO.Users;
 using LMS.Entities;
+using LMS.Entities.Enums;
 
 namespace LMS.Business.Mapping;
 
@@ -27,7 +28,10 @@ public class MappingProfile : Profile
             .ForMember(d => d.DurationMinutes,
                 opt => opt.MapFrom(s => s.Lessons.Sum(l => l.DurationMin)))
             // Katılımcı sayısı — Include(Enrollments) yapılmış sorgularda dolu gelir
-            .ForMember(d => d.StudentCount, opt => opt.MapFrom(s => s.Enrollments.Count));
+            .ForMember(d => d.StudentCount, opt => opt.MapFrom(s => s.Enrollments.Count))
+            // Kurum eğitimi: kursu açan Admin ise (katılımcı arayüzünde rozetle öne çıkar)
+            .ForMember(d => d.IsOfficial,
+                opt => opt.MapFrom(s => s.Instructor.Role == UserRole.Admin));
 
         CreateMap<Enrollment, EnrollmentDto>()
             .ForMember(d => d.CourseTitle, opt => opt.MapFrom(s => s.Course.Title))
@@ -36,8 +40,11 @@ public class MappingProfile : Profile
         CreateMap<Enrollment, CourseAttendeeDto>()
             .ForMember(d => d.FullName, opt => opt.MapFrom(s => s.User.FullName))
             .ForMember(d => d.Email, opt => opt.MapFrom(s => s.User.Email))
+            .ForMember(d => d.AvatarUrl, opt => opt.MapFrom(s => s.User.AvatarUrl))
             // Progress ayrı sorguyla hesaplanır (EnrollmentService), mapper doldurmaz
-            .ForMember(d => d.Progress, opt => opt.Ignore());
+            .ForMember(d => d.Progress, opt => opt.Ignore())
+            // IsOverdue da hesaplanan alan: ilerleme < %100 ve DueDate geçmişse (service doldurur)
+            .ForMember(d => d.IsOverdue, opt => opt.Ignore());
 
         CreateMap<Lesson, LessonDto>()
             .ForMember(d => d.ContentType, opt => opt.MapFrom(s => s.ContentType.ToString()));

@@ -1,13 +1,7 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
+@use '../../../tokens' as *;
+
 // Öğrenci: Eğitimleri Keşfet — Stitch Tasarımı
-$primary: #006194;
-$primary-container: #007bb9;
-$surface-lowest: #ffffff;
-$surface-low: #f2f4f6;
-$outline-variant: #bfc7d2;
-$on-surface: #191c1e;
-$on-surface-variant: #3f4850;
-$green: #16A34A;
-$green-bg: #e8f5e9;
 
 .page {
   padding: 24px 16px;
@@ -362,5 +356,28 @@ $green-bg: #e8f5e9;
     height: 48px;
     opacity: 0.5;
     margin-bottom: 12px;
+  }
+}
+
+// Kurum eğitimi rozeti (Admin'in açtığı eğitim) — kart görselinin altında öne çıkar
+.card-img .official-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #bb0112;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+  mat-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
   }
 }

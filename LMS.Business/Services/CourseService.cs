@@ -23,9 +23,16 @@ public class CourseService : ICourseService
         _mapper = mapper;
     }
 
-    public async Task<List<CourseDto>> GetActiveCoursesAsync()
+    public async Task<List<CourseDto>> GetActiveCoursesAsync(int userId)
     {
-        var courses = await _courseRepository.GetActiveWithInstructorAsync();
+        // Zorunlu kurslar filtresi repository'de (yalnızca atanmışlar görür)
+        var courses = await _courseRepository.GetActiveWithInstructorAsync(userId);
+        return _mapper.Map<List<CourseDto>>(courses);
+    }
+
+    public async Task<List<CourseDto>> GetUpcomingCoursesAsync(int userId)
+    {
+        var courses = await _courseRepository.GetUpcomingWithInstructorAsync(userId);
         return _mapper.Map<List<CourseDto>>(courses);
     }
 
@@ -45,6 +52,14 @@ public class CourseService : ICourseService
         // Pasif kurs katılımcıya görünmez; sahibi olan eğitmen ve Admin yönetim için görebilir
         if (!course.IsActive && !isAdmin && course.InstructorId != currentUserId)
             return ServiceResult<CourseDto>.Fail(ServiceErrorType.NotFound, "Kurs bulunamadı.");
+
+        // Zorunlu kursun detayını yalnızca atanmışlar (+ sahibi ve Admin) görebilir.
+        // Yetkisize 403 değil 404 dönüyoruz: kursun varlığı bile görünmesin.
+        if (course.IsMandatory && !isAdmin && course.InstructorId != currentUserId
+            && !await _enrollmentRepository.ExistsAsync(currentUserId, id))
+        {
+            return ServiceResult<CourseDto>.Fail(ServiceErrorType.NotFound, "Kurs bulunamadı.");
+        }
 
         return ServiceResult<CourseDto>.Ok(_mapper.Map<CourseDto>(course));
     }
@@ -76,6 +91,8 @@ public class CourseService : ICourseService
             PublishDate = dto.PublishDate,
             InstructorId = instructorId, // kurs, isteği yapan kullanıcıya atanır
             IsActive = true,
+            // Zorunlu eğitim: eğitmen de işaretleyebilir; katılımcı ataması yine Admin işi
+            IsMandatory = dto.IsMandatory == true,
             CreatedDate = DateTime.UtcNow
         };
 
@@ -117,6 +134,11 @@ public class CourseService : ICourseService
         // IsActive yalnızca gönderildiyse değişir (aktif/pasif toggle)
         if (dto.IsActive.HasValue)
             course.IsActive = dto.IsActive.Value;
+
+        // Zorunlu işareti: sahibi eğitmen veya Admin değiştirebilir (gönderilmezse korunur;
+        // sahiplik kontrolü yukarıda yapıldı)
+        if (dto.IsMandatory.HasValue)
+            course.IsMandatory = dto.IsMandatory.Value;
 
         _courseRepository.Update(course);
         await _courseRepository.SaveChangesAsync();

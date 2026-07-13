@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>Kategori Yönetimi</h2>
+
+<mat-dialog-content>
+  <!-- Yeni kategori ekleme -->
+  <div class="add-row">
+    <input
+      type="text"
+      placeholder="Yeni kategori adı..."
+      maxlength="60"
+      [ngModel]="newCategoryName()"
+      (ngModelChange)="newCategoryName.set($event)"
+      (keyup.enter)="addCategory()"
+    />
+    <button mat-flat-button color="primary" (click)="addCategory()">
+      <mat-icon>add</mat-icon> Ekle
+    </button>
+  </div>
+
+  <!-- Kategori listesi + kurs sayıları -->
+  <div class="category-list">
+    @for (cat of mock.categories(); track cat) {
+      <div class="category-row">
+        <mat-icon class="cat-icon">category</mat-icon>
+        <span class="cat-name">{{ cat }}</span>
+        <span class="cat-count">{{ courseCount(cat) }} eğitim</span>
+        <button
+          mat-icon-button
+          class="remove-btn"
+          [disabled]="courseCount(cat) > 0"
+          [title]="courseCount(cat) > 0 ? 'Kategoride eğitim var, silinemez' : 'Sil'"
+          (click)="removeCategory(cat)"
+        >
+          <mat-icon>delete_outline</mat-icon>
+        </button>
+      </div>
+    } @empty {
+      <p class="empty-text">Henüz kategori yok.</p>
+    }
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Kapat</button>
+</mat-dialog-actions>

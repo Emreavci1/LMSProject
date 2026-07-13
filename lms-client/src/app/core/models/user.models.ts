@@ -6,6 +6,7 @@ export interface User {
   fullName: string;
   email: string;
   role: UserRole;
+  avatarUrl?: string | null;
   isActive: boolean;
   createdDate: string;
 }
@@ -24,6 +25,8 @@ export interface UpdateUser {
   fullName: string;
   email: string;
   role: UserRole;
+  // Gönderilmezse backend null yazar — mevcut avatar korunacaksa geri gönderilmeli
+  avatarUrl?: string | null;
   isActive: boolean;
   password?: string;
 }

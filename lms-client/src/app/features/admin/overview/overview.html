@@ -2,125 +2,105 @@
   <h1>Genel Bakış</h1>
   <p class="subtitle">Platformun güncel durumu ve temel metrikleri.</p>
 
-  <!-- KPI Kartları -->
-  <section class="kpi-grid">
-    @for (kpi of kpis; track kpi.label) {
+  @if (loading()) {
+    <div class="center-box"><mat-spinner diameter="40" /></div>
+  } @else {
+    <!-- KPI Kartları (gerçek veriler) -->
+    <section class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-top">
-          <div class="kpi-icon-wrap">
-            <mat-icon>{{ kpi.icon }}</mat-icon>
-          </div>
-          <span class="trend" [class.up]="kpi.trendUp" [class.down]="!kpi.trendUp">
-            <mat-icon>{{ kpi.trendUp ? 'trending_up' : 'trending_down' }}</mat-icon>
-            {{ kpi.trend }}%
-          </span>
+          <div class="kpi-icon-wrap"><mat-icon>group</mat-icon></div>
         </div>
-        <h3 class="kpi-label">{{ kpi.label }}</h3>
-        <p class="kpi-value">{{ kpi.value }}</p>
+        <h3 class="kpi-label">Aktif Kullanıcı</h3>
+        <p class="kpi-value">{{ totalUsers() }}</p>
       </div>
-    }
-  </section>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-wrap"><mat-icon>school</mat-icon></div>
+        </div>
+        <h3 class="kpi-label">Yayındaki Eğitimler</h3>
+        <p class="kpi-value">{{ activeCourses() }}</p>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <div class="kpi-icon-wrap"><mat-icon>how_to_reg</mat-icon></div>
+        </div>
+        <h3 class="kpi-label">Toplam Katılım</h3>
+        <p class="kpi-value">{{ totalEnrollments() }}</p>
+      </div>
+      <!-- Geciken zorunlu eğitim: admin için kritik uyarı metriği -->
+      <div class="kpi-card" [class.kpi-alert]="overdueCount() > 0">
+        <div class="kpi-top">
+          <div class="kpi-icon-wrap"><mat-icon>warning</mat-icon></div>
+        </div>
+        <h3 class="kpi-label">Geciken Zorunlu Eğitim</h3>
+        <p class="kpi-value">{{ overdueCount() }}</p>
+      </div>
+    </section>
 
-  <!-- Grafikler bölümü -->
-  <section class="charts-grid">
-    <!-- Kayıt Trendi (bar chart — saf CSS) -->
-    <div class="chart-card chart-wide">
-      <div class="chart-header">
-        <div>
-          <h2>Kayıt Sayısı</h2>
-          <p class="chart-sub">Son aylık eğitim kayıt trendi</p>
+    <!-- Takvim + Kategoriler -->
+    <section class="charts-grid">
+      <!-- Takvim: zorunlu son tarihler (kırmızı) + zamanlanmış yayınlar (mavi) -->
+      <div class="chart-card chart-wide">
+        <div class="chart-header">
+          <div>
+            <h2>Eğitim Takvimi</h2>
+            <p class="chart-sub">Zorunlu eğitim son tarihleri ve planlanan yayınlar — gün üzerine gelerek detayı görün</p>
+          </div>
+        </div>
+        <div class="calendar-wrap">
+          <app-event-calendar [events]="calendarEvents()" />
+        </div>
+        <div class="calendar-legend">
+          <span><i class="dot deadline"></i> Zorunlu son tarih</span>
+          <span><i class="dot publish"></i> Eğitim yayını</span>
         </div>
       </div>
-      <div class="bar-chart">
-        @for (m of mock.monthlyEnrollments(); track m.month) {
-          <div class="bar-col">
-            <div class="bar" [style.height.%]="(m.count / maxEnrollment) * 100"></div>
-            <span class="bar-label">{{ m.month }}</span>
-            <span class="bar-value">{{ m.count }}</span>
-          </div>
-        }
-      </div>
-    </div>
 
-    <!-- Popüler Kategoriler -->
-    <div class="chart-card">
-      <h2>En Popüler Kategoriler</h2>
-      <p class="chart-sub">Kayıt oranlarına göre dağılım</p>
-      <div class="category-bars">
-        @for (cat of popularCategories; track cat.name) {
-          <div class="cat-bar-item">
-            <div class="cat-bar-header">
-              <span class="cat-name">{{ cat.name }}</span>
-              <span class="cat-percent">{{ cat.percent }}%</span>
-            </div>
-            <div class="cat-bar-track">
-              <div class="cat-bar-fill" [style.width.%]="cat.percent"></div>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-  </section>
-
-  <!-- Alt bölüm: Aktiviteler + Popüler Kurslar -->
-  <section class="bottom-grid">
-    <!-- Son Aktiviteler -->
-    <div class="activity-card">
-      <h2>Son Aktiviteler</h2>
-      <div class="timeline">
-        @for (activity of mock.recentActivities(); track activity.text) {
-          <div class="timeline-item">
-            <div class="timeline-dot"></div>
-            <div class="timeline-content">
-              <p>{{ activity.text }}</p>
-              <span class="time">{{ activity.time }}</span>
-            </div>
-          </div>
-        }
-      </div>
-    </div>
-
-    <!-- Popüler Eğitimler Tablosu -->
-    <div class="table-card">
-      <div class="table-header">
-        <h2>Popüler Eğitimler</h2>
-      </div>
-      <div class="table-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>Eğitim Başlığı</th>
-              <th>Eğitmen</th>
-              <th class="text-right">Öğrenci</th>
-              <th class="text-center">Durum</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (course of topCourses; track course.id) {
-              <tr>
-                <td>
-                  <div class="course-cell">
-                    <div class="course-icon">
-                      <mat-icon>school</mat-icon>
-                    </div>
-                    <span>{{ course.title }}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="instructor-cell">
-                    <div class="mini-avatar">{{ course.instructorName[0] }}</div>
-                    <span>{{ course.instructorName }}</span>
-                  </div>
-                </td>
-                <td class="text-right">{{ course.students }}</td>
-                <td class="text-center">
-                  <span class="status-badge active">Aktif</span>
-                </td>
-              </tr>
+      <!-- En Çok Katılınan Kategoriler -->
+      <div class="chart-card">
+        <h2>En Çok Katılınan Kategoriler</h2>
+        <p class="chart-sub">Katılım sayısına göre dağılım</p>
+        @if (topCategories().length === 0) {
+          <p class="empty-text">Henüz katılım verisi yok.</p>
+        } @else {
+          <div class="category-bars">
+            @for (cat of topCategories(); track cat.name) {
+              <div class="cat-bar-item">
+                <div class="cat-bar-header">
+                  <span class="cat-name">{{ cat.name }}</span>
+                  <span class="cat-percent">{{ cat.count }} katılım · %{{ cat.percent }}</span>
+                </div>
+                <div class="cat-bar-track">
+                  <div class="cat-bar-fill" [style.width.%]="cat.percent"></div>
+                </div>
+              </div>
             }
-          </tbody>
-        </table>
+          </div>
+        }
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- Son Aktiviteler (gecikme uyarıları üstte, kırmızı) -->
+    <section class="bottom-grid">
+      <div class="activity-card">
+        <h2>Son Aktiviteler</h2>
+        @if (activities().length === 0) {
+          <p class="empty-text">Henüz aktivite yok.</p>
+        } @else {
+          <div class="timeline">
+            @for (activity of activities(); track activity.text + activity.date) {
+              <div class="timeline-item">
+                <div class="timeline-dot" [class.overdue]="activity.overdue"></div>
+                <div class="timeline-content">
+                  <p [class.overdue-text]="activity.overdue">{{ activity.text }}</p>
+                  <span class="time">{{ activity.date | date: 'dd.MM.yyyy' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
 </div>

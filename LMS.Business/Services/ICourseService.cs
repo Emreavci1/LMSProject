@@ -5,7 +5,11 @@ namespace LMS.Business.Services;
 
 public interface ICourseService
 {
-    Task<List<CourseDto>> GetActiveCoursesAsync();
+    // userId: zorunlu kurslar katalogda gizli — yalnızca atanmış kullanıcı kendi listesinde görür
+    Task<List<CourseDto>> GetActiveCoursesAsync(int userId);
+
+    // Yaklaşan eğitimler: zamanlanmış + yayın tarihi belli (takvim göstergesi için)
+    Task<List<CourseDto>> GetUpcomingCoursesAsync(int userId);
 
     // TÜM kurslar (pasif/taslak dahil) — yalnızca Admin eğitim yönetimi kullanır
     Task<List<CourseDto>> GetAllCoursesAsync();

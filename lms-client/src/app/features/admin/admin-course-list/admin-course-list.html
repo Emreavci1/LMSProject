@@ -4,9 +4,9 @@
       <h1>Eğitim Yönetimi</h1>
       <p class="subtitle">Platformdaki tüm eğitimleri görüntüleyin ve yönetin.</p>
     </div>
-    <button mat-flat-button color="primary" routerLink="/instructor/courses/new">
-      <mat-icon>add</mat-icon>
-      Yeni Eğitim
+    <button mat-stroked-button (click)="openCategories()">
+      <mat-icon>category</mat-icon>
+      Kategorileri Düzenle
     </button>
   </div>
 
@@ -32,6 +32,8 @@
         <option value="all">Tüm Durumlar</option>
         <option value="active">Aktif</option>
         <option value="passive">Pasif</option>
+        <option value="public">Herkese Açık</option>
+        <option value="mandatory">Zorunlu</option>
       </select>
     </div>
   </div>
@@ -45,6 +47,7 @@
             <th>Eğitim</th>
             <th>Eğitmen</th>
             <th>Kategori</th>
+            <th class="text-center">Tür</th>
             <th class="text-center">Öğrenci</th>
             <th class="text-center">Durum</th>
             <th class="text-right">İşlem</th>
@@ -74,6 +77,13 @@
               </td>
               <td>
                 <span class="category-badge">{{ course.category || 'Genel' }}</span>
+              </td>
+              <td class="text-center">
+                @if (course.isMandatory) {
+                  <span class="mandatory-chip">Zorunlu</span>
+                } @else {
+                  <span class="public-chip">Herkese Açık</span>
+                }
               </td>
               <td class="text-center">
                 <span class="student-count">{{ course.studentCount }}</span>
@@ -123,6 +133,11 @@
         </div>
         <div class="card-bottom">
           <span class="category-badge">{{ course.category || 'Genel' }}</span>
+          @if (course.isMandatory) {
+            <span class="mandatory-chip">Zorunlu</span>
+          } @else {
+            <span class="public-chip">Herkese Açık</span>
+          }
           <span class="course-meta"><mat-icon>group</mat-icon> {{ course.studentCount }} öğrenci</span>
         </div>
       </div>

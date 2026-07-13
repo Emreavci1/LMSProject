@@ -20,6 +20,8 @@ interface CatalogCourse {
   lessonCount: number;
   instructorName: string;
   cover: string; // CSS background değeri (gradient veya url(...))
+  // Kurum eğitimi (Admin açtı) — kartta öne çıkan rozetle gösterilir
+  isOfficial: boolean;
 }
 
 // Öğrenci: Eğitimleri Keşfet — arama, kategori ve seviye filtreli kurs kataloğu.
@@ -71,6 +73,7 @@ export class Discover {
             lessonCount: c.lessonCount,
             instructorName: c.instructorName,
             cover: coverCss(c.coverImageUrl),
+            isOfficial: c.isOfficial,
           }))
         );
         this.loading.set(false);

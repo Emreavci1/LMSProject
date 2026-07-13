@@ -16,4 +16,7 @@ public class CreateCourseDto
     // Opsiyonel: gönderilmezse servis "Draft" kabul eder
     public string? Status { get; set; }
     public DateTime? PublishDate { get; set; }
+
+    // Zorunlu eğitim işareti — yalnızca Admin koyabilir (Instructor gönderirse yok sayılır)
+    public bool? IsMandatory { get; set; }
 }

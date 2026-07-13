@@ -53,6 +53,9 @@ namespace LMS.DataAccess.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsMandatory")
+                        .HasColumnType("bit");
+
                     b.Property<int>("LessonCount")
                         .HasColumnType("int");
 
@@ -88,8 +91,14 @@ namespace LMS.DataAccess.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("DueDate")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("EnrollDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsAssigned")
+                        .HasColumnType("bit");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -151,6 +160,11 @@ namespace LMS.DataAccess.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Weight")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
 
                     b.HasKey("Id");
 

@@ -17,11 +17,18 @@ export class ImageCropperDialog {
   croppedImage: any = '';
   croppedBase64: any = '';
 
+  // Kırpma çerçevesi ayarları (dialog verisiyle özelleştirilebilir):
+  // kurs kapağı 16:9 dikdörtgen (varsayılan), profil fotoğrafı 1:1 yuvarlak
+  aspectRatio = 16 / 9;
+  roundCropper = false;
+
   constructor(
     public dialogRef: MatDialogRef<ImageCropperDialog>,
     @Inject(MAT_DIALOG_DATA) public data: any
   ) {
     this.imageChangedEvent = data.imageChangedEvent;
+    if (data.aspectRatio) this.aspectRatio = data.aspectRatio;
+    if (data.roundCropper) this.roundCropper = true;
   }
 
   imageCropped(event: ImageCroppedEvent) {

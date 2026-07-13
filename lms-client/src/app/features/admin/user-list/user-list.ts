@@ -7,11 +7,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { User } from '../../../core/models/user.models';
+import { RouterLink } from '@angular/router';
+import { UpdateUser, User } from '../../../core/models/user.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UserService } from '../../../core/services/user.service';
 import { UserFormDialog } from '../user-form-dialog/user-form-dialog';
+import { avatarSrc } from '../../../core/utils/avatar.util';
 
 @Component({
   selector: 'app-user-list',
@@ -24,6 +26,7 @@ import { UserFormDialog } from '../user-form-dialog/user-form-dialog';
     MatDialogModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
+    RouterLink,
   ],
   templateUrl: './user-list.html',
   styleUrl: './user-list.scss',
@@ -34,9 +37,10 @@ export class UserList {
   private dialog = inject(MatDialog);
   protected auth = inject(AuthService);
 
+  protected readonly avatarSrc = avatarSrc;
   readonly loading = signal(true);
   readonly users = signal<User[]>([]);
-  readonly displayedColumns = ['fullName', 'email', 'role', 'status', 'actions'];
+  readonly displayedColumns = ['role', 'fullName', 'email', 'status', 'actions'];
 
   // mat-table satırları 'any' tipli olduğundan string index kullanıyoruz
   readonly roleLabels: Record<string, string> = {
@@ -49,11 +53,25 @@ export class UserList {
     this.load();
   }
 
+  // Rol sırası: önce Yönetici, sonra Eğitmen, sonra Katılımcı
+  private readonly roleOrder: Record<string, number> = {
+    Admin: 0,
+    Instructor: 1,
+    CourseAttendee: 2,
+  };
+
   private load(): void {
     this.loading.set(true);
     this.userService.getAll().subscribe({
       next: (users) => {
-        this.users.set(users);
+        // Role göre grupla, aynı rol içinde ada göre alfabetik sırala
+        this.users.set(
+          [...users].sort(
+            (a, b) =>
+              (this.roleOrder[a.role] ?? 99) - (this.roleOrder[b.role] ?? 99) ||
+              a.fullName.localeCompare(b.fullName, 'tr')
+          )
+        );
         this.loading.set(false);
       },
       error: (err) => {
@@ -90,6 +108,24 @@ export class UserList {
     this.userService.deactivate(user.id).subscribe({
       next: () => {
         this.notification.success('Kullanıcı pasifleştirildi.');
+        this.load();
+      },
+      error: (err) => this.notification.fromHttpError(err, 'İşlem başarısız.'),
+    });
+  }
+
+  // Pasif kullanıcıyı tekrar aktifleştir (PUT ile isActive=true; diğer alanlar korunur)
+  reactivate(user: User): void {
+    const payload: UpdateUser = {
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl ?? null,
+      isActive: true,
+    };
+    this.userService.update(user.id, payload).subscribe({
+      next: () => {
+        this.notification.success('Kullanıcı aktifleştirildi.');
         this.load();
       },
       error: (err) => this.notification.fromHttpError(err, 'İşlem başarısız.'),

@@ -4,7 +4,8 @@
     <image-cropper
       [imageChangedEvent]="imageChangedEvent"
       [maintainAspectRatio]="true"
-      [aspectRatio]="16 / 9"
+      [aspectRatio]="aspectRatio"
+      [roundCropper]="roundCropper"
       format="png"
       (imageCropped)="imageCropped($event)"
       (imageLoaded)="imageLoaded($event)"

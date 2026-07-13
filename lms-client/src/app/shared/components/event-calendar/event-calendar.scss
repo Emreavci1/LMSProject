@@ -1,0 +1,77 @@
+:host {
+  display: block;
+}
+
+mat-calendar {
+  width: 100%;
+  font-family: inherit;
+}
+
+// mat-calendar iç yapısı bileşen kapsülü dışında render edildiği için ::ng-deep gerekli
+:host ::ng-deep {
+  // Başlık: daha kompakt ve belirgin
+  .mat-calendar-header {
+    padding-top: 0;
+  }
+
+  .mat-calendar-period-button {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  // Gün adları satırı (Pzt, Sal...)
+  .mat-calendar-table-header th {
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+  }
+
+  .mat-calendar-table-header-divider::after {
+    background: #e2e8f0;
+  }
+
+  // Gün hücreleri
+  .mat-calendar-body-cell-content {
+    border-radius: 50%;
+    font-size: 12.5px;
+    border: none;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {
+    transform: scale(1.08);
+  }
+
+  // Bugün: ince mavi halka
+  .mat-calendar-body-today:not(.mat-calendar-body-selected) {
+    border: 1.5px solid #0284c7 !important;
+    background: transparent;
+  }
+
+  // --- Olay işaretleri ---
+  // Ortak: dolu renkli daire + altında minik nokta + hafif gölge
+  .publish-day .mat-calendar-body-cell-content,
+  .deadline-day .mat-calendar-body-cell-content {
+    color: #fff;
+    font-weight: 700;
+    position: relative;
+  }
+
+  // Yayın tarihi (zamanlanmış eğitim) — mavi
+  .publish-day .mat-calendar-body-cell-content {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    box-shadow: 0 2px 6px rgba(3, 105, 161, 0.35);
+  }
+
+  // Zorunlu eğitim son tarihi — kırmızı (aynı güne ikisi de düşerse bu kazanır)
+  .deadline-day .mat-calendar-body-cell-content {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    box-shadow: 0 2px 6px rgba(185, 28, 28, 0.35);
+  }
+
+  // İşaretli gün seçiliyse Material'ın kendi seçim rengi araya girmesin
+  .publish-day.mat-calendar-body-selected .mat-calendar-body-cell-content,
+  .deadline-day.mat-calendar-body-selected .mat-calendar-body-cell-content {
+    border: none;
+  }
+}

@@ -82,6 +82,8 @@ export class UserFormDialog {
         fullName: value.fullName,
         email: value.email,
         role: value.role,
+        // Mevcut avatar korunur (gönderilmezse backend null'a çeker)
+        avatarUrl: this.data.user.avatarUrl ?? null,
         isActive: value.isActive,
         // Şifre yalnızca doldurulduysa gönderilir
         ...(value.password ? { password: value.password } : {}),

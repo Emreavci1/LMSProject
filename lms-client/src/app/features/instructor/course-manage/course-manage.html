@@ -4,8 +4,8 @@
       <mat-spinner diameter="40" />
     </div>
   } @else if (course(); as c) {
-    <a mat-button routerLink="/instructor/courses" class="back-link">
-      <mat-icon>arrow_back</mat-icon> Eğitimlerim
+    <a mat-button [routerLink]="backLink()" class="back-link">
+      <mat-icon>arrow_back</mat-icon> {{ backLabel() }}
     </a>
 
     <!-- Kurs başlığı + istatistikler -->
@@ -24,6 +24,9 @@
               @default { Taslak }
             }
           </span>
+          @if (c.isMandatory) {
+            <span class="badge mandatory"><mat-icon>gavel</mat-icon> Zorunlu</span>
+          }
         </div>
         @if (c.description) {
           <p class="course-description">{{ c.description }}</p>
@@ -69,6 +72,18 @@
                       @for (type of contentTypes; track type.value) {
                         <option [value]="type.value">{{ type.label }}</option>
                       }
+                    </select>
+                    <mat-icon class="select-icon">expand_more</mat-icon>
+                  </div>
+                </div>
+                <!-- Ders yükü (kredi): ilerleme yüzdesindeki ağırlık — opsiyonel, varsayılan 1 -->
+                <div class="form-group flex-1">
+                  <label>Ders Yükü <span class="optional-label">(Opsiyonel)</span></label>
+                  <div class="select-wrapper">
+                    <select class="custom-select" [ngModel]="newLessonWeight()" (ngModelChange)="newLessonWeight.set(+$event)">
+                      <option [value]="1">1 — Normal</option>
+                      <option [value]="2">2 — Ağır</option>
+                      <option [value]="3">3 — Çok Ağır</option>
                     </select>
                     <mat-icon class="select-icon">expand_more</mat-icon>
                   </div>
@@ -281,21 +296,61 @@
       <!-- ÖĞRENCİLER sekmesi (gerçek katılımlar + ilerleme) -->
       <mat-tab label="Öğrenciler">
         <div class="tab-content">
+          <!-- Katılımcı atama yalnızca Admin'e açık (zorunlu eğitim akışı) -->
+          @if (isAdminUser()) {
+            <div class="add-lesson-header">
+              <h3>Katılımcılar</h3>
+              <button class="custom-btn-primary" (click)="openAssignDialog()">
+                <mat-icon>person_add</mat-icon> Katılımcı Ata
+              </button>
+            </div>
+          }
+
           @if (attendees().length === 0) {
             <p class="empty-text">Bu eğitime henüz katılan yok.</p>
           } @else {
             <div class="student-list">
               @for (student of attendees(); track student.userId) {
                 <div class="student-row">
-                  <div class="mini-avatar">{{ student.fullName[0] }}</div>
+                  <img class="mini-avatar" [src]="avatarSrc(student.avatarUrl)" [alt]="student.fullName" />
                   <div class="student-info">
                     <strong>{{ student.fullName }}</strong>
                     <span>{{ student.email }} · Kayıt: {{ student.enrollDate | date: 'dd.MM.yyyy' }}</span>
+                    @if (student.isAssigned && student.dueDate) {
+                      <span class="due-info" [class.overdue]="student.isOverdue">
+                        <mat-icon>event</mat-icon>
+                        Son tarih: {{ student.dueDate | date: 'dd.MM.yyyy HH:mm' }}
+                      </span>
+                    }
                   </div>
+
+                  <!-- Durum rozeti: Tamamladı / Gecikmiş / Devam ediyor (yalnızca atamalarda) -->
+                  @if (student.isAssigned) {
+                    @if (student.progress === 100) {
+                      <span class="status-chip done">Tamamladı</span>
+                    } @else if (student.isOverdue) {
+                      <!-- Süre doldu: eğitim bu katılımcı için başarısız sayılır (tamamlama kilitli) -->
+                      <span class="status-chip overdue">Başarısız</span>
+                    } @else {
+                      <span class="status-chip in-progress">Devam ediyor</span>
+                    }
+                  }
+
                   <div class="student-progress">
                     <mat-progress-bar mode="determinate" [value]="student.progress" />
                     <span>%{{ student.progress }}</span>
                   </div>
+
+                  @if (isAdminUser() && student.isAssigned) {
+                    <button
+                      mat-icon-button
+                      class="unassign-btn"
+                      title="Atamayı kaldır"
+                      (click)="unassign(student)"
+                    >
+                      <mat-icon>person_remove</mat-icon>
+                    </button>
+                  }
                 </div>
               }
             </div>
@@ -332,7 +387,7 @@
   } @else {
     <div class="center-box">
       <p class="muted">Kurs bulunamadı.</p>
-      <a mat-flat-button color="primary" routerLink="/instructor/courses">Eğitimlerim</a>
+      <a mat-flat-button color="primary" [routerLink]="backLink()">{{ backLabel() }}</a>
     </div>
   }
 </div>

@@ -107,6 +107,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['Admin'] },
       },
+      // Kullanıcı detayı: bilgiler + katıldığı/açtığı eğitimler
+      {
+        path: 'admin/users/:id',
+        loadComponent: () =>
+          import('./features/admin/user-detail/user-detail').then((m) => m.UserDetail),
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+      },
       {
         path: 'admin/courses',
         loadComponent: () =>
@@ -116,10 +124,14 @@ export const routes: Routes = [
         canActivate: [roleGuard],
         data: { roles: ['Admin'] },
       },
+      // Admin eğitim oluşturma: eğitmenle aynı bileşen, ayrı adres
+      // (kaydet/iptal yönlendirmeleri role göre admin paneline döner)
       {
-        path: 'admin/categories',
+        path: 'admin/courses/new',
         loadComponent: () =>
-          import('./features/admin/categories/categories').then((m) => m.Categories),
+          import('./features/instructor/course-create/course-create').then(
+            (m) => m.CourseCreate
+          ),
         canActivate: [roleGuard],
         data: { roles: ['Admin'] },
       },

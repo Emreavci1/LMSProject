@@ -3,6 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { avatarSrc } from '../../../core/utils/avatar.util';
 
 interface MenuItem {
   label: string;
@@ -21,6 +22,7 @@ interface MenuItem {
 })
 export class PanelLayout {
   protected readonly auth = inject(AuthService);
+  protected readonly avatarSrc = avatarSrc;
 
   // Mobilde sidebar aç/kapa durumu
   readonly sidebarOpen = signal(false);
@@ -59,11 +61,10 @@ export class PanelLayout {
         ];
       case 'Admin':
         return [
-          { label: 'Ana Sayfa', icon: 'home', route: '/', exact: true },
           { label: 'Genel Bakış', icon: 'dashboard', route: '/admin/overview' },
           { label: 'Kullanıcılar', icon: 'group', route: '/admin/users' },
-          { label: 'Eğitimler', icon: 'school', route: '/admin/courses' },
-          { label: 'Kategoriler', icon: 'category', route: '/admin/categories' },
+          { label: 'Eğitimler', icon: 'school', route: '/admin/courses', exact: true },
+          { label: 'Eğitim Aç', icon: 'add_circle', route: '/admin/courses/new' },
           { label: 'Profil', icon: 'person', route: '/profile' },
           { label: 'Ayarlar', icon: 'settings', route: '/settings' },
         ];

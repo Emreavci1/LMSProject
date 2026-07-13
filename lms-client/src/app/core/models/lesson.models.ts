@@ -18,6 +18,8 @@ export interface Lesson {
   textContent?: string | null;
   // Eğitmenin ders notları (oynatıcıdaki "Notlar" sekmesi)
   notes?: string | null;
+  // Ders yükü (kredi): 1 | 2 | 3 — ilerleme yüzdesindeki ağırlığı
+  weight: number;
   order: number;
 }
 
@@ -31,4 +33,6 @@ export interface CreateLesson {
   contentUrl?: string | null;
   textContent?: string | null;
   notes?: string | null;
+  // Ders yükü (opsiyonel, varsayılan 1)
+  weight?: number;
 }

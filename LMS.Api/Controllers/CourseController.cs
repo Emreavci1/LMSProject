@@ -18,9 +18,10 @@ public class CourseController : ApiControllerBase
     }
 
     // GET /api/courses — aktif kurslar (tüm giriş yapmış kullanıcılar)
+    // Zorunlu kurslar yalnızca atanmış kullanıcının listesinde görünür
     [HttpGet]
     public async Task<ActionResult<List<CourseDto>>> GetAll()
-        => Ok(await _courseService.GetActiveCoursesAsync());
+        => Ok(await _courseService.GetActiveCoursesAsync(CurrentUserId));
 
     // GET /api/courses/my — Instructor'ın kendi kursları
     // DİKKAT: bu route, {id} route'undan ÖNCE tanımlanmalı ki "my" bir id sanılmasın
@@ -28,6 +29,11 @@ public class CourseController : ApiControllerBase
     [Authorize(Roles = "Instructor,Admin")]
     public async Task<ActionResult<List<CourseDto>>> GetMyCourses()
         => Ok(await _courseService.GetMyCoursesAsync(CurrentUserId));
+
+    // GET /api/courses/upcoming — yaklaşan (zamanlanmış) eğitimler; takvim göstergesi için
+    [HttpGet("upcoming")]
+    public async Task<ActionResult<List<CourseDto>>> GetUpcoming()
+        => Ok(await _courseService.GetUpcomingCoursesAsync(CurrentUserId));
 
     // GET /api/courses/all — TÜM kurslar, pasif/taslak dahil (yalnızca Admin)
     [HttpGet("all")]

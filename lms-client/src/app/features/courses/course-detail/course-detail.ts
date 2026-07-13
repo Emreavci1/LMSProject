@@ -1,15 +1,17 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Router, RouterLink } from '@angular/router';
 import { Course } from '../../../core/models/course.models';
-import { CourseAttendee } from '../../../core/models/enrollment.models';
+import { CourseAttendee, Enrollment } from '../../../core/models/enrollment.models';
 import { Lesson } from '../../../core/models/lesson.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { avatarSrc } from '../../../core/utils/avatar.util';
 import { coverCss } from '../../../core/utils/cover.util';
 import { formatCourseHours } from '../../../core/utils/duration.util';
 
@@ -18,6 +20,7 @@ import { formatCourseHours } from '../../../core/utils/duration.util';
 @Component({
   selector: 'app-course-detail',
   imports: [
+    DatePipe,
     RouterLink,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -36,11 +39,15 @@ export class CourseDetail implements OnInit {
   private router = inject(Router);
   protected auth = inject(AuthService);
 
+  protected readonly avatarSrc = avatarSrc;
   readonly loading = signal(true);
   readonly course = signal<Course | null>(null);
   readonly isEnrolled = signal(false);
   readonly enrolling = signal(false);
   readonly unenrolling = signal(false);
+
+  // Kullanıcının bu kurstaki katılım kaydı (atama/son tarih bilgisi için)
+  readonly myEnrollment = signal<Enrollment | null>(null);
 
   // Sahibi/admin için katılımcı listesi
   readonly attendees = signal<CourseAttendee[]>([]);
@@ -130,11 +137,14 @@ export class CourseDetail implements OnInit {
   }
 
   private loadRoleSpecificData(courseId: number): void {
-    // Katılımcı: bu kursa kayıtlı mı kontrol et
+    // Katılımcı: bu kursa kayıtlı mı kontrol et (atama/son tarih bilgisiyle)
     if (this.isAttendee()) {
       this.enrollmentService.getMyEnrollments().subscribe({
-        next: (enrollments) =>
-          this.isEnrolled.set(enrollments.some((e) => e.courseId === courseId)),
+        next: (enrollments) => {
+          const mine = enrollments.find((e) => e.courseId === courseId) ?? null;
+          this.myEnrollment.set(mine);
+          this.isEnrolled.set(mine !== null);
+        },
       });
     }
 

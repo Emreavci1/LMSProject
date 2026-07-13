@@ -1,9 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterLink } from '@angular/router';
+import {
+  CategoryManageData,
+  CategoryManageDialog,
+} from '../category-manage-dialog/category-manage-dialog';
 import { Course, UpdateCourse } from '../../../core/models/course.models';
 import { CourseService } from '../../../core/services/course.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -20,6 +25,13 @@ import { coverCss } from '../../../core/utils/cover.util';
 export class AdminCourseList {
   private courseService = inject(CourseService);
   private notification = inject(NotificationService);
+  private dialog = inject(MatDialog);
+
+  // Kategori yönetimi: ayrı sayfa yerine bu sayfadan dialog olarak açılır
+  openCategories(): void {
+    const data: CategoryManageData = { courses: this.courses() };
+    this.dialog.open(CategoryManageDialog, { data });
+  }
 
   protected readonly coverCss = coverCss;
 
@@ -28,7 +40,7 @@ export class AdminCourseList {
 
   readonly searchTerm = signal('');
   readonly categoryFilter = signal<string | null>(null);
-  readonly statusFilter = signal<'all' | 'active' | 'passive'>('all');
+  readonly statusFilter = signal<'all' | 'active' | 'passive' | 'public' | 'mandatory'>('all');
 
   constructor() {
     this.courseService.getAllForAdmin().subscribe({
@@ -60,6 +72,8 @@ export class AdminCourseList {
     return this.courses().filter((c) => {
       if (status === 'active' && !c.isActive) return false;
       if (status === 'passive' && c.isActive) return false;
+      if (status === 'public' && c.isMandatory) return false;
+      if (status === 'mandatory' && !c.isMandatory) return false;
       if (category && c.category !== category) return false;
       if (term && !c.title.toLowerCase().includes(term) && !c.instructorName.toLowerCase().includes(term)) return false;
       return true;

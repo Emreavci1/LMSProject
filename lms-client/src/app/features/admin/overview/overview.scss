@@ -1,16 +1,9 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
+@use '../../../tokens' as *;
+
 // Admin: Genel Bakış — Stitch tasarımından çevrilen stiller
 // Renk sistemi mevcut projeden: $navy (#0f172a), $primary (#0284c7)
 
-$primary: #006194;
-$primary-container: #007bb9;
-$primary-fixed: #cce5ff;
-$surface-low: #f2f4f6;
-$surface-high: #e6e8ea;
-$outline-variant: #bfc7d2;
-$on-surface: #191c1e;
-$on-surface-variant: #3f4850;
-$green: #16A34A;
-$red: #e02928;
 
 .page {
   padding: 24px 16px;
@@ -471,4 +464,96 @@ table {
     background: $primary-fixed;
     color: #004b73;
   }
+}
+
+// --- Genel Bakış yenilemesi (gerçek veri) ---
+.center-box {
+  display: flex;
+  justify-content: center;
+  padding: 56px;
+}
+
+.empty-text {
+  color: $on-surface-variant;
+  font-size: 14px;
+  padding: 8px 0;
+}
+
+// Geciken zorunlu eğitim KPI'sı: değer > 0 ise kırmızı uyarı görünümü
+.kpi-card.kpi-alert {
+  border-color: rgba($red, 0.4);
+
+  .kpi-icon-wrap { background: rgba($red, 0.1); mat-icon { color: $red; } }
+  .kpi-value { color: $red; }
+}
+
+// Takvim kartı
+.calendar-wrap {
+  display: flex;
+  justify-content: center;
+
+  app-event-calendar {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
+.calendar-legend {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  padding-top: 8px;
+  font-size: 12px;
+  color: $on-surface-variant;
+
+  span { display: inline-flex; align-items: center; gap: 6px; }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+
+    &.deadline { background: #fee2e2; border: 2px solid #b91c1c; }
+    &.publish { background: #e0f2fe; border: 2px solid #0369a1; }
+  }
+}
+
+// Aktivitelerde gecikme uyarısı (kırmızı)
+.timeline-dot.overdue { background: $red !important; }
+.overdue-text { color: $red; font-weight: 600; }
+
+// Popüler eğitimler tablosu kaldırıldı — aktivite kartı tek başına tam genişlik
+.bottom-grid { grid-template-columns: 1fr; }
+
+// --- Kompakt düzen: kutular içeriklerine göre fazla iri kalıyordu ---
+.kpi-card {
+  padding: 14px 16px;
+  gap: 4px;
+}
+
+.kpi-icon-wrap {
+  padding: 8px;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+}
+
+.kpi-value {
+  font-size: 1.7rem;
+}
+
+.kpi-grid { gap: 12px; }
+
+.charts-grid { gap: 14px; margin-top: 14px; }
+
+.chart-card {
+  padding: 16px 18px;
+
+  h2 { font-size: 1rem; margin-bottom: 2px; }
+}
+
+.bottom-grid { margin-top: 14px; }
+
+.activity-card {
+  padding: 16px 18px;
+  h2 { font-size: 1rem; }
 }

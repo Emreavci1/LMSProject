@@ -1,27 +1,6 @@
 <div class="dashboard">
   @switch (auth.role()) {
-    @case ('Admin') {
-      <div class="role-dashboard">
-        <h1>Hoş geldin, {{ auth.currentUser()?.fullName }} 👋</h1>
-        <p class="subtitle">Sistem yöneticisi panelindesin.</p>
-        <div class="card-grid">
-          <mat-card class="link-card" routerLink="/admin/users">
-            <mat-card-content>
-              <mat-icon class="card-icon">group</mat-icon>
-              <h2>Kullanıcı Yönetimi</h2>
-              <p>Kullanıcı ekle, düzenle, rol ata.</p>
-            </mat-card-content>
-          </mat-card>
-          <mat-card class="link-card" routerLink="/admin/courses">
-            <mat-card-content>
-              <mat-icon class="card-icon">school</mat-icon>
-              <h2>Tüm Kurslar</h2>
-              <p>Sistemdeki tüm kursları görüntüle ve yönet.</p>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </div>
-    }
+    <!-- Admin'in ayrı ana sayfası yok: dashboard.ts constructor'ı /admin/overview'a yönlendirir -->
     @case ('Instructor') {
       <!-- Öğrenci ana sayfasıyla aynı stil altyapısını kullanır (student-dashboard sınıfı) -->
       <div class="student-dashboard instructor-dashboard">
@@ -184,21 +163,41 @@
 
           <!-- Right Column -->
           <div class="side-column">
-            <!-- Yaklaşan Etkinlikler: özellik henüz yok — boş durum -->
+            <!-- Yaklaşan Etkinlikler: zorunlu eğitim son tarihleri (en yakından uzağa, ilk 3) -->
             <div class="glass-card webinars">
               <div class="card-header">
                 <h2>Yaklaşan Etkinlikler</h2>
               </div>
-              <div class="empty-events">
-                <mat-icon>event_busy</mat-icon>
-                <p>Yaklaşan etkinlik bulunmuyor.</p>
-                <span>Planlanan etkinlikler burada görünecek.</span>
-              </div>
+              @if (upcomingDeadlines().length > 0) {
+                <div class="event-list">
+                  @for (ev of upcomingDeadlines(); track ev.id) {
+                    <a class="event-row" [routerLink]="ev.playerLink">
+                      <div class="event-date" [class.overdue]="isOverdue(ev)">
+                        <span class="day">{{ ev.dueDate | date: 'dd' }}</span>
+                        <span class="month">{{ ev.dueDate | date: 'MM.yyyy' }}</span>
+                      </div>
+                      <div class="event-info">
+                        <strong>{{ ev.title }}</strong>
+                        <span [class.overdue-text]="isOverdue(ev)">
+                          Zorunlu eğitim · {{ deadlineLabel(ev) }} · {{ ev.dueDate | date: 'HH:mm' }}
+                        </span>
+                      </div>
+                      <mat-icon class="event-go">chevron_right</mat-icon>
+                    </a>
+                  }
+                </div>
+              } @else {
+                <div class="empty-events">
+                  <mat-icon>event_busy</mat-icon>
+                  <p>Yaklaşan etkinlik bulunmuyor.</p>
+                  <span>Zorunlu eğitim son tarihleri burada görünecek.</span>
+                </div>
+              }
             </div>
 
-            <!-- Takvim: şimdilik yalnızca bugünü işaretliyor, ileride etkinliklerle geliştirilecek -->
+            <!-- Takvim: son tarihler kırmızı, yaklaşan yayınlar mavi; hover'da detay gösterilir -->
             <div class="glass-card calendar-card">
-              <mat-calendar [selected]="today"></mat-calendar>
+              <app-event-calendar [events]="calendarEvents()" />
             </div>
           </div>
         </div>

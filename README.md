@@ -51,6 +51,18 @@ Referans yönü: `Api → Business → DataAccess → Entities`. Entity'ler asla
 - .NET 10 SDK
 - Node.js (LTS) + npm
 - SQL Server (geliştirmede LocalDB yeterli)
+- MinIO (dosya depolama — aşağıya bakın; kurulu değilse `appsettings.json` → `Storage:Provider: "Local"` yaparak yerel diske dönebilirsiniz)
+
+### MinIO (dosya depolama)
+Ders içerik dosyaları (foto/PDF/video) ve kurs kapakları S3-uyumlu MinIO'da saklanır.
+```bash
+# İndir (tek exe): https://dl.min.io/server/minio/release/windows-amd64/minio.exe
+# Çalıştır:
+minio.exe server C:\minio\data --console-address :9001
+# API: http://localhost:9000 · Konsol: http://localhost:9001 (minioadmin / minioadmin)
+```
+`lms-uploads` bucket'ı ilk yüklemede otomatik oluşturulur (public-read).
+Bağlantı ayarları: `LMS.Api/appsettings.json` → `Storage:Minio`.
 
 ### Backend
 ```bash
@@ -94,8 +106,10 @@ Proje Scrum pratikleriyle yürütülür: iş kalemleri **Product Backlog**'da tu
 - ✅ İlerleme takibi (LessonCompletions) + eğitmen katılımcı listesi
 - ✅ Dosya yükleme altyapısı (upload API + statik sunum + form entegrasyonu)
 - ✅ Admin eğitim yönetimi gerçek veriye bağlandı (pasif/taslak dahil listeleme, durum toggle, detay)
+- ✅ Zorunlu eğitim backend'i: atama API'si (due date'li), görünürlük kuralları, gecikme raporu
 
 ### Product Backlog (Sıradaki İşler)
+- 🔜 Zorunlu eğitim frontend'i: admin atama ekranı + tamamlama/gecikme raporu + katılımcı rozetleri
 - 🔜 Admin panelinin kalan mock sayfaları (Kategoriler, Genel Bakış) → gerçek veriye bağlanacak
 - 🔜 Duyuru (announcements) modülü — şimdilik ertelendi
 - 🔜 Sertifika sistemi

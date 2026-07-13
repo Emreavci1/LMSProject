@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <clipPath id="circle"><circle cx="64" cy="64" r="64"/></clipPath>
+  </defs>
+  <g clip-path="url(#circle)">
+    <circle cx="64" cy="64" r="64" fill="#e0e7ff"/>
+    <!-- omuzlar / gömlek -->
+    <path d="M64 82c-26 0-40 13-44 32h88c-4-19-18-32-44-32z" fill="#4f46e5"/>
+    <!-- yaka -->
+    <path d="M52 84l12 15 12-15c-4-2-8-3-12-3s-8 1-12 3z" fill="#eef2ff"/>
+    <!-- boyun -->
+    <path d="M55 66h18v14a9 9 0 0 1-18 0z" fill="#eaa876"/>
+    <!-- kulaklar -->
+    <circle cx="43" cy="50" r="5" fill="#f6b98a"/>
+    <circle cx="85" cy="50" r="5" fill="#f6b98a"/>
+    <!-- yüz -->
+    <circle cx="64" cy="48" r="21" fill="#ffc99b"/>
+    <!-- saç: modern kısa kesim -->
+    <path d="M43 47c-1-15 9-24 21-24s22 9 21 24c-1-7-6-12-11-13l-10-2-10 2c-5 1-10 6-11 13z" fill="#27272a"/>
+  </g>
+</svg>

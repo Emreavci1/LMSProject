@@ -1,12 +1,7 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
+@use '../../../tokens' as *;
+
 // Admin: Eğitim Yönetimi — Stitch tasarım dili
-$primary: #006194;
-$primary-container: #007bb9;
-$primary-fixed: #cce5ff;
-$surface-low: #f2f4f6;
-$surface-high: #e6e8ea;
-$outline-variant: #bfc7d2;
-$on-surface: #191c1e;
-$on-surface-variant: #3f4850;
 
 .page {
   padding: 24px 16px;
@@ -345,4 +340,26 @@ table {
     margin: 12px 0 0;
     font-size: 14px;
   }
+}
+
+// Zorunlu / Herkese Açık rozetleri (başlık yanı)
+.mandatory-chip,
+.public-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.mandatory-chip {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.public-chip {
+  background: #dcfce7;
+  color: #15803d;
 }

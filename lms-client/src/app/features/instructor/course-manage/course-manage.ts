@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
@@ -10,13 +11,20 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Router, RouterLink } from '@angular/router';
+import {
+  AssignAttendeeDialog,
+  AssignAttendeeData,
+} from '../../admin/assign-attendee-dialog/assign-attendee-dialog';
 import { Course } from '../../../core/models/course.models';
 import { CourseAttendee } from '../../../core/models/enrollment.models';
 import { CreateLesson, Lesson, LessonContentType } from '../../../core/models/lesson.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
+import { EnrollmentService } from '../../../core/services/enrollment.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UploadService } from '../../../core/services/upload.service';
+import { avatarSrc } from '../../../core/utils/avatar.util';
 import { coverCss } from '../../../core/utils/cover.util';
 import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
 
@@ -46,11 +54,26 @@ export class CourseManage {
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
   private uploadService = inject(UploadService);
+  private enrollmentService = inject(EnrollmentService);
+  private auth = inject(AuthService);
   private notification = inject(NotificationService);
   private router = inject(Router);
   private sanitizer = inject(DomSanitizer);
+  private dialog = inject(MatDialog);
+
+  // Atama işlemleri yalnızca Admin'e açık (backend de ayrıca doğrular)
+  readonly isAdminUser = computed(() => this.auth.role() === 'Admin');
+
+  // Geri dönüş hedefi: Admin buraya Eğitim Yönetimi'nden gelir, eğitmen kendi listesinden
+  readonly backLink = computed(() =>
+    this.isAdminUser() ? '/admin/courses' : '/instructor/courses'
+  );
+  readonly backLabel = computed(() =>
+    this.isAdminUser() ? 'Eğitim Yönetimi' : 'Eğitimlerim'
+  );
 
   protected readonly coverCss = coverCss;
+  protected readonly avatarSrc = avatarSrc;
   // Göreli /uploads yolunu tam adrese çevirir; isUploadedFile = harici link mi dosya mı ayrımı
   protected readonly fileUrl = fileUrl;
   protected readonly isUploadedFile = isUploadedFile;
@@ -92,11 +115,45 @@ export class CourseManage {
 
   private readonly _loadAttendees = effect(() => {
     const courseId = Number(this.id());
+    this.loadAttendees(courseId);
+  });
+
+  private loadAttendees(courseId: number): void {
     this.courseService.getAttendees(courseId).subscribe({
       next: (list) => this.attendees.set(list),
       error: () => this.attendees.set([]),
     });
-  });
+  }
+
+  // --- Zorunlu eğitim atamaları (yalnızca Admin) ---
+
+  openAssignDialog(): void {
+    const c = this.course();
+    if (!c) return;
+
+    const data: AssignAttendeeData = {
+      courseId: c.id,
+      courseTitle: c.title,
+      excludedUserIds: this.attendees().map((a) => a.userId),
+    };
+    this.dialog
+      .open(AssignAttendeeDialog, { data })
+      .afterClosed()
+      .subscribe((assigned) => {
+        if (assigned) this.loadAttendees(c.id); // yeni atanan listede görünsün
+      });
+  }
+
+  unassign(attendee: CourseAttendee): void {
+    if (!confirm(`${attendee.fullName} adlı katılımcının atamasını kaldırmak istiyor musun?`)) return;
+    this.enrollmentService.unassign(Number(this.id()), attendee.userId).subscribe({
+      next: () => {
+        this.attendees.update((list) => list.filter((a) => a.userId !== attendee.userId));
+        this.notification.success('Atama kaldırıldı.');
+      },
+      error: (err) => this.notification.fromHttpError(err, 'Atama kaldırılamadı.'),
+    });
+  }
 
   // "Yeni Ders Ekle" formu aç/kapat
   readonly showAddForm = signal(false);
@@ -106,6 +163,8 @@ export class CourseManage {
   readonly newLessonDescription = signal('');
   readonly newLessonSection = signal('');
   readonly newLessonDuration = signal<number>(15);
+  // Ders yükü (kredi): 1 varsayılan; 2/3 ilerlemeye daha çok etki eder
+  readonly newLessonWeight = signal<number>(1);
   readonly newContentType = signal<ContentType>('Link');
   readonly newContentUrl = signal('');
   readonly newTextContent = signal('');
@@ -219,6 +278,7 @@ export class CourseManage {
       contentUrl: type !== 'Text' ? this.newContentUrl().trim() : null,
       textContent: type === 'Text' ? this.newTextContent().trim() : null,
       notes: this.newLessonNotes().trim() || null,
+      weight: this.newLessonWeight(),
     };
 
     this.lessonService.create(Number(this.id()), dto).subscribe({
@@ -232,6 +292,7 @@ export class CourseManage {
         this.newTextContent.set('');
         this.newLessonNotes.set('');
         this.newUploadedFileName.set('');
+        this.newLessonWeight.set(1);
         this.showAddForm.set(false);
         this.notification.success('Ders eklendi.');
       },
@@ -319,7 +380,7 @@ export class CourseManage {
     this.courseService.remove(c.id).subscribe({
       next: () => {
         this.notification.success('Eğitim silindi.');
-        this.router.navigate(['/instructor/courses']);
+        this.router.navigate([this.backLink()]);
       },
       error: () => this.notification.error('Silme işlemi başarısız oldu.'),
     });

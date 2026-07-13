@@ -1,15 +1,5 @@
-$primary: #006194;
-$primary-light: #cce5ff;
-$secondary: #565e74;
-$tertiary: #bb0112;
-$surface-container: #eceef0;
-$surface-container-lowest: #ffffff;
-$surface: #f7f9fb;
-$outline: #bfc7d2;
-$outline-dim: #e0e3e5;
-$outline-variant: #707881;
-$on-surface: #191c1e;
-$on-surface-variant: #5c647a;
+// Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
+@use '../../../tokens' as *;
 
 .page-container {
   padding: 24px 32px 32px;
@@ -26,13 +16,13 @@ $on-surface-variant: #5c647a;
 .page-header {
   margin-bottom: 20px;
   h2 { font-size: 21px; font-weight: 700; margin: 0 0 2px; color: $on-surface; }
-  p { font-size: 13px; color: $on-surface-variant; margin: 0; }
+  p { font-size: 13px; color: $on-surface-muted; margin: 0; }
 }
 
 /* Custom Stepper */
 .stepper-card {
-  background: $surface-container-lowest;
-  border: 1px solid $outline-dim;
+  background: $surface-lowest;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 20px 24px 30px; /* alt boşluk label'lar için ayarlandı */
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -52,7 +42,7 @@ $on-surface-variant: #5c647a;
     display: flex;
     align-items: center;
     position: relative;
-    color: $on-surface-variant;
+    color: $on-surface-muted;
     justify-content: center;
 
     &::after {
@@ -89,7 +79,7 @@ $on-surface-variant: #5c647a;
       height: 30px;
       border-radius: 50%;
       background: $surface-container;
-      border: 2px solid $outline-dim;
+      border: 2px solid $surface-variant;
       font-size: 14px;
       font-weight: 600;
       flex-shrink: 0;
@@ -132,8 +122,8 @@ $on-surface-variant: #5c647a;
 }
 
 .bento-col-left {
-  background: $surface-container-lowest;
-  border: 1px solid $outline-dim;
+  background: $surface-lowest;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -146,8 +136,8 @@ $on-surface-variant: #5c647a;
 }
 
 .bento-card {
-  background: $surface-container-lowest;
-  border: 1px solid $outline-dim;
+  background: $surface-lowest;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -164,7 +154,7 @@ $on-surface-variant: #5c647a;
 
 .bento-desc {
   font-size: 12px;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
   margin-bottom: 16px;
 }
 
@@ -203,7 +193,7 @@ $on-surface-variant: #5c647a;
 .custom-input, .custom-select, .custom-textarea {
   width: 100%;
   background: $surface;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 6px;
   padding: 9px 11px;
   font-size: 13px;
@@ -217,7 +207,7 @@ $on-surface-variant: #5c647a;
     border-color: $primary;
     box-shadow: 0 0 0 2px rgba($primary, 0.2);
   }
-  &::placeholder { color: $on-surface-variant; opacity: 0.7; }
+  &::placeholder { color: $on-surface-muted; opacity: 0.7; }
 }
 .custom-textarea { resize: vertical; }
 
@@ -230,7 +220,7 @@ $on-surface-variant: #5c647a;
     top: 50%;
     transform: translateY(-50%);
     pointer-events: none;
-    color: $on-surface-variant;
+    color: $on-surface-muted;
     font-size: 18px;
     width: 18px;
     height: 18px;
@@ -239,7 +229,7 @@ $on-surface-variant: #5c647a;
 
 /* Upload Area */
 .upload-drag-area {
-  border: 2px dashed $outline-variant;
+  border: 2px dashed $outline-strong;
   border-radius: 8px;
   background: $surface;
   display: flex;
@@ -278,7 +268,7 @@ $on-surface-variant: #5c647a;
   }
 
   .drag-main { font-size: 13px; font-weight: 600; margin: 0 0 4px; }
-  .drag-sub { font-size: 12px; color: $on-surface-variant; margin: 0 0 14px; }
+  .drag-sub { font-size: 12px; color: $on-surface-muted; margin: 0 0 14px; }
 
   .cover-preview {
     width: 100%;
@@ -386,7 +376,7 @@ $on-surface-variant: #5c647a;
   .color-note {
     margin: 10px 0 0;
     font-size: 12px;
-    color: $on-surface-variant;
+    color: $on-surface-muted;
   }
 }
 
@@ -397,10 +387,10 @@ $on-surface-variant: #5c647a;
   gap: 12px;
   padding: 10px 14px;
   background: $surface;
-  border: 2px dashed $outline-dim;
+  border: 2px dashed $surface-variant;
   border-radius: 8px;
   cursor: pointer;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
   font-size: 13px;
   font-weight: 500;
   transition: all 0.2s;
@@ -433,7 +423,7 @@ $on-surface-variant: #5c647a;
   background: $surface;
   padding: 20px;
   border-radius: 12px;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
 }
 
 .action-right {
@@ -446,8 +436,8 @@ $on-surface-variant: #5c647a;
   padding: 32px;
   background: $surface;
   border-radius: 12px;
-  border: 1px dashed $outline-dim;
-  color: $on-surface-variant;
+  border: 1px dashed $surface-variant;
+  color: $on-surface-muted;
   font-size: 13px;
   mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.3; margin-bottom: 12px; }
 }
@@ -463,7 +453,7 @@ $on-surface-variant: #5c647a;
   gap: 14px;
   padding: 12px 14px;
   background: #fff;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 
@@ -471,7 +461,7 @@ $on-surface-variant: #5c647a;
     font-weight: 700;
     font-size: 13px;
     color: $primary;
-    background: $primary-light;
+    background: $primary-fixed;
     width: 28px;
     height: 28px;
     border-radius: 50%;
@@ -498,7 +488,7 @@ $on-surface-variant: #5c647a;
     display: flex;
     flex-direction: column;
     strong { font-size: 14px; color: $on-surface; }
-    span { font-size: 12px; color: $on-surface-variant; margin-top: 3px; }
+    span { font-size: 12px; color: $on-surface-muted; margin-top: 3px; }
   }
   .delete-btn {
     background: transparent;
@@ -516,7 +506,7 @@ $on-surface-variant: #5c647a;
 /* Preview Card */
 .preview-card {
   background: #fff;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
@@ -546,7 +536,7 @@ $on-surface-variant: #5c647a;
     .stats-row {
       display: flex;
       gap: 20px;
-      color: $on-surface-variant;
+      color: $on-surface-muted;
       margin-bottom: 18px;
       font-weight: 500;
       font-size: 14px;
@@ -555,7 +545,7 @@ $on-surface-variant: #5c647a;
     }
     .desc-box {
       padding-top: 18px;
-      border-top: 1px solid $outline-dim;
+      border-top: 1px solid $surface-variant;
       line-height: 1.6;
       font-size: 14px;
     }
@@ -578,13 +568,13 @@ $on-surface-variant: #5c647a;
   justify-content: flex-end;
   gap: 12px;
   padding-top: 20px;
-  border-top: 1px solid $outline-dim;
+  border-top: 1px solid $surface-variant;
 }
 
 .custom-btn-outline {
   padding: 9px 18px;
   border-radius: 8px;
-  border: 1px solid $outline;
+  border: 1px solid $outline-variant;
   background: transparent;
   color: $on-surface;
   font-weight: 600;
@@ -613,7 +603,7 @@ $on-surface-variant: #5c647a;
   gap: 6px;
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
   &:hover { background: darken($primary, 5%); box-shadow: 0 4px 12px rgba($primary, 0.3); }
-  &:disabled { background: $outline-dim; color: $outline; cursor: not-allowed; box-shadow: none; }
+  &:disabled { background: $surface-variant; color: $outline-variant; cursor: not-allowed; box-shadow: none; }
 }
 
 .custom-btn-publish {
@@ -628,14 +618,14 @@ $on-surface-variant: #5c647a;
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
   margin: 0 0 10px;
   mat-icon { font-size: 16px; width: 16px; height: 16px; }
 }
 
 .draft-item-wrap {
   background: #fff;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
   overflow: hidden;
@@ -646,13 +636,13 @@ $on-surface-variant: #5c647a;
     background: transparent;
     border-radius: 0;
 
-    &.open { border-bottom: 1px solid $outline-dim; }
+    &.open { border-bottom: 1px solid $surface-variant; }
   }
 }
 
 .drag-handle {
   cursor: grab;
-  color: $outline-variant;
+  color: $outline-strong;
   flex-shrink: 0;
   font-size: 20px;
   width: 20px;
@@ -665,12 +655,12 @@ $on-surface-variant: #5c647a;
 .optional-label {
   font-weight: 400;
   font-size: 12px;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
 }
 
 .lesson-desc {
   font-size: 13px;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -681,7 +671,7 @@ $on-surface-variant: #5c647a;
 .preview-btn {
   background: transparent;
   border: none;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
   cursor: pointer;
   padding: 6px;
   border-radius: 50%;
@@ -699,7 +689,7 @@ $on-surface-variant: #5c647a;
 }
 .drag-placeholder {
   height: 56px;
-  background: $primary-light;
+  background: $primary-fixed;
   border: 2px dashed $primary;
   border-radius: 8px;
   opacity: 0.5;
@@ -745,7 +735,7 @@ $on-surface-variant: #5c647a;
     gap: 8px;
     padding: 8px 12px;
     background: #fff;
-    border: 1px solid $outline-dim;
+    border: 1px solid $surface-variant;
     border-radius: 8px;
     color: $tertiary;
     font-weight: 500;
@@ -757,7 +747,7 @@ $on-surface-variant: #5c647a;
     white-space: pre-wrap;
     line-height: 1.6;
     background: #fff;
-    border: 1px solid $outline-dim;
+    border: 1px solid $surface-variant;
     border-radius: 8px;
     padding: 12px 14px;
   }
@@ -765,12 +755,12 @@ $on-surface-variant: #5c647a;
   .lesson-preview-desc {
     margin-top: 16px;
     padding-top: 16px;
-    border-top: 1px dashed $outline-dim;
+    border-top: 1px dashed $surface-variant;
 
     h4 {
       font-size: 12px;
       font-weight: 700;
-      color: $on-surface-variant;
+      color: $on-surface-muted;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin: 0 0 6px;
@@ -798,7 +788,7 @@ $on-surface-variant: #5c647a;
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: $on-surface-variant;
+  color: $on-surface-muted;
   margin: 0 0 6px;
   mat-icon { font-size: 18px; width: 18px; height: 18px; }
 }
@@ -806,7 +796,7 @@ $on-surface-variant: #5c647a;
 .curriculum {
   margin-top: 20px;
   padding-top: 20px;
-  border-top: 1px solid $outline-dim;
+  border-top: 1px solid $surface-variant;
 
   h3 { font-size: 15px; font-weight: 600; margin: 0 0 12px; }
 
@@ -815,14 +805,14 @@ $on-surface-variant: #5c647a;
     align-items: center;
     gap: 12px;
     padding: 10px 0;
-    border-bottom: 1px solid $outline-dim;
+    border-bottom: 1px solid $surface-variant;
     &:last-child { border-bottom: none; }
 
     .cur-order {
       font-size: 12px;
       font-weight: 700;
       color: $primary;
-      background: $primary-light;
+      background: $primary-fixed;
       width: 24px;
       height: 24px;
       border-radius: 50%;
@@ -843,15 +833,15 @@ $on-surface-variant: #5c647a;
       display: flex;
       flex-direction: column;
       strong { font-size: 14px; }
-      span { font-size: 12px; color: $on-surface-variant; }
+      span { font-size: 12px; color: $on-surface-muted; }
     }
-    .cur-dur { font-size: 12px; color: $on-surface-variant; flex-shrink: 0; }
+    .cur-dur { font-size: 12px; color: $on-surface-muted; flex-shrink: 0; }
   }
 }
 
 .publish-box {
-  background: $surface-container-lowest;
-  border: 1px solid $outline-dim;
+  background: $surface-lowest;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
@@ -865,7 +855,7 @@ $on-surface-variant: #5c647a;
     margin: 0 0 6px;
     mat-icon { font-size: 20px; width: 20px; height: 20px; color: $primary; }
   }
-  p { font-size: 13px; color: $on-surface-variant; margin: 0 0 16px; }
+  p { font-size: 13px; color: $on-surface-muted; margin: 0 0 16px; }
 
   .schedule-hint {
     display: inline-flex;
@@ -881,8 +871,8 @@ $on-surface-variant: #5c647a;
 
 /* --- Player tarzı önizleme (öğrenci "eğitime devam et" ekranı gibi) --- */
 .preview-topbar {
-  background: $surface-container-lowest;
-  border: 1px solid $outline-dim;
+  background: $surface-lowest;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 20px;
 
@@ -896,7 +886,7 @@ $on-surface-variant: #5c647a;
     gap: 16px;
     margin: 0;
     font-size: 13px;
-    color: $on-surface-variant;
+    color: $on-surface-muted;
     span { display: inline-flex; align-items: center; gap: 5px; }
     mat-icon { font-size: 17px; width: 17px; height: 17px; }
   }
@@ -986,7 +976,7 @@ $on-surface-variant: #5c647a;
   justify-content: space-between;
   gap: 12px;
   background: #fff;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 12px 16px;
 
@@ -995,14 +985,14 @@ $on-surface-variant: #5c647a;
     flex-direction: column;
     min-width: 0;
     strong { font-size: 15px; color: $on-surface; }
-    span { font-size: 12px; color: $on-surface-variant; margin-top: 2px; }
+    span { font-size: 12px; color: $on-surface-muted; margin-top: 2px; }
   }
   .type-tag {
     flex-shrink: 0;
     font-size: 12px;
     font-weight: 600;
     color: $primary;
-    background: $primary-light;
+    background: $primary-fixed;
     padding: 4px 12px;
     border-radius: 20px;
   }
@@ -1010,7 +1000,7 @@ $on-surface-variant: #5c647a;
 
 .overview-card {
   background: #fff;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 16px 20px;
   h3 { font-size: 15px; font-weight: 600; margin: 0 0 8px; }
@@ -1019,7 +1009,7 @@ $on-surface-variant: #5c647a;
 
 .content-panel {
   background: #fff;
-  border: 1px solid $outline-dim;
+  border: 1px solid $surface-variant;
   border-radius: 12px;
   padding: 16px;
 
@@ -1030,7 +1020,7 @@ $on-surface-variant: #5c647a;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: $on-surface-variant;
+    color: $on-surface-muted;
     padding: 12px 0 4px;
   }
 
@@ -1045,7 +1035,7 @@ $on-surface-variant: #5c647a;
 
     &:hover { background: $surface; }
     &.active {
-      background: $primary-light;
+      background: $primary-fixed;
       .cp-title { color: $primary; font-weight: 600; }
     }
 
@@ -1056,6 +1046,43 @@ $on-surface-variant: #5c647a;
       &.txt { color: $secondary; }
     }
     .cp-title { flex: 1; min-width: 0; font-size: 14px; color: $on-surface; }
-    .cp-dur { font-size: 12px; color: $on-surface-variant; white-space: nowrap; flex-shrink: 0; }
+    .cp-dur { font-size: 12px; color: $on-surface-muted; white-space: nowrap; flex-shrink: 0; }
   }
+}
+
+// Zorunlu eğitim seçeneği (yalnızca Admin görür)
+.mandatory-toggle {
+  .mandatory-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid $surface-variant;
+    border-radius: 10px;
+    background: $surface;
+    cursor: pointer;
+
+    input[type='checkbox'] {
+      margin-top: 3px;
+      width: 16px;
+      height: 16px;
+      accent-color: $primary;
+      cursor: pointer;
+    }
+
+    span {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      strong { font-size: 14px; color: $on-surface; }
+      small { font-size: 12px; color: $on-surface-muted; }
+    }
+  }
+}
+
+// Yayın tarihi + saati yan yana
+.publish-inputs {
+  display: flex;
+  gap: 8px;
+  .publish-time { max-width: 110px; }
 }

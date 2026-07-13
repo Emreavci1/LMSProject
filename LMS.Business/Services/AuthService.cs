@@ -51,7 +51,8 @@ public class AuthService : IAuthService
             ExpiresAt = expiresAt,
             FullName = user.FullName,
             Email = user.Email,
-            Role = user.Role.ToString()
+            Role = user.Role.ToString(),
+            AvatarUrl = user.AvatarUrl
         };
     }
 

@@ -28,6 +28,11 @@ public class Lesson
     // Eğitmenin derse eklediği notlar (oynatıcıdaki "Notlar" sekmesinde gösterilir)
     public string? Notes { get; set; }
 
+    // Ders yükü (kredi): 1 (varsayılan) | 2 | 3.
+    // Tamamlama yüzdesi ders sayısına değil yük toplamına göre hesaplanır:
+    // ilerleme = tamamlanan derslerin yük toplamı / kurstaki toplam yük.
+    public int Weight { get; set; } = 1;
+
     // Müfredattaki sıra (küçük olan önce gösterilir)
     public int Order { get; set; }
 

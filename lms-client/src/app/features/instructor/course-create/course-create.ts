@@ -38,6 +38,8 @@ export interface DraftLesson {
   notes?: string;
   // Yüklenen dosyanın orijinal adı (yalnızca listede göstermek için, API'ye gitmez)
   fileName?: string;
+  // Ders yükü (kredi): 1 varsayılan; 2/3 ilerlemeye daha çok etki eder
+  weight?: number;
 }
 
 @Component({
@@ -84,6 +86,14 @@ export class CourseCreate {
   protected readonly todayStr = new Date().toISOString().split('T')[0];
   // Önizlemede gösterilecek eğitmen adı
   readonly instructorName = computed(() => this.auth.currentUser()?.fullName ?? 'Eğitmen');
+
+  // Zorunlu eğitim işareti — eğitmen ve Admin işaretleyebilir (atamayı Admin yapar)
+  readonly isMandatory = signal(false);
+
+  // Kayıt/iptal sonrası dönülecek liste: Admin → Eğitim Yönetimi, eğitmen → Eğitimlerim
+  readonly coursesLink = computed(() =>
+    this.auth.role() === 'Admin' ? '/admin/courses' : '/instructor/courses'
+  );
 
   readonly levels = ['Başlangıç', 'Orta', 'İleri'] as const;
   // 5 içerik tipi. Link ve Text bugün tam çalışır;
@@ -171,6 +181,8 @@ export class CourseCreate {
   readonly newSection = signal('');
   readonly newContentType = signal<ContentType>('Link');
   readonly newDuration = signal<number | null>(null);
+  // Ders yükü (kredi): 1 varsayılan
+  readonly newWeight = signal<number>(1);
   readonly newContentUrl = signal('');
   readonly newTextContent = signal('');
   readonly newNotes = signal('');
@@ -334,37 +346,71 @@ export class CourseCreate {
     this.currentStep.set(this.currentStep() - 1);
   }
 
-  // Zamanlanmış yayın tarihi (opsiyonel, YYYY-MM-DD)
+  // Zamanlanmış yayın tarihi + saati (opsiyonel)
   readonly publishDate = signal<string>('');
+  readonly publishTime = signal<string>('09:00');
 
-  // Seçilen tarih bugünden ileri mi? (zamanlanmış yayın kararı için)
+  // Seçilen tarih+saat şu andan ileri mi? (zamanlanmış yayın kararı için)
   readonly isFutureDate = computed(() => {
     const d = this.publishDate();
     if (!d) return false;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return new Date(d) > today;
+    return new Date(`${d}T${this.publishTime() || '09:00'}`) > new Date();
   });
+
+  // Yerel tarih+saat → UTC ISO (backend UTC saklar; otomatik yayınlayıcı UTC karşılaştırır)
+  private publishDateIso(): string {
+    return new Date(`${this.publishDate()}T${this.publishTime() || '09:00'}`).toISOString();
+  }
 
   // Ortak kayıt mantığı — kursu gerçek API'ye POST eder.
   // NOT: Dersler backend'de tutulmuyor (spec gereği); yalnızca sayı/süre gönderilir.
   private saveCourse(status: CourseStatus, successMsg: string): void {
     if (this.infoForm.invalid || this.draftLessons().length === 0 || this.saving()) return;
 
-    const info = this.infoForm.getRawValue();
     this.saving.set(true);
+
+    // Kapak foto ise (kırpıcıdan dataURL gelir) ÖNCE sunucuya dosya olarak yükle.
+    // dataURL'i DB'ye yazmak kurs listelerini MB'larca şişiriyordu (performans!) —
+    // DB'de yalnızca dosya yolu (/uploads/images/...) tutulur.
+    const cover = this.effectiveCover();
+    if (cover?.startsWith('data:')) {
+      this.uploadService.upload(this.dataUrlToFile(cover, 'kapak.png'), 'Image').subscribe({
+        next: (result) => this.postCourse(result.url, status, successMsg),
+        error: (err) => {
+          this.saving.set(false);
+          this.notification.fromHttpError(err, 'Kapak görseli yüklenemedi.');
+        },
+      });
+      return;
+    }
+    this.postCourse(cover, status, successMsg); // gradient veya kapaksız
+  }
+
+  // dataURL (base64) → File: upload API'sine gönderebilmek için
+  private dataUrlToFile(dataUrl: string, name: string): File {
+    const [head, b64] = dataUrl.split(',');
+    const mime = head.match(/data:(.*?);/)?.[1] ?? 'image/png';
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new File([bytes], name, { type: mime });
+  }
+
+  private postCourse(coverUrl: string | null, status: CourseStatus, successMsg: string): void {
+    const info = this.infoForm.getRawValue();
 
     this.courseService
       .create({
         title: info.title,
         description: info.description,
-        coverImageUrl: this.effectiveCover(), // foto (dataURL) > renk gradient'i > null
+        coverImageUrl: coverUrl, // dosya yolu (/uploads/...) > renk gradient'i > null
         category: info.category,
         level: info.level,
         durationHours: Math.max(1, Math.round(this.totalDuration() / 60)),
         lessonCount: this.draftLessons().length,
         status,
-        publishDate: status === 'Scheduled' ? this.publishDate() : null,
+        publishDate: status === 'Scheduled' ? this.publishDateIso() : null,
+        isMandatory: this.isMandatory(),
       })
       .subscribe({
         next: (created) => {
@@ -415,10 +461,10 @@ export class CourseCreate {
     };
   }
 
-  // Kurs + dersler başarıyla oluşturuldu: bildir ve listeye dön
+  // Kurs + dersler başarıyla oluşturuldu: bildir ve role uygun listeye dön
   private finishCreate(msg: string): void {
     this.notification.success(msg);
-    this.router.navigate(['/instructor/courses']);
+    this.router.navigate([this.coursesLink()]);
   }
 
   // Taslak olarak kaydet: yalnızca eğitmen görür, öğrencilere yayınlanmaz

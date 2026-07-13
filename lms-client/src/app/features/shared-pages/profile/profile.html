@@ -5,10 +5,38 @@
   <div class="profile-card">
     <!-- Sol: avatar + özet -->
     <div class="avatar-side">
-      <div class="big-avatar">{{ initials() }}</div>
+      <img class="big-avatar" [src]="avatarSrc(auth.currentUser()?.avatarUrl)" alt="Profil fotoğrafı" />
       <strong>{{ auth.currentUser()?.fullName }}</strong>
       <span class="muted">{{ auth.currentUser()?.email }}</span>
       <span class="role-badge">{{ auth.role() }}</span>
+
+      <!-- Fotoğraf yükle -->
+      <button
+        mat-stroked-button
+        class="avatar-upload-btn"
+        (click)="avatarInput.click()"
+        [disabled]="uploadingAvatar()"
+      >
+        <mat-icon>photo_camera</mat-icon>
+        {{ uploadingAvatar() ? 'Yükleniyor...' : 'Fotoğraf Yükle' }}
+      </button>
+      <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" style="display: none" />
+
+      <!-- Hazır avatarlar (foto istemeyenler için) -->
+      <p class="preset-label">veya hazır avatar seç:</p>
+      <div class="preset-row">
+        @for (preset of presets; track preset.id) {
+          <button
+            type="button"
+            class="preset-btn"
+            [class.selected]="auth.currentUser()?.avatarUrl === preset.id"
+            (click)="selectPreset(preset.id)"
+            [title]="preset.label"
+          >
+            <img [src]="avatarSrc(preset.id)" [alt]="preset.label" />
+          </button>
+        }
+      </div>
     </div>
 
     <!-- Sağ: düzenleme formu -->

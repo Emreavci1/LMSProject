@@ -36,7 +36,9 @@ public static class DbSeeder
         // Frontend login ekranındaki "hızlı giriş" test kullanıcıları (login.ts).
         // Sadece geliştirme kolaylığı için; production'a geçerken kaldırılmalı.
         await SeedTestUserAsync(context, passwordHasher, "egitmen1@losev.org.tr", "Egitmen123!", "Test Eğitmen", UserRole.Instructor);
-        await SeedTestUserAsync(context, passwordHasher, "katilimci1@losev.org.tr", "Katilimci123!", "Test Katılımcı", UserRole.CourseAttendee);
+        await SeedTestUserAsync(context, passwordHasher, "katilimci1@losev.org.tr", "Katilimci123!", "Test Katılımcı 1", UserRole.CourseAttendee);
+        await SeedTestUserAsync(context, passwordHasher, "katilimci2@losev.org.tr", "Katilimci123!", "Test Katılımcı 2", UserRole.CourseAttendee);
+        await SeedTestUserAsync(context, passwordHasher, "katilimci3@losev.org.tr", "Katilimci123!", "Test Katılımcı 3", UserRole.CourseAttendee);
     }
 
     private static async Task SeedTestUserAsync(

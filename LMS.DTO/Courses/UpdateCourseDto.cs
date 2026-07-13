@@ -17,4 +17,7 @@ public class UpdateCourseDto
 
     // Aktif/Pasif (soft delete) — gönderilmezse mevcut değer korunur
     public bool? IsActive { get; set; }
+
+    // Zorunlu eğitim işareti — yalnızca Admin değiştirebilir, gönderilmezse korunur
+    public bool? IsMandatory { get; set; }
 }

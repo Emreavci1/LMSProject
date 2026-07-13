@@ -61,6 +61,8 @@ public class LessonService : ILessonService
             ContentUrl = contentType == LessonContentType.Text ? null : dto.ContentUrl,
             TextContent = contentType == LessonContentType.Text ? dto.TextContent : null,
             Notes = string.IsNullOrWhiteSpace(dto.Notes) ? null : dto.Notes.Trim(),
+            // Ders yükü (kredi): opsiyonel, gönderilmezse 1 (validator 1-3 aralığını garanti eder)
+            Weight = dto.Weight ?? 1,
             Order = nextOrder,
             CreatedDate = DateTime.UtcNow
         };

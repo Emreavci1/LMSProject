@@ -36,10 +36,24 @@ builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
-// Dosya depolama: ders içerik dosyaları (foto/sunum/video) wwwroot/uploads altına
-// kaydedilir; DB'de yalnızca dosyanın yolu tutulur. Singleton yeterli (durumu yok).
-var uploadsRoot = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads");
-builder.Services.AddSingleton<IFileStorageService>(new FileStorageService(uploadsRoot));
+// Arka plan görevi: yayın tarihi gelen zamanlanmış kursları otomatik yayınlar
+builder.Services.AddHostedService<LMS.Api.Background.ScheduledCoursePublisher>();
+
+// Dosya depolama: appsettings "Storage:Provider" seçimine göre
+//  - "Minio": S3 uyumlu nesne depolama (MinIO sunucusu gerekir, bkz. README)
+//  - "Local": wwwroot/uploads altına yerel disk (varsayılan/yedek)
+// DB'de her iki durumda da dosyanın kendisi değil yalnızca URL'i tutulur.
+var storageSettings = builder.Configuration.GetSection(StorageSettings.SectionName).Get<StorageSettings>()
+    ?? new StorageSettings();
+if (string.Equals(storageSettings.Provider, "Minio", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddSingleton<IFileStorageService>(new MinioFileStorageService(storageSettings.Minio));
+}
+else
+{
+    var uploadsRoot = Path.Combine(builder.Environment.ContentRootPath, "wwwroot", "uploads");
+    builder.Services.AddSingleton<IFileStorageService>(new FileStorageService(uploadsRoot));
+}
 
 // AutoMapper: MappingProfile'daki Entity ↔ DTO kurallarını yükle
 builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -74,7 +88,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+    // Tüm tarih/saat alanları UTC taşınır ("Z" ekli) — tarayıcı yerel saate çevirir
+    options.JsonSerializerOptions.Converters.Add(new LMS.Api.UtcDateTimeConverter()));
 
 // CORS: Angular geliştirme sunucusundan (4200) gelen isteklere izin ver
 builder.Services.AddCors(options =>

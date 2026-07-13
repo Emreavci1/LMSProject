@@ -1,3 +1,5 @@
+import { fileUrl } from './file-url.util';
+
 // Kapak değeri gradient ise doğrudan, görsel (dataURL/URL) ise url() ile sarmalanır.
 // Böylece [style.background-image] hem gradient hem görselde çalışır.
 // Değer boşsa varsayılan bir gradient döner.
@@ -7,5 +9,6 @@ export function coverCss(cover?: string | null): string {
   const isGradient =
     value.startsWith('linear-gradient') || value.startsWith('radial-gradient');
   if (isGradient || value.startsWith('url(')) return value;
-  return `url('${value}')`;
+  // Sunucuya yüklenmiş kapak (/uploads/...) backend adresinden sunulur
+  return `url('${fileUrl(value)}')`;
 }

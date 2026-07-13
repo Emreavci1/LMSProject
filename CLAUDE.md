@@ -202,6 +202,15 @@ Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, ta
     (frontend'de; backend validator hâlâ esnek). `uploads` klasörü git'e DAHİL (kullanıcı
     kararı: repo çekilince dosyalar da gelsin). Not: statik dosyalar token istemez —
     kapalı kurum içi sistem için kabul edildi, canlıda korumalı sunum düşünülebilir.
+  - **YAPILDI (2026-07-13) — MinIO'ya geçiş:** Dosya depolama artık S3-uyumlu MinIO
+    (`Storage:Provider` = "Minio" | "Local", appsettings.json). `MinioFileStorageService`
+    (bucket `lms-uploads`, ilk kullanımda otomatik oluşturma + public-read policy, DB'ye tam
+    URL yazılır: `http://localhost:9000/lms-uploads/...`). Doğrulama kuralları iki sağlayıcıda
+    ortak (`UploadRules`). "Local" seçilirse eski wwwroot/uploads davranışı sürer; eski
+    `/uploads/...` URL'li kayıtlar çalışmaya devam eder (frontend `isUploadedFile` ikisini de
+    tanır). MinIO Windows'ta tek exe: `minio.exe server C:\minio\data --console-address :9001`.
+    Aynı gün: kurs kapağı base64/dataURL olarak DB'ye yazılmıyor artık — upload API ile dosya
+    olarak kaydediliyor (1.8MB'lık liste cevabı 438B'a düştü; mevcut kayıt taşındı).
 - Sertifika sistemi
 - Periyodik eğitim mekanizması (yıllık tekrar, hatırlatma vb.)
 - İlerleme (progress) ölçümü:
@@ -215,6 +224,21 @@ Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, ta
     sekmesi) ve kurs oluşturmada kapak rengi seçimi (foto opsiyonel; foto yoksa
     seçilen renkten gradient kapak) eklendi.
 - Duyuru (announcements) modülü — 2026-07-08 kararı: şimdilik ertelendi (kullanıcı isteği)
+- Zorunlu eğitim / atama sistemi:
+  - **YAPILDI (2026-07-13) — Backend tamamlandı:** `Course.IsMandatory` + `Enrollment.IsAssigned`
+    + `Enrollment.DueDate` (migration `AddMandatoryCoursesAndAssignments`). Kurallar: zorunlu
+    işareti yalnızca Admin koyar (Instructor gönderirse yok sayılır); zorunlu kurslar katalogda
+    (GET /api/courses) yalnızca atanmışlara görünür, detayı da öyle (yetkisize 404); kendi
+    isteğiyle katılma 403; atanmış kayıttan ayrılma 403. Yeni uçlar (yalnızca Admin):
+    `POST /api/enrollments/assign` {userId, courseId, dueDate} ve
+    `DELETE /api/enrollments/assign/{courseId}/{userId}`. Atama = Enrollment satırı (ayrı tablo
+    yok) — player/ilerleme/rapor altyapısı otomatik çalışır; gönüllü kayıt atamaya çevrilebilir,
+    atama kaldırılınca tamamlama kayıtları (LessonCompletions) korunur. Rapor:
+    `GET /api/enrollments/course/{id}` artık `isAssigned`, `dueDate`, `isOverdue`
+    (ilerleme<%100 ve tarih geçti — anlık hesap) döner. FRONTEND HENÜZ YOK: admin atama
+    ekranı, rapor tablosu, "Zorunlu" rozetleri, "Ayrıl" gizleme sıradaki iş.
+  - Karar (2026-07-13): kullanıcı seçimi şimdilik tek tek; filtre/toplu atama sonra.
+    İleride genel "permit listesi" (kurs bazlı görünürlük) planlanıyor — henüz yapma.
 
 ---
 

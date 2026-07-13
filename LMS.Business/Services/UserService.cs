@@ -81,6 +81,19 @@ public class UserService : IUserService
         return ServiceResult<UserDto>.Ok(_mapper.Map<UserDto>(user));
     }
 
+    public async Task<ServiceResult> SetAvatarAsync(int userId, string? avatarUrl)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user is null)
+            return ServiceResult.Fail(ServiceErrorType.NotFound, "Kullanıcı bulunamadı.");
+
+        user.AvatarUrl = avatarUrl;
+        _userRepository.Update(user);
+        await _userRepository.SaveChangesAsync();
+
+        return ServiceResult.Ok();
+    }
+
     public async Task<ServiceResult> DeactivateAsync(int id, int currentUserId)
     {
         // Admin kendi hesabını pasifleştirip sistemi kilitleyemesin

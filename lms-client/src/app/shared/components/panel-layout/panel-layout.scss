@@ -139,11 +139,7 @@ $primary: #0284c7;
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: $primary;
-    color: #fff;
-    display: grid;
-    place-items: center;
-    font-weight: 700;
+    object-fit: cover; // profil fotoğrafı (img) — preset SVG veya yüklenen foto
     flex-shrink: 0;
   }
 
@@ -237,21 +233,27 @@ $primary: #0284c7;
     transform: translateX(0);
   }
 
+  // Collapse butonu: sidebar'ın sağ kenarına oturan yuvarlak buton
+  // (açık ve kapalı durumda aynı görünüm — header'ı sıkıştırmaz)
   .hidden-mobile {
-    display: grid; // collapse-btn için
+    display: grid;
+    place-items: center;
     position: absolute;
-    right: 12px;
-    top: 18px;
-    background: rgba(255,255,255,0.1);
+    right: -24px;
+    top: 20px;
+    width: 24px;
+    height: 24px;
+    background: $primary;
     color: #fff;
     border: none;
-    border-radius: 4px;
-    padding: 2px;
+    border-radius: 50%;
+    padding: 0;
     cursor: pointer;
-    transition: background 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: filter 0.2s;
 
     &:hover {
-      background: rgba(255,255,255,0.2);
+      filter: brightness(1.15);
     }
 
     mat-icon {
@@ -259,6 +261,17 @@ $primary: #0284c7;
       width: 20px;
       height: 20px;
     }
+  }
+
+  // Çok geniş ekranlarda sayfa içeriği sınırsız yayılıp "şişmesin":
+  // tüm routed sayfalara üst genişlik sınırı + ortalama.
+  // ::ng-deep gerekli: router-outlet'in kardeşi olan sayfa bileşenleri
+  // bu bileşenin stil kapsülü dışında kalır.
+  .content ::ng-deep router-outlet ~ * {
+    display: block;
+    max-width: 1600px; // dashboard'un kendi max-width'iyle uyumlu üst sınır
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .layout {

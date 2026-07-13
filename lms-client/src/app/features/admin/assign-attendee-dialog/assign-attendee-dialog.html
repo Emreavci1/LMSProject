@@ -1,0 +1,85 @@
+<h2 mat-dialog-title>Katılımcı Ata</h2>
+
+<mat-dialog-content>
+  <p class="course-name">
+    <mat-icon>assignment_ind</mat-icon>
+    <span>{{ data.courseTitle }}</span>
+  </p>
+
+  @if (loading()) {
+    <div class="center-box"><mat-spinner diameter="32" /></div>
+  } @else if (candidates().length === 0) {
+    <p class="empty-text">Atanabilecek katılımcı yok (hepsi zaten kayıtlı veya aktif katılımcı bulunmuyor).</p>
+  } @else {
+    <!-- Arama -->
+    <div class="search-box">
+      <mat-icon>search</mat-icon>
+      <input
+        type="text"
+        placeholder="İsim veya e-posta ara..."
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+    </div>
+
+    <!-- Kullanıcı listesi: tıklayınca seçilir -->
+    <div class="user-list">
+      @for (user of filtered(); track user.id) {
+        <button
+          type="button"
+          class="user-row"
+          [class.selected]="selectedUserId() === user.id"
+          (click)="select(user.id)"
+        >
+          <img class="mini-avatar" [src]="avatarSrc(user.avatarUrl)" [alt]="user.fullName" />
+          <span class="user-info">
+            <strong>{{ user.fullName }}</strong>
+            <small>{{ user.email }}</small>
+          </span>
+          @if (selectedUserId() === user.id) {
+            <mat-icon class="check">check_circle</mat-icon>
+          }
+        </button>
+      } @empty {
+        <p class="empty-text">Aramayla eşleşen katılımcı yok.</p>
+      }
+    </div>
+
+    <!-- Son tamamlama tarihi + saati -->
+    <div class="due-date-row">
+      <label for="due-date">Son tamamlama tarihi ve saati</label>
+      <div class="due-inputs">
+        <input
+          id="due-date"
+          type="date"
+          [min]="todayStr"
+          [ngModel]="dueDate()"
+          (ngModelChange)="dueDate.set($event)"
+        />
+        <input
+          id="due-time"
+          type="time"
+          [ngModel]="dueTime()"
+          (ngModelChange)="dueTime.set($event)"
+          title="Saat (varsayılan gün sonu: 23:59)"
+        />
+      </div>
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>İptal</button>
+  <button
+    mat-flat-button
+    color="primary"
+    (click)="assign()"
+    [disabled]="!selectedUserId() || !dueDate() || saving()"
+  >
+    @if (saving()) {
+      <mat-spinner diameter="20" />
+    } @else {
+      Ata
+    }
+  </button>
+</mat-dialog-actions>

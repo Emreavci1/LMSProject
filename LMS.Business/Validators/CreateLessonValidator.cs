@@ -24,6 +24,11 @@ public class CreateLessonValidator : AbstractValidator<CreateLessonDto>
         RuleFor(x => x.Notes)
             .MaximumLength(4000).WithMessage("Ders notları en fazla 4000 karakter olabilir.");
 
+        // Ders yükü (kredi): gönderildiyse 1-3 arası olmalı
+        RuleFor(x => x.Weight)
+            .InclusiveBetween(1, 3).WithMessage("Ders yükü 1, 2 veya 3 olabilir.")
+            .When(x => x.Weight.HasValue);
+
         // Okuma metni (Text) dersinde metin zorunlu
         RuleFor(x => x.TextContent)
             .NotEmpty().WithMessage("Okuma metni boş olamaz.")
