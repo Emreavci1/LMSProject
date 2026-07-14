@@ -56,9 +56,9 @@
               }
             </div>
           } @else if (uploadedVideoUrl(); as vurl) {
-            <!-- Sunucuya yüklenmiş video dosyası -->
+            <!-- Sunucuya yüklenmiş video dosyası. Zorunlu derste bitişi tamamlama kilidini açar. -->
             <div class="video-frame">
-              <video class="uploaded-video" controls [src]="vurl"></video>
+              <video class="uploaded-video" controls [src]="vurl" (ended)="onVideoEnded()"></video>
             </div>
           } @else if (lesson.contentType === 'Image') {
             <!-- Fotoğraf içeriği -->
@@ -132,20 +132,39 @@
               <mat-icon>chevron_left</mat-icon>
               Önceki
             </button>
-            <button mat-flat-button color="primary" (click)="completeAndNext()">
-              <mat-icon>check</mat-icon>
-              @if (hasNext()) {
-                Tamamla ve Geç
-              } @else {
-                Tamamla
-              }
-            </button>
+            @if (activeLesson() && isCompleted(activeLesson()!.id)) {
+              <!-- Tamamlanmış ders: buton pasif durum göstergesi -->
+              <button mat-flat-button class="completed-btn" disabled>
+                <mat-icon>check_circle</mat-icon>
+                Tamamlandı
+              </button>
+            } @else {
+              <!-- Zorunlu video dersinde buton, video bitene kadar kilitli -->
+              <button mat-flat-button color="primary" (click)="completeAndNext()" [disabled]="completeLocked()">
+                <mat-icon>{{ completeLocked() ? 'lock' : 'check' }}</mat-icon>
+                @if (completeLocked()) {
+                  Videoyu bitir
+                } @else if (hasNext()) {
+                  Tamamla ve Geç
+                } @else {
+                  Tamamla ve Bitir
+                }
+              </button>
+            }
             <button mat-stroked-button (click)="goNext()" [disabled]="!hasNext()">
               Sonraki
               <mat-icon>chevron_right</mat-icon>
             </button>
           </div>
         </div>
+
+        <!-- Zorunlu video uyarısı: neden butonun kilitli olduğunu açıklar -->
+        @if (completeLocked()) {
+          <p class="mandatory-video-note">
+            <mat-icon>info</mat-icon>
+            Bu zorunlu eğitim dersini tamamlamak için videoyu sonuna kadar izlemelisin.
+          </p>
+        }
 
         <mat-tab-group class="content-tabs">
           <mat-tab label="Genel Bakış">
@@ -190,11 +209,10 @@
                 [class.active]="activeLesson()?.id === lesson.id"
                 (click)="selectLesson(lesson)"
               >
-                <mat-checkbox
-                  [checked]="isCompleted(lesson.id)"
-                  (click)="$event.stopPropagation()"
-                  (change)="toggleCompleted(lesson)"
-                />
+                <!-- Salt durum göstergesi: tamamlama ders içindeki "Tamamla" butonuyla yapılır -->
+                <mat-icon class="done-icon" [class.done]="isCompleted(lesson.id)">
+                  {{ isCompleted(lesson.id) ? 'check_circle' : 'radio_button_unchecked' }}
+                </mat-icon>
                 <mat-icon class="type-icon">{{ lessonIcon(lesson) }}</mat-icon>
                 <span class="lesson-title">{{ lesson.title }}</span>
                 @if (lesson.durationMin) {
@@ -209,6 +227,24 @@
         }
       </aside>
     </div>
+
+    <!-- Kurs tamamlama (tebrik) ekranı: son ders tamamlanınca açılır -->
+    @if (showCongrats()) {
+      <div class="congrats-overlay" (click)="showCongrats.set(false)">
+        <div class="congrats-card" (click)="$event.stopPropagation()">
+          <div class="congrats-icon"><mat-icon>emoji_events</mat-icon></div>
+          <h2>Tebrikler! 🎉</h2>
+          <p class="congrats-text">
+            <strong>{{ c.title }}</strong> eğitimini başarıyla tamamladın.
+          </p>
+          <p class="congrats-meta">{{ lessons().length }} ders · {{ courseDurationLabel() }} · %100 tamamlandı</p>
+          <div class="congrats-actions">
+            <a mat-flat-button color="primary" [routerLink]="backLink()">Eğitimlerime Dön</a>
+            <button mat-stroked-button (click)="showCongrats.set(false)">Kursta Kal</button>
+          </div>
+        </div>
+      </div>
+    }
   } @else if (!loading()) {
     <div class="empty">
       <p>Kurs bulunamadı.</p>

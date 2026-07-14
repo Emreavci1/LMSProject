@@ -16,4 +16,7 @@ public interface IEnrollmentRepository : IRepository<Enrollment>
 
     // Kullanıcının belirli bir kursa ait kaydı (ayrılma işlemi için)
     Task<Enrollment?> GetByUserAndCourseAsync(int userId, int courseId);
+
+    // Tüm atamalar — admin zorunlu eğitim raporu (kullanıcı + kurs dahil)
+    Task<List<Enrollment>> GetAssignedWithUserAndCourseAsync();
 }

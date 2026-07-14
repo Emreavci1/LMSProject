@@ -1,0 +1,73 @@
+<div class="page">
+  <div class="page-banner">
+    <div>
+      <h2 class="title">Program ve Duyurular</h2>
+      <p class="subtitle">Yaklaşan etkinlikler, ders programı ve genel duyurular.</p>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <!-- Sol: duyuru akışı -->
+    <div class="main-content">
+      <h3 class="section-title">
+        <mat-icon>campaign</mat-icon> Duyurular
+      </h3>
+
+      @if (announcements().length === 0) {
+        <div class="empty-card">
+          <mat-icon>notifications_off</mat-icon>
+          <p>Şu an için yeni bir duyuru bulunmuyor.</p>
+        </div>
+      } @else {
+        <div class="announcement-list">
+          @for (a of announcements(); track a.id) {
+            <article class="announcement-card" [class.global]="a.isGlobal">
+              <div class="card-head">
+                <img class="avatar" [src]="avatarSrc(a.authorAvatarUrl)" alt="" />
+                <div class="head-info">
+                  <div class="head-top">
+                    <strong class="author">{{ a.authorName }}</strong>
+                    <span class="badge" [class.global]="a.isGlobal" [class.course]="!a.isGlobal">
+                      {{ a.isGlobal ? 'Genel' : 'Eğitime Özel' }}
+                    </span>
+                  </div>
+                  <span class="date">{{ a.publishDate | date: 'dd MMM yyyy, HH:mm' }}</span>
+                </div>
+              </div>
+              @if (a.expiryDate) {
+                <span class="expiry-note">
+                  <mat-icon>schedule</mat-icon>
+                  Son geçerlilik: {{ a.expiryDate | date: 'dd MMM yyyy, HH:mm' }}
+                </span>
+              }
+              <h4 class="card-title">{{ a.title }}</h4>
+              <p class="card-body">{{ a.content }}</p>
+              @if (a.attachmentUrl) {
+                <a class="attachment-link" [href]="fileUrl(a.attachmentUrl)" target="_blank" rel="noopener">
+                  <mat-icon>attachment</mat-icon>
+                  <span>{{ a.attachmentName || 'Ek dosya' }}</span>
+                  <mat-icon class="dl">download</mat-icon>
+                </a>
+              }
+            </article>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Sağ: takvim -->
+    <aside class="sidebar">
+      <div class="calendar-card">
+        <h3 class="section-title">
+          <mat-icon>calendar_month</mat-icon> Takvim
+        </h3>
+        <app-event-calendar [events]="calendarEvents()"></app-event-calendar>
+        <div class="calendar-legend">
+          <span><i class="dot deadline"></i> Son tarih</span>
+          <span><i class="dot publish"></i> Eğitim yayını</span>
+          <span><i class="dot announcement"></i> Duyuru</span>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

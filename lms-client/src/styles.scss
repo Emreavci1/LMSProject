@@ -58,17 +58,24 @@ body {
   overflow-x: hidden;
 }
 
-// --- LAPTOP ÖLÇEKLEMESİ ---
-// Tasarım px tabanlı olduğundan küçük/OS-ölçekli (%125) laptop ekranlarında
-// her şey olduğundan büyük görünür. Orta genişlikte arayüzü topluca hafif
-// küçültüyoruz; büyük monitörler (1440px+) etkilenmez, mobil düzeni (<1024px)
-// kendi responsive kuralları yönettiği için ona da dokunmuyoruz.
+// --- UYGULAMA ÖLÇEKLEMESİ ---
+// Tasarım px tabanlı olduğundan ekran boyutuna göre arayüzü topluca ölçekliyoruz.
+// ZOOM sadece giriş yapılmış kabuğa (app-panel-layout) uygulanır; login gibi
+// tam ekran (100dvh) sayfalar etkilenmesin diye body'ye DEĞİL ona veriyoruz
+// (aksi halde zoom, 100dvh'yi büyütüp içeriği aşağı kaydırıyordu).
+// Küçük/OS-ölçekli laptoplarda hafif küçültme:
 @media (min-width: 1024px) and (max-width: 1280px) {
-  body { zoom: 0.85; }
+  app-panel-layout { zoom: 0.85; }
 }
-
 @media (min-width: 1281px) and (max-width: 1440px) {
-  body { zoom: 0.9; }
+  app-panel-layout { zoom: 0.9; }
+}
+// Geniş monitörler (genelde %100 OS ölçeği) küçük kalır, hafif büyütme:
+@media (min-width: 1441px) {
+  app-panel-layout { zoom: 1.15; }
+}
+@media (min-width: 1800px) {
+  app-panel-layout { zoom: 1.25; }
 }
 
 // --- GLOBAL VARIABLES ---
@@ -171,3 +178,60 @@ img {
 .bold { font-weight: bold !important; }
 .text-center { text-align: center !important; }
 .mt-24 { margin-top: 24px !important; }
+
+/* --- SAYFA DÜZENİ (tek kaynak) ---
+   Bütün sayfalar aynı genişlik + padding kullanır; değerler artık tek yerde.
+   Varsayılan GENİŞ (liste/grid/tablo/dashboard). Form/okuma sayfaları .page-narrow ekler. */
+.page,
+.page-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 16px;
+  box-sizing: border-box;
+
+  @media (min-width: 768px) {
+    padding: 28px 32px;
+  }
+}
+
+/* Dar sayfalar: profil, ayarlar, detay, form/sihirbaz — okunabilirlik için daha dar */
+.page.page-narrow,
+.page-container.page-narrow {
+  max-width: 960px;
+}
+
+/* --- Sayfa başlığı bandı (banner) ---
+   Tüm ana sayfalardaki başlık bloklarına "page-banner" sınıfı verilir.
+   Hafif mavi degrade zeminli, köşeleri yuvarlak ortak görünüm.
+   Başlık/alt başlık TİPOGRAFİSİ de burada tek yerden — sayfalar artık kendi
+   font-size'ını yazmaz. */
+.page-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 97, 148, 0.14);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 123, 185, 0.13), transparent 55%),
+    linear-gradient(120deg, #ffffff, rgba(0, 97, 148, 0.04));
+
+  /* Başlık: tek tip boyut (mobil 1.5rem → masaüstü 1.75rem ≈ 28px) */
+  h1, h2, .title {
+    margin: 0 !important;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-on-surface);
+    @media (min-width: 768px) { font-size: 1.75rem; }
+  }
+
+  /* Alt başlık: tek tip */
+  p, .subtitle {
+    margin: 4px 0 0 !important;
+    font-size: 14px;
+    color: var(--color-on-surface-variant);
+  }
+}

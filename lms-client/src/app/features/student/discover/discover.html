@@ -1,22 +1,11 @@
 <div class="page">
   <!-- Page Header & Filters -->
-  <div class="page-header">
+  <div class="page-header page-banner">
     <h2 class="title">Yeni Eğitimleri Keşfet</h2>
 
+    <!-- Arama + seviye filtresi (kategori seçimi aşağıdaki haplardan yapılır) -->
     <div class="filter-controls">
-      <!-- Mobile Search (sadece mobilde görünür) -->
-      <div class="search-mobile">
-        <mat-icon class="search-icon">search</mat-icon>
-        <input
-          type="text"
-          placeholder="Ara..."
-          [ngModel]="searchTerm()"
-          (ngModelChange)="searchTerm.set($event)"
-        />
-      </div>
-
-      <!-- Masaüstü Search -->
-      <div class="search-desktop hidden-mobile">
+      <div class="search-box">
         <mat-icon class="search-icon">search</mat-icon>
         <input
           type="text"
@@ -26,29 +15,14 @@
         />
       </div>
 
-      <!-- Filter Chips -->
-      <div class="filter-chips">
-        <!-- Kategoriler -->
-        <div class="chip-wrap">
-          <select [ngModel]="selectedCategory()" (ngModelChange)="selectedCategory.set($event || null)">
-            <option value="">Tüm Kategoriler</option>
-            @for (cat of categories(); track cat) {
-              <option [value]="cat">{{ cat }}</option>
-            }
-          </select>
-          <mat-icon class="chip-icon">keyboard_arrow_down</mat-icon>
-        </div>
-
-        <!-- Seviyeler -->
-        <div class="chip-wrap">
-          <select [ngModel]="selectedLevel()" (ngModelChange)="selectedLevel.set($event || null)">
-            <option value="">Tüm Seviyeler</option>
-            @for (lvl of levels; track lvl) {
-              <option [value]="lvl">{{ lvl }}</option>
-            }
-          </select>
-          <mat-icon class="chip-icon">keyboard_arrow_down</mat-icon>
-        </div>
+      <div class="chip-wrap">
+        <select [ngModel]="selectedLevel()" (ngModelChange)="selectedLevel.set($event || null)">
+          <option value="">Tüm Seviyeler</option>
+          @for (lvl of levels; track lvl) {
+            <option [value]="lvl">{{ lvl }}</option>
+          }
+        </select>
+        <mat-icon class="chip-icon">keyboard_arrow_down</mat-icon>
       </div>
     </div>
   </div>

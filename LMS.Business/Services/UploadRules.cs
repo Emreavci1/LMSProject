@@ -15,6 +15,8 @@ public static class UploadRules
             ["Image"] = (new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }, 5 * 1024 * 1024, "images"),
             ["Document"] = (new[] { ".pdf", ".ppt", ".pptx", ".doc", ".docx" }, 25 * 1024 * 1024, "documents"),
             ["Video"] = (new[] { ".mp4", ".webm" }, 300L * 1024 * 1024, "videos"),
+            // Duyuru eki: hem belge hem görsel türlerine izin verir (tek yükleme tipi)
+            ["Attachment"] = (new[] { ".pdf", ".ppt", ".pptx", ".doc", ".docx", ".xls", ".xlsx", ".jpg", ".jpeg", ".png", ".webp", ".zip", ".txt" }, 25 * 1024 * 1024, "attachments"),
         };
 
     // Doğrulama başarılıysa error=null; klasör adı ve GUID'li dosya adı üretilir.

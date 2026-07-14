@@ -1,0 +1,120 @@
+<div class="page">
+  <a class="back-link" routerLink="/admin/courses">
+    <mat-icon>arrow_back</mat-icon>
+    Eğitimlere Dön
+  </a>
+  <div class="page-banner">
+    <div>
+      <h1>Zorunlu Eğitim Raporu</h1>
+      <p class="subtitle">Tüm zorunlu eğitim atamaları ve tamamlanma durumları.</p>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="center-box"><mat-spinner diameter="40" /></div>
+  } @else if (rows().length === 0) {
+    <div class="empty-card">
+      <mat-icon>assignment_late</mat-icon>
+      <p>Henüz zorunlu eğitim ataması yok.</p>
+      <span>Eğitimler sayfasından zorunlu bir eğitime katılımcı atadığında burada listelenir.</span>
+    </div>
+  } @else {
+    <!-- Durum filtreleri (özet sayılarıyla) + arama -->
+    <div class="toolbar">
+      <div class="status-filters">
+        <button [class.active]="statusFilter() === 'all'" (click)="setStatus('all')">
+          Tümü <span class="count">{{ rows().length }}</span>
+        </button>
+        <button class="f-overdue" [class.active]="statusFilter() === 'overdue'" (click)="setStatus('overdue')">
+          Gecikti <span class="count">{{ overdueCount() }}</span>
+        </button>
+        <button [class.active]="statusFilter() === 'inprogress'" (click)="setStatus('inprogress')">
+          Devam Ediyor <span class="count">{{ inProgressCount() }}</span>
+        </button>
+        <button class="f-completed" [class.active]="statusFilter() === 'completed'" (click)="setStatus('completed')">
+          Tamamladı <span class="count">{{ completedCount() }}</span>
+        </button>
+      </div>
+      <div class="search-box">
+        <mat-icon>search</mat-icon>
+        <input
+          type="text"
+          placeholder="Katılımcı veya eğitim ara..."
+          [value]="search()"
+          (input)="onSearch($event)"
+        />
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Katılımcı</th>
+              <th>Eğitim</th>
+              <th>Son Tarih</th>
+              <th class="col-progress">İlerleme</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of pagedRows(); track row.userId + '-' + row.courseId) {
+              <tr>
+                <td>
+                  <a class="user-cell" [routerLink]="['/admin/users', row.userId]">
+                    <img class="avatar" [src]="avatarSrc(row.avatarUrl)" alt="" />
+                    <div>
+                      <span class="name">{{ row.fullName }}</span>
+                      <span class="email">{{ row.email }}</span>
+                    </div>
+                  </a>
+                </td>
+                <td class="course-title">{{ row.courseTitle }}</td>
+                <td class="due" [class.overdue]="row.isOverdue">
+                  {{ row.dueDate | date: 'dd.MM.yyyy HH:mm' }}
+                </td>
+                <td class="col-progress">
+                  <div class="progress-cell">
+                    <div class="bar-track">
+                      <div
+                        class="bar-fill"
+                        [class.done]="row.progress === 100"
+                        [class.late]="row.isOverdue"
+                        [style.width.%]="row.progress"
+                      ></div>
+                    </div>
+                    <span>%{{ row.progress }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="status-badge" [class]="'status-badge ' + statusOf(row)">
+                    {{ statusLabel(row) }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="no-result">Filtreyle eşleşen kayıt yok.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Sayfalama: satır sayısı artsa da tablo 25 satırla sınırlı kalır -->
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <span class="range">{{ rangeLabel() }}</span>
+          <button (click)="prevPage()" [disabled]="page() === 1" aria-label="Önceki sayfa">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="page-no">{{ page() }} / {{ totalPages() }}</span>
+          <button (click)="nextPage()" [disabled]="page() === totalPages()" aria-label="Sonraki sayfa">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

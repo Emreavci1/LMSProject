@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -8,8 +9,10 @@ import {
   effect,
   inject,
   input,
+  signal,
 } from '@angular/core';
 import { MatCalendar, MatDatepickerModule } from '@angular/material/datepicker';
+import { MatIconModule } from '@angular/material/icon';
 
 // Tooltip metinlerinde saat göstermek için ortak yardımcı (örn. "17:30")
 export function timeLabel(date: string): string {
@@ -20,38 +23,67 @@ export function timeLabel(date: string): string {
 export interface CalendarEvent {
   date: string; // ISO tarih (gün hassasiyetinde işaretlenir)
   label: string; // hover'da (tooltip) gösterilecek açıklama
-  kind: 'deadline' | 'publish'; // kırmızı: son tarih, mavi: yayın tarihi
+  kind: 'deadline' | 'publish' | 'announcement'; // kırmızı: son tarih, mavi: yayın tarihi, yeşil: duyuru
 }
 
-// Olay işaretli mini takvim: mat-calendar'ı sarar,
-// günleri renklendirir ve üzerine gelince ne olduğunu (title tooltip) gösterir.
-// Öğrenci ana sayfası ve eğitmen Program sayfası ortak kullanır.
+// Olay işaretli mini takvim: mat-calendar'ı sarar, günleri renklendirir,
+// üzerine gelince tooltip gösterir ve işaretli bir güne TIKLAYINCA o günün
+// olaylarını kısa bir bilgi panelinde listeler.
+// Öğrenci ana sayfası, öğrenci program ve eğitmen Program sayfası ortak kullanır.
 @Component({
   selector: 'app-event-calendar',
-  imports: [MatDatepickerModule],
-  template: `<mat-calendar [selected]="today" [dateClass]="dateClass" />`,
+  imports: [MatDatepickerModule, MatIconModule, DatePipe],
+  template: `
+    <mat-calendar [selected]="selectedDate()" (selectedChange)="onDateSelected($event)" [dateClass]="dateClass" />
+
+    <!-- Seçilen günün olayları (tıklayınca açılan kısa bilgi paneli) -->
+    @if (selectedEvents().length > 0) {
+      <div class="day-info">
+        <div class="day-info-head">
+          <strong>{{ selectedDate() | date: 'dd MMMM yyyy' }}</strong>
+          <button type="button" (click)="closeInfo()" aria-label="Kapat"><mat-icon>close</mat-icon></button>
+        </div>
+        <ul>
+          @for (ev of selectedEvents(); track ev.label) {
+            <li>
+              <span class="dot" [class]="ev.kind"></span>
+              <span class="text">{{ ev.label }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  `,
   styleUrl: './event-calendar.scss',
 })
 export class EventCalendar implements AfterViewInit, OnDestroy {
   readonly events = input<CalendarEvent[]>([]);
 
   protected readonly today = new Date();
+  // Tıklanan gün (bilgi paneli için); null ise panel kapalı
+  protected readonly selectedDate = signal<Date | null>(null);
 
   @ViewChild(MatCalendar) private calendar?: MatCalendar<Date>;
   private host = inject<ElementRef<HTMLElement>>(ElementRef);
   private observer?: MutationObserver;
 
-  // Gün anahtarı (toDateString) → o güne ait tür ve açıklamalar
+  // Gün anahtarı (toDateString) → o güne ait olaylar
   private readonly byDay = computed(() => {
-    const map = new Map<string, { kinds: Set<string>; labels: string[] }>();
+    const map = new Map<string, CalendarEvent[]>();
     for (const event of this.events()) {
       const key = new Date(event.date).toDateString();
-      const entry = map.get(key) ?? { kinds: new Set<string>(), labels: [] };
-      entry.kinds.add(event.kind);
-      entry.labels.push(event.label);
-      map.set(key, entry);
+      const list = map.get(key) ?? [];
+      list.push(event);
+      map.set(key, list);
     }
     return map;
+  });
+
+  // Seçili günün olayları (bilgi panelinde listelenir)
+  protected readonly selectedEvents = computed<CalendarEvent[]>(() => {
+    const date = this.selectedDate();
+    if (!date) return [];
+    return this.byDay().get(date.toDateString()) ?? [];
   });
 
   constructor() {
@@ -63,14 +95,25 @@ export class EventCalendar implements AfterViewInit, OnDestroy {
     });
   }
 
+  // Bir güne tıklanınca: o günün olayları varsa paneli aç, yoksa kapat
+  onDateSelected(date: Date | null): void {
+    this.selectedDate.set(date);
+  }
+
+  closeInfo(): void {
+    this.selectedDate.set(null);
+  }
+
   // mat-calendar [dateClass]: işaretli günlere renk sınıfı ekler
   readonly dateClass = (date: Date, view: string): string => {
     if (view !== 'month') return '';
-    const entry = this.byDay().get(date.toDateString());
-    if (!entry) return '';
+    const list = this.byDay().get(date.toDateString());
+    if (!list) return '';
+    const kinds = new Set(list.map((e) => e.kind));
     const classes: string[] = [];
-    if (entry.kinds.has('publish')) classes.push('publish-day');
-    if (entry.kinds.has('deadline')) classes.push('deadline-day'); // ikisi de varsa kırmızı kazanır
+    if (kinds.has('publish')) classes.push('publish-day');
+    if (kinds.has('announcement')) classes.push('announcement-day');
+    if (kinds.has('deadline')) classes.push('deadline-day'); // birden fazlaysa kırmızı kazanır
     return classes.join(' ');
   };
 
@@ -95,7 +138,7 @@ export class EventCalendar implements AfterViewInit, OnDestroy {
     const cells = this.host.nativeElement.querySelectorAll<HTMLElement>('.mat-calendar-body-cell');
     cells.forEach((cell) => {
       const marked =
-        cell.classList.contains('deadline-day') || cell.classList.contains('publish-day');
+        cell.classList.contains('deadline-day') || cell.classList.contains('publish-day') || cell.classList.contains('announcement-day');
       if (!marked) {
         cell.removeAttribute('title');
         return;
@@ -105,8 +148,8 @@ export class EventCalendar implements AfterViewInit, OnDestroy {
       if (!day) return;
 
       const date = new Date(active.getFullYear(), active.getMonth(), day);
-      const entry = this.byDay().get(date.toDateString());
-      if (entry) cell.title = entry.labels.join('\n');
+      const list = this.byDay().get(date.toDateString());
+      if (list) cell.title = list.map((e) => e.label).join('\n');
     });
   }
 }

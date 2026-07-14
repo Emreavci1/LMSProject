@@ -1,0 +1,128 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss
+@use '../../../tokens' as *;
+
+// Genişlik/padding + başlık tipografisi global (styles.scss .page / .page-banner)
+.page-banner {
+  margin-bottom: 20px;
+}
+
+// Hiç duyuru yokken gösterilen boş durum
+.empty-card {
+  background: #fff;
+  border: 1px dashed $outline-variant;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: $on-surface-variant;
+
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.5; }
+  p { margin: 12px 0 4px; font-weight: 600; color: $on-surface; }
+  span { font-size: 13px; }
+}
+
+// --- Tablo ---
+.table-card {
+  background: #fff;
+  border: 1px solid $outline-variant;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 760px;
+
+  thead th {
+    background: $surface-low;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $on-surface-variant;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid $outline-variant;
+  }
+
+  td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: $on-surface;
+    border-bottom: 1px solid rgba($outline-variant, 0.4);
+  }
+
+  tbody tr:hover { background: $surface-low; }
+  tbody tr:last-child td { border-bottom: none; }
+}
+
+.cell-title { font-weight: 600; }
+.cell-date {
+  white-space: nowrap;
+  color: $on-surface-variant;
+  font-size: 13px;
+
+  .expiry-sub {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 3px;
+    font-size: 11.5px;
+    color: #b45309;
+    mat-icon { font-size: 13px; width: 13px; height: 13px; }
+  }
+}
+
+.author-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+
+  .avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: $surface-high;
+    flex-shrink: 0;
+  }
+}
+
+// Hedef rozeti
+.target-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+
+  &.global { background: rgba($primary, 0.1); color: $primary; }
+  &.course { background: rgba($green, 0.12); color: $green; }
+}
+
+// Durum rozeti
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
+  &.scheduled { background: #fef3c7; color: #b45309; }
+  &.live { background: rgba($green, 0.12); color: $green; }
+  &.expired { background: rgba($red, 0.1); color: $red; }
+}
+
+.col-actions { text-align: right; white-space: nowrap; }
+.del-btn { color: $red; }

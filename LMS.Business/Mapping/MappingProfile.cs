@@ -3,6 +3,7 @@ using LMS.DTO.Courses;
 using LMS.DTO.Enrollments;
 using LMS.DTO.Lessons;
 using LMS.DTO.Users;
+using LMS.DTO.Announcements;
 using LMS.Entities;
 using LMS.Entities.Enums;
 
@@ -48,5 +49,11 @@ public class MappingProfile : Profile
 
         CreateMap<Lesson, LessonDto>()
             .ForMember(d => d.ContentType, opt => opt.MapFrom(s => s.ContentType.ToString()));
+
+        CreateMap<Announcement, AnnouncementDto>()
+            .ForMember(d => d.AuthorName, opt => opt.MapFrom(
+                s => s.Author.Role == UserRole.Admin ? "LÖSEV LMS" : s.Author.FullName))
+            .ForMember(d => d.AuthorAvatarUrl, opt => opt.MapFrom(s => s.Author.AvatarUrl))
+            .ForMember(d => d.IsGlobal, opt => opt.MapFrom(s => s.CourseId == null));
     }
 }

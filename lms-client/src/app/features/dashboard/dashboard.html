@@ -4,16 +4,15 @@
     @case ('Instructor') {
       <!-- Öğrenci ana sayfasıyla aynı stil altyapısını kullanır (student-dashboard sınıfı) -->
       <div class="student-dashboard instructor-dashboard">
-        <!-- Welcome Banner -->
-        <div class="welcome-banner glass-card">
-          <div class="banner-bg"></div>
-          <div class="banner-content">
-            <h1 class="text-primary">Hoş geldin, {{ auth.currentUser()?.fullName?.split(' ')?.[0] }}! 👋</h1>
-            <p>Eğitimlerini buradan takip edebilir, yeni eğitimler açabilirsin.</p>
-            <a class="btn btn-primary banner-cta" routerLink="/instructor/courses/new">
-              <mat-icon>add</mat-icon> Yeni Eğitim Aç
-            </a>
+        <!-- Karşılama bandı (projenin page-banner formatı) -->
+        <div class="welcome-banner page-banner">
+          <div class="welcome-text">
+            <h1>Hoş geldin, {{ auth.currentUser()?.fullName?.split(' ')?.[0] }} 👋</h1>
+            <p class="subtitle">Eğitimlerini buradan takip edebilir, yeni eğitimler açabilirsin.</p>
           </div>
+          <a class="btn btn-primary" routerLink="/instructor/courses/new">
+            <mat-icon>add</mat-icon> Yeni Eğitim Aç
+          </a>
         </div>
 
         <!-- Quick Stats (gerçek veriler) -->
@@ -33,6 +32,33 @@
             <span class="value text-on-surface">{{ totalContentLabel() }}</span>
             <span class="label">Toplam İçerik Süresi</span>
           </div>
+        </div>
+
+        <!-- Duyurular: eğitmen de ana sayfada görür (ortak feed) -->
+        <div class="glass-card announcements-card">
+          <div class="card-header">
+            <h2>Duyurular</h2>
+            <a class="see-all" routerLink="/instructor/schedule">Tümü →</a>
+          </div>
+          @if (feed.latest().length > 0) {
+            <div class="ann-list">
+              @for (a of feed.latest(); track a.id) {
+                <a class="ann-row" routerLink="/instructor/schedule">
+                  <span class="ann-dot" [class.global]="a.isGlobal"></span>
+                  <div class="ann-info">
+                    <strong>{{ a.title }}</strong>
+                    <span>{{ a.authorName }} · {{ a.publishDate | date: 'dd MMM' }}</span>
+                  </div>
+                  @if (a.attachmentUrl) { <mat-icon class="ann-clip">attachment</mat-icon> }
+                </a>
+              }
+            </div>
+          } @else {
+            <div class="empty-state">
+              <mat-icon>campaign</mat-icon>
+              <p>Henüz duyuru yok. Katılımcılarına duyuru paylaşabilirsin.</p>
+            </div>
+          }
         </div>
 
         <!-- Açılan eğitimler -->
@@ -80,16 +106,15 @@
     }
     @case ('CourseAttendee') {
       <div class="student-dashboard">
-        <!-- Welcome Banner -->
-        <div class="welcome-banner glass-card">
-          <div class="banner-bg"></div>
-          <div class="banner-content">
-            <h1 class="text-primary">Merhaba, {{ auth.currentUser()?.fullName?.split(' ')?.[0] }}! 👋</h1>
-            <p>Bugün öğrenmeye devam etmek için harika bir gün. Hedeflerine bir adım daha yaklaş.</p>
+        <!-- Karşılama bandı (projenin page-banner formatı) -->
+        <div class="welcome-banner page-banner">
+          <div class="welcome-text">
+            <h1>Merhaba, {{ auth.currentUser()?.fullName?.split(' ')?.[0] }} 👋</h1>
+            <p class="subtitle">Bugün öğrenmeye devam etmek için harika bir gün.</p>
           </div>
-          <div class="banner-image">
-            <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuBIU7sqejQyYTKUg5nKsGurSDvpsjFej6WNYrSe4QUPn-rJARxVSic3S0Rb4y8o7NQQaKzBLyvvr2PHKWHeu16c_WAQYL-NVi2Ni_-x0-_CbAZkJxUTP8g2Yb1lXUG4rGqWxeQUoB_tM0PI6lLZmf_zt36q_04IO50ksZRQgCZ21keJShBn-oCYn-JPPoQxCGcqvf6WXHzol1zWf60De2sP3oZCZirANp28bAIVwuxB_mWQXj5eXb7eZQ" alt="Student 3D Illustration">
-          </div>
+          <a class="btn btn-primary" routerLink="/discover">
+            <mat-icon>explore</mat-icon> Eğitimleri Keşfet
+          </a>
         </div>
 
         <div class="dashboard-grid">
@@ -191,6 +216,33 @@
                   <mat-icon>event_busy</mat-icon>
                   <p>Yaklaşan etkinlik bulunmuyor.</p>
                   <span>Zorunlu eğitim son tarihleri burada görünecek.</span>
+                </div>
+              }
+            </div>
+
+            <!-- Duyurular: ortak feed'ten (bildirim sistemi yok, burada görünür) -->
+            <div class="glass-card announcements-card">
+              <div class="card-header">
+                <h2>Duyurular</h2>
+                <a class="see-all" routerLink="/program">Tümü →</a>
+              </div>
+              @if (feed.latest().length > 0) {
+                <div class="ann-list">
+                  @for (a of feed.latest(); track a.id) {
+                    <a class="ann-row" routerLink="/program">
+                      <span class="ann-dot" [class.global]="a.isGlobal"></span>
+                      <div class="ann-info">
+                        <strong>{{ a.title }}</strong>
+                        <span>{{ a.authorName }} · {{ a.publishDate | date: 'dd MMM' }}</span>
+                      </div>
+                      @if (a.attachmentUrl) { <mat-icon class="ann-clip">attachment</mat-icon> }
+                    </a>
+                  }
+                </div>
+              } @else {
+                <div class="empty-events">
+                  <mat-icon>campaign</mat-icon>
+                  <p>Henüz duyuru yok.</p>
                 </div>
               }
             </div>

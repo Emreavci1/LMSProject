@@ -16,6 +16,7 @@ public class LmsDbContext : DbContext
     public DbSet<Enrollment> Enrollments => Set<Enrollment>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonCompletion> LessonCompletions => Set<LessonCompletion>();
+    public DbSet<Announcement> Announcements => Set<Announcement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -101,6 +102,24 @@ public class LmsDbContext : DbContext
             entity.HasOne(lc => lc.User)
                   .WithMany()
                   .HasForeignKey(lc => lc.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // --- Announcement ---
+        modelBuilder.Entity<Announcement>(entity =>
+        {
+            entity.Property(a => a.Title).HasMaxLength(200).IsRequired();
+            entity.Property(a => a.Content).HasMaxLength(4000).IsRequired();
+
+            // Eğer kursa aitse kurs silinince duyurular da silinsin
+            entity.HasOne(a => a.Course)
+                  .WithMany()
+                  .HasForeignKey(a => a.CourseId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.Author)
+                  .WithMany()
+                  .HasForeignKey(a => a.AuthorId)
                   .OnDelete(DeleteBehavior.Restrict);
         });
     }

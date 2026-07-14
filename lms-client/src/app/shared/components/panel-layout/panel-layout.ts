@@ -44,9 +44,9 @@ export class PanelLayout {
       case 'CourseAttendee':
         return [
           { label: 'Ana Sayfa', icon: 'home', route: '/', exact: true },
+          { label: 'Program ve Duyurular', icon: 'event', route: '/program' },
           { label: 'Eğitimleri Keşfet', icon: 'explore', route: '/discover' },
           { label: 'Eğitimlerim', icon: 'school', route: '/my-courses' },
-          { label: 'Bakiyem', icon: 'account_balance_wallet', route: '/balance' },
           { label: 'Profil', icon: 'person', route: '/profile' },
           { label: 'Ayarlar', icon: 'settings', route: '/settings' },
         ];
@@ -56,6 +56,7 @@ export class PanelLayout {
           { label: 'Eğitimlerim', icon: 'school', route: '/instructor/courses' },
           { label: 'Eğitim Aç', icon: 'add_circle', route: '/instructor/courses/new' },
           { label: 'Program', icon: 'calendar_month', route: '/instructor/schedule' },
+          { label: 'Duyurular', icon: 'campaign', route: '/instructor/announcements' },
           { label: 'Profil', icon: 'person', route: '/profile' },
           { label: 'Ayarlar', icon: 'settings', route: '/settings' },
         ];
@@ -65,6 +66,7 @@ export class PanelLayout {
           { label: 'Kullanıcılar', icon: 'group', route: '/admin/users' },
           { label: 'Eğitimler', icon: 'school', route: '/admin/courses', exact: true },
           { label: 'Eğitim Aç', icon: 'add_circle', route: '/admin/courses/new' },
+          { label: 'Duyurular', icon: 'campaign', route: '/admin/announcements' },
           { label: 'Profil', icon: 'person', route: '/profile' },
           { label: 'Ayarlar', icon: 'settings', route: '/settings' },
         ];

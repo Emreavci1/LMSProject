@@ -1,6 +1,9 @@
 // Panel düzeni: solda sabit sidebar, sağda içerik.
 // Mobile-first: sidebar gizli başlar, hamburger ile açılır.
 
+// Global zoom (styles.scss) bu host'a uygulanır — blok seviyesinde olmalı
+:host { display: block; }
+
 $sidebar-width-expanded: 240px;
 $sidebar-width-collapsed: 80px;
 $navy: #0f172a;

@@ -3,17 +3,15 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { Router, RouterLink } from '@angular/router';
 import { forkJoin, map, of, switchMap } from 'rxjs';
-import {
-  CalendarEvent,
-  EventCalendar,
-  timeLabel,
-} from '../../shared/components/event-calendar/event-calendar';
+import { EventCalendar } from '../../shared/components/event-calendar/event-calendar';
 import { AuthService } from '../../core/services/auth.service';
 import { Course } from '../../core/models/course.models';
 import { CourseService } from '../../core/services/course.service';
 import { EnrollmentService } from '../../core/services/enrollment.service';
 import { LessonService } from '../../core/services/lesson.service';
 import { ProgressService } from '../../core/services/progress.service';
+import { StudentCalendarService } from '../../core/services/student-calendar.service';
+import { AnnouncementFeedService } from '../../core/services/announcement-feed.service';
 import { coverCss } from '../../core/utils/cover.util';
 import { formatCourseHours, formatDuration } from '../../core/utils/duration.util';
 
@@ -50,6 +48,10 @@ export class Dashboard {
   private courseService = inject(CourseService);
   private enrollmentService = inject(EnrollmentService);
   private lessonService = inject(LessonService);
+  // Takvim olaylarının ortak kaynağı (program sayfasıyla aynı)
+  protected calendarService = inject(StudentCalendarService);
+  // Duyuruların ortak kaynağı (her iki rolde de dashboard'da gösterilir)
+  protected feed = inject(AnnouncementFeedService);
 
   // Katılımlar (API'den) — yalnızca öğrenci için çekilir
   readonly allCards = signal<DashboardCard[]>([]);
@@ -67,6 +69,9 @@ export class Dashboard {
       return;
     }
 
+    // Duyurular her iki rolde de dashboard'da gösterilir (ortak kaynak)
+    this.feed.load();
+
     // Eğitmen: kendi kurslarını çek (istatistikler + eğitim listesi)
     if (this.auth.role() === 'Instructor') {
       this.courseService.getMyCourses().subscribe({
@@ -82,7 +87,10 @@ export class Dashboard {
       // Tamamlanan dersler backend'den (ilerleme hesabı için)
       this.progressService.load();
 
-      // Yaklaşan eğitimler (takvimdeki mavi yayın işaretleri)
+      // Takvim olayları: ortak servisten (son tarihler + yayınlar + duyurular)
+      this.calendarService.load();
+
+      // Yaklaşan eğitimler ("Yaklaşan Etkinlikler" listesi için)
       this.courseService.getUpcoming().subscribe({
         next: (courses) => this.upcomingCourses.set(courses),
         error: () => {
@@ -222,22 +230,7 @@ export class Dashboard {
     return `${days} gün kaldı`;
   }
 
-  // Takvim olayları: zorunlu eğitim son tarihleri (kırmızı) + yaklaşan yayınlar (mavi).
-  // Tooltip metinleri EventCalendar bileşenince hücrelere yazılır.
-  readonly calendarEvents = computed<CalendarEvent[]>(() => [
-    ...this.allCards()
-      .filter((c) => c.isAssigned && c.dueDate)
-      .map((c) => ({
-        date: c.dueDate!,
-        label: `Zorunlu eğitim son tarihi (${timeLabel(c.dueDate!)}): ${c.title}`,
-        kind: 'deadline' as const,
-      })),
-    ...this.upcomingCourses()
-      .filter((c) => c.publishDate)
-      .map((c) => ({
-        date: c.publishDate!,
-        label: `Yayına girecek eğitim (${timeLabel(c.publishDate!)}): ${c.title}`,
-        kind: 'publish' as const,
-      })),
-  ]);
+  // Takvim olayları: ortak servisten (son tarihler + yayınlar + duyurular).
+  // Program sayfasıyla birebir aynı kaynak — her yerde tutarlı görünür.
+  readonly calendarEvents = this.calendarService.events;
 }

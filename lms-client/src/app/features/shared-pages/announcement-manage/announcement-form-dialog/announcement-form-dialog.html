@@ -1,0 +1,130 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>{{ isEditMode ? 'edit_note' : 'campaign' }}</mat-icon>
+  {{ isEditMode ? 'Duyuruyu Düzenle' : 'Yeni Duyuru Oluştur' }}
+</h2>
+
+<mat-dialog-content>
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="form-container">
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Başlık</mat-label>
+      <input matInput formControlName="title" placeholder="Duyuru başlığını giriniz" maxlength="200">
+      @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+        <mat-error>Başlık zorunludur</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>İçerik</mat-label>
+      <textarea matInput formControlName="content" rows="5" placeholder="Duyuru içeriğini yazınız" maxlength="4000"></textarea>
+      @if (form.get('content')?.hasError('required') && form.get('content')?.touched) {
+        <mat-error>İçerik zorunludur</mat-error>
+      }
+    </mat-form-field>
+
+    <!-- Hedef kitle (yalnızca yeni duyuruda) -->
+    @if (!isEditMode) {
+      <div class="field-block">
+        <label class="field-label">Hedef Kitle</label>
+        <div class="target-toggle">
+          <button type="button" [class.active]="!isCourseTarget" (click)="setTarget('global')">
+            <mat-icon>public</mat-icon>
+            <span>
+              <strong>Genel Duyuru</strong>
+              <small>Tüm kullanıcılara görünür</small>
+            </span>
+          </button>
+          <button type="button" [class.active]="isCourseTarget" (click)="setTarget('course')">
+            <mat-icon>school</mat-icon>
+            <span>
+              <strong>Eğitime Özel</strong>
+              <small>Yalnızca kayıtlı katılımcılar</small>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      @if (isCourseTarget) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Eğitim Seç</mat-label>
+          <mat-select formControlName="courseId" #courseSelect (openedChange)="onSelectOpened($event, searchInput)">
+            <div class="select-search-container">
+              <mat-icon>search</mat-icon>
+              <input #searchInput class="select-search-input" placeholder="Eğitim ara..." (input)="filterCourses($event)" (keydown)="$event.stopPropagation()">
+            </div>
+            @for (course of filteredCourses; track course.id) {
+              <mat-option [value]="course.id">{{ course.title }}</mat-option>
+            } @empty {
+              <mat-option disabled>Eşleşen eğitim yok</mat-option>
+            }
+          </mat-select>
+          <mat-hint>{{ courses.length }} eğitim · yazarak arayabilirsin</mat-hint>
+        </mat-form-field>
+      }
+    }
+
+    <!-- Yayın tarihi + saati -->
+    <div class="field-block">
+      <label class="field-label">Yayın Zamanı</label>
+      <p class="field-hint">İleri bir tarih/saat seçersen duyuru o ana kadar kimseye görünmez.</p>
+      <div class="datetime-row">
+        <input type="date" formControlName="publishDate" />
+        <input type="time" formControlName="publishTime" title="Saat" />
+      </div>
+    </div>
+
+    <!-- Son geçerlilik tarihi (opsiyonel) -->
+    <div class="field-block">
+      <div class="expiry-toggle">
+        <mat-slide-toggle formControlName="hasExpiry" color="primary">Son geçerlilik tarihi belirle</mat-slide-toggle>
+      </div>
+      @if (form.get('hasExpiry')?.value) {
+        <p class="field-hint">Bu tarih/saatten sonra duyuru otomatik olarak kaybolur.</p>
+        <div class="datetime-row">
+          <input type="date" formControlName="expiryDate" />
+          <input type="time" formControlName="expiryTime" title="Saat" />
+        </div>
+      }
+    </div>
+
+    <!-- Ek dosya (opsiyonel) -->
+    <div class="field-block">
+      <label class="field-label">Ek Dosya <span class="opt">(opsiyonel)</span></label>
+      @if (attachmentName) {
+        <div class="attachment-chip">
+          <mat-icon>attachment</mat-icon>
+          <span class="att-name">{{ attachmentName }}</span>
+          <button type="button" class="att-remove" (click)="removeAttachment()" title="Kaldır">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      } @else {
+        <label class="attachment-drop" [class.busy]="uploadingAttachment">
+          @if (uploadingAttachment) {
+            <mat-icon class="spin">progress_activity</mat-icon>
+            <span>Yükleniyor...</span>
+          } @else {
+            <mat-icon>upload_file</mat-icon>
+            <span>Dosya seç (PDF, görsel, sunum, zip · en fazla 25 MB)</span>
+          }
+          <input type="file" hidden (change)="onAttachmentSelected($event)"
+                 accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip,.txt" />
+        </label>
+      }
+    </div>
+
+    @if (isEditMode) {
+      <div class="toggle-container">
+        <mat-slide-toggle formControlName="isActive" color="primary">Duyuru aktif</mat-slide-toggle>
+      </div>
+    }
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>İptal</button>
+  <button mat-flat-button color="primary" (click)="onSubmit()" [disabled]="form.invalid || saving">
+    {{ isEditMode ? 'Güncelle' : 'Yayınla' }}
+  </button>
+</mat-dialog-actions>

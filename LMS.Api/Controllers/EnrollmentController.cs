@@ -66,6 +66,12 @@ public class EnrollmentController : ApiControllerBase
         return NoContent();
     }
 
+    // GET /api/enrollments/assignments — TÜM zorunlu eğitim atamaları raporu (yalnızca Admin)
+    [HttpGet("assignments")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<AssignmentReportDto>>> GetAssignmentReport()
+        => Ok(await _enrollmentService.GetAssignmentReportAsync());
+
     // GET /api/enrollments/my — kendi katıldığım kurslar
     [HttpGet("my")]
     public async Task<ActionResult<List<EnrollmentDto>>> GetMyEnrollments()

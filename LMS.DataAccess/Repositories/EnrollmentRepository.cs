@@ -29,4 +29,14 @@ public class EnrollmentRepository : Repository<Enrollment>, IEnrollmentRepositor
 
     public async Task<Enrollment?> GetByUserAndCourseAsync(int userId, int courseId)
         => await _dbSet.FirstOrDefaultAsync(e => e.UserId == userId && e.CourseId == courseId);
+
+    // Tüm atamalar (zorunlu eğitim kayıtları) — admin raporu için tek sorguda
+    // kullanıcı + kurs bilgisiyle birlikte yüklenir
+    public async Task<List<Enrollment>> GetAssignedWithUserAndCourseAsync()
+        => await _dbSet
+            .Include(e => e.User)
+            .Include(e => e.Course)
+            .Where(e => e.IsAssigned)
+            .OrderBy(e => e.DueDate)
+            .ToListAsync();
 }

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { API_URL } from '../api.config';
 import { AuthUser, LoginRequest, LoginResponse, UserRole } from '../models/auth.models';
+import { StudentCalendarService } from './student-calendar.service';
 
 const TOKEN_KEY = 'lms_token';
 const USER_KEY = 'lms_user';
@@ -12,6 +13,7 @@ const USER_KEY = 'lms_user';
 export class AuthService {
   private http = inject(HttpClient);
   private router = inject(Router);
+  private calendarService = inject(StudentCalendarService);
 
   // Oturum durumu signal olarak tutulur — değişince ekran otomatik güncellenir
   readonly currentUser = signal<AuthUser | null>(this.readUserFromStorage());
@@ -51,6 +53,8 @@ export class AuthService {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this.currentUser.set(null);
+    // Takvim önbelleğini temizle: sonraki kullanıcı öncekinin olaylarını görmesin
+    this.calendarService.reset();
     this.router.navigate(['/login']);
   }
 

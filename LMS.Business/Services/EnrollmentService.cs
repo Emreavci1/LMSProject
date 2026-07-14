@@ -200,6 +200,55 @@ public class EnrollmentService : IEnrollmentService
         return result;
     }
 
+    public async Task<List<AssignmentReportDto>> GetAssignmentReportAsync()
+    {
+        // SABİT 3 sorgu (kurs/katılımcı sayısından bağımsız):
+        // atamalar + ilgili kursların dersleri + ilgili kursların tamamlamaları
+        var assignments = await _enrollmentRepository.GetAssignedWithUserAndCourseAsync();
+        if (assignments.Count == 0)
+            return [];
+
+        var courseIds = assignments.Select(e => e.CourseId).Distinct().ToList();
+        var lessons = await _lessonRepository.GetByCoursesAsync(courseIds);
+        var completed = await _completionRepository.GetCompletedLessonIdsByCoursesAsync(courseIds);
+
+        // Kurs başına toplam yük + ders id → yük tablosu (ders id'leri global benzersiz)
+        var totalWeightByCourse = lessons
+            .GroupBy(l => l.CourseId)
+            .ToDictionary(g => g.Key, g => g.Sum(l => l.Weight));
+        var weightById = lessons.ToDictionary(l => l.Id, l => l.Weight);
+
+        var result = assignments.Select(enrollment =>
+        {
+            // Ders yükü (kredi) ağırlıklı ilerleme — katılımcı raporuyla aynı kural
+            var totalWeight = totalWeightByCourse.GetValueOrDefault(enrollment.CourseId);
+            var completedWeight = completed.GetValueOrDefault((enrollment.CourseId, enrollment.UserId))
+                ?.Sum(id => weightById.GetValueOrDefault(id)) ?? 0;
+            var progress = totalWeight == 0 ? 0 : (int)Math.Round(completedWeight * 100.0 / totalWeight);
+
+            return new AssignmentReportDto
+            {
+                UserId = enrollment.UserId,
+                FullName = enrollment.User.FullName,
+                Email = enrollment.User.Email,
+                AvatarUrl = enrollment.User.AvatarUrl,
+                CourseId = enrollment.CourseId,
+                CourseTitle = enrollment.Course.Title,
+                DueDate = enrollment.DueDate,
+                Progress = progress,
+                IsOverdue = enrollment.DueDate.HasValue
+                    && DateTime.UtcNow >= enrollment.DueDate.Value
+                    && progress < 100,
+            };
+        })
+        // Gecikenler en üstte, sonra en yakın son tarih
+        .OrderByDescending(r => r.IsOverdue)
+        .ThenBy(r => r.DueDate)
+        .ToList();
+
+        return result;
+    }
+
     public async Task<ServiceResult> UnassignAsync(int courseId, int userId)
     {
         var enrollment = await _enrollmentRepository.GetByUserAndCourseAsync(userId, courseId);

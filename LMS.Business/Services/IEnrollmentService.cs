@@ -23,4 +23,7 @@ public interface IEnrollmentService
 
     // Admin kullanıcı detayı: bir kullanıcının tüm katılımları + ilerlemeleri
     Task<List<UserEnrollmentDto>> GetUserEnrollmentsForAdminAsync(int userId);
+
+    // Admin zorunlu eğitim raporu: TÜM atamalar + ilerleme/gecikme durumları
+    Task<List<AssignmentReportDto>> GetAssignmentReportAsync();
 }

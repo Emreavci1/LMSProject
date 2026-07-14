@@ -1,0 +1,88 @@
+<div class="page">
+  <div class="page-banner">
+    <div>
+      <h2 class="title">Duyuru Yönetimi</h2>
+      <p class="subtitle">Yeni duyurular oluşturabilir ve mevcut olanları düzenleyebilirsiniz.</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="openForm()">
+      <mat-icon>add</mat-icon>
+      Yeni Duyuru
+    </button>
+  </div>
+
+  @if (announcements().length === 0) {
+    <div class="empty-card">
+      <mat-icon>campaign</mat-icon>
+      <p>Henüz duyuru oluşturmadınız.</p>
+      <span>"Yeni Duyuru" ile ilk duyurunu paylaş; genel ya da bir eğitime özel olabilir.</span>
+    </div>
+  } @else {
+    <div class="table-card">
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Başlık</th>
+              <th>Gönderen</th>
+              <th>Hedef</th>
+              <th>Yayın Tarihi</th>
+              <th>Durum</th>
+              <th class="col-actions">İşlemler</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (a of announcements(); track a.id) {
+              <tr>
+                <td class="cell-title">{{ a.title }}</td>
+                <td>
+                  <div class="author-cell">
+                    <img class="avatar" [src]="avatarSrc(a.authorAvatarUrl)" alt="" />
+                    <span>{{ a.authorName }}</span>
+                  </div>
+                </td>
+                <td>
+                  @if (a.isGlobal) {
+                    <span class="target-badge global">Genel</span>
+                  } @else {
+                    <span class="target-badge course">Eğitime Özel</span>
+                  }
+                </td>
+                <td class="cell-date">
+                  {{ a.publishDate | date: 'dd MMM yyyy, HH:mm' }}
+                  @if (a.expiryDate) {
+                    <span class="expiry-sub">
+                      <mat-icon>schedule</mat-icon> {{ a.expiryDate | date: 'dd MMM HH:mm' }}'e kadar
+                    </span>
+                  }
+                </td>
+                <td>
+                  @if (isExpired(a)) {
+                    <span class="status-badge expired">
+                      <mat-icon>event_busy</mat-icon> Süresi doldu
+                    </span>
+                  } @else if (isScheduled(a)) {
+                    <span class="status-badge scheduled">
+                      <mat-icon>schedule</mat-icon> Planlandı
+                    </span>
+                  } @else {
+                    <span class="status-badge live">
+                      <mat-icon>check_circle</mat-icon> Yayında
+                    </span>
+                  }
+                </td>
+                <td class="col-actions">
+                  <button mat-icon-button (click)="openForm(a)" matTooltip="Düzenle">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button class="del-btn" (click)="deleteAnnouncement(a.id)" matTooltip="Sil">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

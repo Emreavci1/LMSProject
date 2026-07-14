@@ -12,6 +12,8 @@ import {
 import { Course } from '../../../core/models/course.models';
 import { CourseAttendee } from '../../../core/models/enrollment.models';
 import { CourseService } from '../../../core/services/course.service';
+import { AnnouncementFeedService } from '../../../core/services/announcement-feed.service';
+import { fileUrl } from '../../../core/utils/file-url.util';
 
 // Bir kursta aynı güne denk gelen atama son tarihleri (gruplu)
 interface DeadlineGroup {
@@ -31,12 +33,18 @@ interface DeadlineGroup {
 })
 export class Schedule {
   private courseService = inject(CourseService);
+  // Duyuruların ortak kaynağı (ana sayfa/öğrenci program ile aynı)
+  protected feed = inject(AnnouncementFeedService);
+  protected readonly fileUrl = fileUrl;
 
   readonly loading = signal(true);
   readonly myCourses = signal<Course[]>([]);
   readonly deadlineGroups = signal<DeadlineGroup[]>([]);
 
   constructor() {
+    // Duyuruları yükle (takvimde ve "Son Duyurular" bölümünde görünür)
+    this.feed.load();
+
     this.courseService.getMyCourses().subscribe({
       next: (courses) => {
         this.myCourses.set(courses);
@@ -86,7 +94,7 @@ export class Schedule {
     this.myCourses().filter((c) => c.status === 'Scheduled' && c.publishDate)
   );
 
-  // Takvim olayları: yayın tarihleri (mavi) + atama son tarihleri (kırmızı)
+  // Takvim olayları: yayın tarihleri (mavi) + atama son tarihleri (kırmızı) + duyurular (yeşil)
   readonly calendarEvents = computed<CalendarEvent[]>(() => [
     ...this.scheduledCourses().map((c) => ({
       date: c.publishDate!,
@@ -98,6 +106,8 @@ export class Schedule {
       label: `${g.title} — ${g.count} katılımcının son tarihi (${timeLabel(g.date)})`,
       kind: 'deadline' as const,
     })),
+    // Duyuru olayları (yayın + son geçerlilik) ortak feed servisinden
+    ...this.feed.calendarEvents(),
   ]);
 
   // Liste: tüm olaylar tarihe göre (yakından uzağa); geçmiş olanlar işaretlenir

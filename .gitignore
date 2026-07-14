@@ -20,3 +20,6 @@ Thumbs.db
 
 # AI Assistant
 .gemini/
+
+# Yüklenen büyük video dosyaları git dışında (içerik MinIO/S3 depoda)
+LMS.Api/wwwroot/uploads/videos/

@@ -38,4 +38,18 @@ public class LessonCompletionRepository : Repository<LessonCompletion>, ILessonC
             .GroupBy(r => r.UserId)
             .ToDictionary(g => g.Key, g => g.Select(r => r.LessonId).ToList());
     }
+
+    public async Task<Dictionary<(int CourseId, int UserId), List<int>>> GetCompletedLessonIdsByCoursesAsync(List<int> courseIds)
+    {
+        // Admin raporu: tüm kursların tamamlamaları TEK sorguda —
+        // kurs sayısı artsa da sorgu sayısı sabit kalır
+        var rows = await _dbSet
+            .Where(lc => courseIds.Contains(lc.Lesson.CourseId))
+            .Select(lc => new { lc.Lesson.CourseId, lc.UserId, lc.LessonId })
+            .ToListAsync();
+
+        return rows
+            .GroupBy(r => (r.CourseId, r.UserId))
+            .ToDictionary(g => g.Key, g => g.Select(r => r.LessonId).ToList());
+    }
 }

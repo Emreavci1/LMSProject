@@ -1,13 +1,19 @@
 <div class="page">
-  <div class="page-header">
+  <div class="page-header page-banner">
     <div>
       <h1>Eğitim Yönetimi</h1>
       <p class="subtitle">Platformdaki tüm eğitimleri görüntüleyin ve yönetin.</p>
     </div>
-    <button mat-stroked-button (click)="openCategories()">
-      <mat-icon>category</mat-icon>
-      Kategorileri Düzenle
-    </button>
+    <div class="header-actions">
+      <button mat-stroked-button routerLink="/admin/assignments">
+        <mat-icon>assignment_late</mat-icon>
+        Zorunlu Eğitim Raporu
+      </button>
+      <button mat-stroked-button (click)="openCategories()">
+        <mat-icon>category</mat-icon>
+        Kategorileri Düzenle
+      </button>
+    </div>
   </div>
 
   <!-- Filtre barı -->

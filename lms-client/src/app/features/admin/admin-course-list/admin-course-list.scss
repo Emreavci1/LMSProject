@@ -3,17 +3,11 @@
 
 // Admin: Eğitim Yönetimi — Stitch tasarım dili
 
+// Genişlik/padding artık global .page kuralından gelir (styles.scss)
 .page {
-  padding: 24px 16px;
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-@media (min-width: 768px) {
-  .page { padding: 24px 40px; }
 }
 
 .page-header {
@@ -23,16 +17,13 @@
   gap: 12px;
   flex-wrap: wrap;
 
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0;
-  }
+  // Başlık/alt başlık tipografisi global .page-banner'dan gelir
 
-  .subtitle {
-    color: $on-surface-variant;
-    font-size: 14px;
-    margin: 4px 0 0;
+  // Sağdaki buton grubu (rapor + kategori düzenleme)
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 }
 

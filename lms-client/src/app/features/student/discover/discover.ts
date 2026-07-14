@@ -105,12 +105,15 @@ export class Discover {
     const category = this.selectedCategory();
     const level = this.selectedLevel();
 
-    return this.realCourses().filter((c) => {
-      if (category && c.category !== category) return false;
-      if (level && c.level !== level) return false;
-      if (term && !c.title.toLowerCase().includes(term) && !c.instructorName.toLowerCase().includes(term)) return false;
-      return true;
-    });
+    return this.realCourses()
+      .filter((c) => {
+        if (category && c.category !== category) return false;
+        if (level && c.level !== level) return false;
+        if (term && !c.title.toLowerCase().includes(term) && !c.instructorName.toLowerCase().includes(term)) return false;
+        return true;
+      })
+      // Kurum eğitimleri (Admin açtı) katalogda her zaman en önde
+      .sort((a, b) => Number(b.isOfficial) - Number(a.isOfficial));
   });
 
   toggleCategory(category: string): void {

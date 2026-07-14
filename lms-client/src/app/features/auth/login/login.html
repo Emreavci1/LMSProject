@@ -1,11 +1,33 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title>LÖSEV Eğitim Yönetim Sistemi</mat-card-title>
-      <mat-card-subtitle>Devam etmek için giriş yapın</mat-card-subtitle>
-    </mat-card-header>
+<div class="auth-page">
+  <!-- Sol: LÖSEV LMS marka paneli (yalnızca masaüstü) -->
+  <aside class="brand-panel">
+    <div class="brand-inner">
+      <div class="brand-logo"><mat-icon>school</mat-icon></div>
+      <h1 class="brand-title">LÖSEV <span>LMS</span></h1>
+      <p class="brand-tag">Eğitim Yönetim Sistemi</p>
 
-    <mat-card-content>
+      <ul class="brand-points">
+        <li><mat-icon>menu_book</mat-icon><span>Kurum içi eğitimleri tek yerden yönet</span></li>
+        <li><mat-icon>assignment_turned_in</mat-icon><span>Zorunlu eğitim atama ve ilerleme takibi</span></li>
+        <li><mat-icon>insights</mat-icon><span>Tamamlama ve gecikme raporları</span></li>
+      </ul>
+
+      <p class="brand-foot">© LÖSEV — Lösemili Çocuklar Vakfı</p>
+    </div>
+  </aside>
+
+  <!-- Sağ: giriş formu -->
+  <main class="form-panel">
+    <div class="form-wrap">
+      <!-- Mobil marka başlığı (marka paneli gizliyken) -->
+      <div class="mobile-brand">
+        <div class="brand-logo sm"><mat-icon>school</mat-icon></div>
+        <span class="mb-text">LÖSEV <strong>LMS</strong></span>
+      </div>
+
+      <h2 class="form-title">Giriş Yap</h2>
+      <p class="form-sub">Devam etmek için hesabınla giriş yap.</p>
+
       <form [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
@@ -77,6 +99,6 @@
           }
         </div>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+  </main>
 </div>

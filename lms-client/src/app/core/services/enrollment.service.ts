@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../api.config';
-import { AssignEnrollment, Enrollment } from '../models/enrollment.models';
+import { AssignEnrollment, AssignmentReport, Enrollment } from '../models/enrollment.models';
 
 @Injectable({ providedIn: 'root' })
 export class EnrollmentService {
@@ -32,5 +32,10 @@ export class EnrollmentService {
   // Atamayı kaldır (yalnızca Admin)
   unassign(courseId: number, userId: number): Observable<void> {
     return this.http.delete<void>(`${this.base}/assign/${courseId}/${userId}`);
+  }
+
+  // Tüm zorunlu eğitim atamaları raporu (yalnızca Admin)
+  getAssignmentReport(): Observable<AssignmentReport[]> {
+    return this.http.get<AssignmentReport[]>(`${this.base}/assignments`);
   }
 }

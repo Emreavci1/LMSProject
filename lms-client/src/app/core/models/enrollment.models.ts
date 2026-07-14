@@ -37,6 +37,21 @@ export interface AssignEnrollment {
   dueDate: string; // ISO tarih+saat (UTC)
 }
 
+// GET /api/enrollments/assignments cevabı (AssignmentReportDto) — Admin zorunlu eğitim raporu
+export interface AssignmentReport {
+  userId: number;
+  fullName: string;
+  email: string;
+  avatarUrl?: string | null;
+  courseId: number;
+  courseTitle: string;
+  dueDate?: string | null;
+  // İlerleme yüzdesi (0-100, ders yükü ağırlıklı)
+  progress: number;
+  // Gecikmiş: son tarih geçti ve ilerleme < %100
+  isOverdue: boolean;
+}
+
 // GET /api/users/{id}/enrollments cevabı (UserEnrollmentDto) — Admin kullanıcı detayı
 export interface UserEnrollment {
   courseId: number;

@@ -23,6 +23,11 @@ export const routes: Routes = [
 
       // ---- Öğrenci sayfaları ----
       {
+        path: 'program',
+        loadComponent: () =>
+          import('./features/student/program/program').then((m) => m.ProgramComponent),
+      },
+      {
         path: 'discover',
         loadComponent: () =>
           import('./features/student/discover/discover').then((m) => m.Discover),
@@ -38,12 +43,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/student/player/player').then((m) => m.Player),
       },
-      {
-        path: 'balance',
-        loadComponent: () =>
-          import('./features/student/balance/balance').then((m) => m.Balance),
-      },
-
       // ---- Ortak sayfalar ----
       {
         path: 'profile',
@@ -57,6 +56,13 @@ export const routes: Routes = [
       },
 
       // ---- Eğitmen sayfaları ----
+      {
+        path: 'instructor/announcements',
+        loadComponent: () =>
+          import('./features/shared-pages/announcement-manage/announcement-manage').then((m) => m.AnnouncementManageComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Instructor', 'Admin'] },
+      },
       {
         path: 'instructor/courses',
         loadComponent: () =>
@@ -94,6 +100,13 @@ export const routes: Routes = [
 
       // ---- Admin sayfaları ----
       {
+        path: 'admin/announcements',
+        loadComponent: () =>
+          import('./features/shared-pages/announcement-manage/announcement-manage').then((m) => m.AnnouncementManageComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+      },
+      {
         path: 'admin/overview',
         loadComponent: () =>
           import('./features/admin/overview/overview').then((m) => m.Overview),
@@ -120,6 +133,16 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/admin/admin-course-list/admin-course-list').then(
             (m) => m.AdminCourseList
+          ),
+        canActivate: [roleGuard],
+        data: { roles: ['Admin'] },
+      },
+      // Zorunlu eğitim raporu: tüm atamalar + tamamlama/gecikme durumları
+      {
+        path: 'admin/assignments',
+        loadComponent: () =>
+          import('./features/admin/assignment-report/assignment-report').then(
+            (m) => m.AssignmentReportPage
           ),
         canActivate: [roleGuard],
         data: { roles: ['Admin'] },

@@ -3,15 +3,7 @@
 
 // Kurs detay — Udemy tarzı: kapak hero + içerik/müfredat + aksiyon kutusu
 
-.page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 16px;
-
-  @media (min-width: 768px) {
-    padding: 24px 32px;
-  }
-}
+// Genişlik/padding global (styles.scss .page)
 
 .center-box {
   display: grid;

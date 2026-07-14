@@ -343,3 +343,104 @@
   color: #94a3b8;
   padding: 48px;
 }
+
+// --- Ders durum ikonu (listede salt gösterge; tamamlama ders içindeki butonla) ---
+.lesson-item .done-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: #cbd5e1;
+  flex-shrink: 0;
+
+  &.done { color: #16a34a; }
+}
+
+// Tamamlanmış dersin butonu (pasif yeşil durum)
+.completed-btn {
+  background: #e8f5e9 !important;
+  color: #16a34a !important;
+
+  mat-icon { color: #16a34a; }
+}
+
+// --- Kurs tamamlama (tebrik) ekranı ---
+.congrats-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.congrats-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 440px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.3);
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+}
+
+.congrats-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fbbf24, #f59e0b);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+
+  mat-icon {
+    color: #fff;
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+  }
+}
+
+.congrats-text {
+  margin: 0 0 4px;
+  font-size: 15px;
+  color: #334155;
+}
+
+.congrats-meta {
+  margin: 0 0 24px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.congrats-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+// Zorunlu video izleme uyarısı (buton kilitliyken)
+.mandatory-video-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  background: #fef3c7;
+  color: #b45309;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; }
+}

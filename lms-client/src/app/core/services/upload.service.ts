@@ -17,6 +17,15 @@ export class UploadService {
   private http = inject(HttpClient);
 
   upload(file: File, contentType: LessonContentType): Observable<UploadResult> {
+    return this.send(file, contentType);
+  }
+
+  // Duyuru eki: belge + görsel türlerini kapsayan "Attachment" tipiyle yükler
+  uploadAttachment(file: File): Observable<UploadResult> {
+    return this.send(file, 'Attachment');
+  }
+
+  private send(file: File, contentType: string): Observable<UploadResult> {
     // FormData ile multipart gönderilir; Content-Type başlığını tarayıcı kendisi
     // (boundary ile) koyar, elle set edilmez. JWT'yi interceptor ekler.
     const form = new FormData();

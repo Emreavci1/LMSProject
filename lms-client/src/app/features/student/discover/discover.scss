@@ -3,53 +3,26 @@
 
 // Öğrenci: Eğitimleri Keşfet — Stitch Tasarımı
 
-.page {
-  padding: 24px 16px;
-  max-width: 1440px;
-  margin: 0 auto;
-}
-
-@media (min-width: 768px) {
-  .page {
-    padding: 32px 40px;
-  }
-}
+// Genişlik/padding + başlık tipografisi global (styles.scss .page / .page-banner)
 
 // --- Üst Kısım ---
 .page-header {
-  margin-bottom: 24px;
-
-  .title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: $on-surface;
-    margin: 0 0 24px;
-  }
+  margin-bottom: 16px;
 }
 
-@media (min-width: 768px) {
-  .page-header .title {
-    font-size: 2rem;
-  }
-}
-
+// Arama + seviye filtresi: tek satır, sığmazsa alt alta sarar (üst üste binmez)
 .filter-controls {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  min-width: 0;
 }
 
-@media (min-width: 768px) {
-  .filter-controls {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.search-mobile, .search-desktop {
+.search-box {
   position: relative;
-  width: 100%;
+  flex: 0 1 300px;
+  min-width: 180px;
 
   .search-icon {
     position: absolute;
@@ -80,24 +53,9 @@
   }
 }
 
-.search-desktop {
-  display: none;
-  max-width: 400px;
-}
-
-@media (min-width: 768px) {
-  .search-mobile { display: none; }
-  .search-desktop { display: block; }
-}
-
-.filter-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
 .chip-wrap {
   position: relative;
+  flex-shrink: 0;
 
   select {
     appearance: none;
@@ -136,9 +94,9 @@
 .category-pills {
   display: flex;
   overflow-x: auto;
-  gap: 12px;
-  padding-bottom: 16px;
-  margin-bottom: 24px;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
   
   // scrollbar gizleme
   -ms-overflow-style: none;
@@ -149,9 +107,9 @@
 
   .pill {
     white-space: nowrap;
-    padding: 8px 24px;
+    padding: 6px 16px;
     border-radius: 999px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -173,20 +131,15 @@
 }
 
 // --- Kurs Grid ---
+// auto-fill + minmax: kartlar ekran genişledikçe şişmez, sığan kadar sütun açılır
 .course-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 20px;
 }
 
-@media (min-width: 768px) {
-  .course-grid { grid-template-columns: repeat(2, 1fr); }
-}
-@media (min-width: 1024px) {
-  .course-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 1280px) {
-  .course-grid { grid-template-columns: repeat(4, 1fr); }
+@media (min-width: 640px) {
+  .course-grid { grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); }
 }
 
 .course-card {
@@ -215,7 +168,7 @@
 
 .card-img {
   position: relative;
-  height: 192px; // h-48
+  height: 180px;
   width: 100%;
   background-size: cover !important;
   background-position: center !important;
@@ -255,7 +208,7 @@
   flex: 1;
 
   .course-title {
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: $on-surface;
     margin: 0 0 8px;
@@ -268,7 +221,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   margin-top: auto; // push to bottom before stats
 
   .instructor-avatar {
@@ -293,14 +246,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  color: #707881;
+  margin-bottom: 12px;
+  color: $outline-strong;
 
   .stat {
     display: flex;
     align-items: center;
     gap: 4px;
-    font-size: 14px;
+    font-size: 13px;
 
     mat-icon {
       font-size: 16px;

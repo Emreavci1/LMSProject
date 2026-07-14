@@ -1,6 +1,10 @@
 <div class="page">
-  <h1>Genel Bakış</h1>
-  <p class="subtitle">Platformun güncel durumu ve temel metrikleri.</p>
+  <div class="page-banner">
+    <div>
+      <h1>Genel Bakış</h1>
+      <p class="subtitle">Platformun güncel durumu ve temel metrikleri.</p>
+    </div>
+  </div>
 
   @if (loading()) {
     <div class="center-box"><mat-spinner diameter="40" /></div>
@@ -28,14 +32,16 @@
         <h3 class="kpi-label">Toplam Katılım</h3>
         <p class="kpi-value">{{ totalEnrollments() }}</p>
       </div>
-      <!-- Geciken zorunlu eğitim: admin için kritik uyarı metriği -->
-      <div class="kpi-card" [class.kpi-alert]="overdueCount() > 0">
+      <!-- Geciken zorunlu eğitim: atama (kişi × kurs) bazında sayılır,
+           tıklayınca zorunlu eğitim raporuna gider -->
+      <a class="kpi-card kpi-link" [class.kpi-alert]="overdueCount() > 0" routerLink="/admin/assignments">
         <div class="kpi-top">
           <div class="kpi-icon-wrap"><mat-icon>warning</mat-icon></div>
+          <mat-icon class="kpi-go">chevron_right</mat-icon>
         </div>
         <h3 class="kpi-label">Geciken Zorunlu Eğitim</h3>
         <p class="kpi-value">{{ overdueCount() }}</p>
-      </div>
+      </a>
     </section>
 
     <!-- Takvim + Kategoriler -->
@@ -91,7 +97,7 @@
           <div class="timeline">
             @for (activity of activities(); track activity.text + activity.date) {
               <div class="timeline-item">
-                <div class="timeline-dot" [class.overdue]="activity.overdue"></div>
+                <div class="timeline-dot" [class.overdue]="activity.overdue" [class.course-open]="activity.isCourseOpen"></div>
                 <div class="timeline-content">
                   <p [class.overdue-text]="activity.overdue">{{ activity.text }}</p>
                   <span class="time">{{ activity.date | date: 'dd.MM.yyyy' }}</span>

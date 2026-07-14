@@ -1,12 +1,4 @@
-.page {
-  padding: 24px 32px 32px;
-  max-width: 1000px;
-  margin: 0 auto;
-
-  @media (max-width: 640px) {
-    padding: 16px;
-  }
-}
+// Genişlik/padding global (styles.scss .page); başlık tipografisi global .page-banner
 
 .page-header {
   display: flex;
@@ -15,17 +7,6 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 20px;
-
-  h1 {
-    font-size: 1.6rem;
-    color: #1e293b;
-    margin: 0;
-  }
-}
-
-.subtitle {
-  color: #64748b;
-  margin: 4px 0 0;
 }
 
 .state-box {

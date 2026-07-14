@@ -1,6 +1,10 @@
 <div class="page">
-  <h1>Program</h1>
-  <p class="subtitle">Eğitim yayın tarihlerin ve kurslarındaki zorunlu eğitim son tarihleri.</p>
+  <div class="page-banner">
+    <div>
+      <h1>Program</h1>
+      <p class="subtitle">Eğitim yayın tarihlerin ve kurslarındaki zorunlu eğitim son tarihleri.</p>
+    </div>
+  </div>
 
   @if (loading()) {
     <div class="center-box">
@@ -42,8 +46,48 @@
         <div class="calendar-legend">
           <span><i class="dot deadline"></i> Katılımcı son tarihi</span>
           <span><i class="dot publish"></i> Eğitim yayını</span>
+          <span><i class="dot announcement"></i> Duyuru</span>
         </div>
       </div>
+    </div>
+
+    <!-- Son Duyurular: ortak feed'ten (genel + kurs duyuruları) -->
+    <div class="announcements-panel">
+      <h2>Son Duyurular</h2>
+      @if (feed.announcements().length === 0) {
+        <div class="empty-events">
+          <mat-icon>campaign</mat-icon>
+          <p>Henüz duyuru yok.</p>
+          <span>Katılımcılarına duyuru paylaşabilirsin.</span>
+        </div>
+      } @else {
+        <div class="ann-list">
+          @for (a of feed.announcements(); track a.id) {
+            <div class="ann-item">
+              <span class="ann-dot" [class.global]="a.isGlobal"></span>
+              <div class="ann-body">
+                <div class="ann-top">
+                  <strong>{{ a.title }}</strong>
+                  <span class="ann-date">{{ a.publishDate | date: 'dd MMM yyyy, HH:mm' }}</span>
+                </div>
+                <p class="ann-content">{{ a.content }}</p>
+                <div class="ann-meta">
+                  <span class="ann-author">{{ a.authorName }}</span>
+                  <span class="ann-badge" [class.global]="a.isGlobal">{{ a.isGlobal ? 'Genel' : 'Eğitime Özel' }}</span>
+                  @if (a.expiryDate) {
+                    <span class="ann-expiry"><mat-icon>schedule</mat-icon> {{ a.expiryDate | date: 'dd MMM HH:mm' }}'e kadar</span>
+                  }
+                  @if (a.attachmentUrl) {
+                    <a class="ann-attach" [href]="fileUrl(a.attachmentUrl)" target="_blank" rel="noopener">
+                      <mat-icon>attachment</mat-icon> {{ a.attachmentName || 'Ek dosya' }}
+                    </a>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 </div>

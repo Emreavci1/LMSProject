@@ -51,10 +51,14 @@ export class MyCourses {
 
   readonly filteredCards = computed(() => {
     const filter = this.filter();
-    if (filter === 'all') return this.allCards();
-    return this.allCards().filter((c) =>
-      filter === 'done' ? this.progressOf(c) === 100 : this.progressOf(c) < 100
-    );
+    const cards =
+      filter === 'all'
+        ? this.allCards()
+        : this.allCards().filter((c) =>
+            filter === 'done' ? this.progressOf(c) === 100 : this.progressOf(c) < 100
+          );
+    // Zorunlu (atanan) eğitimler her zaman en önde gösterilir
+    return [...cards].sort((a, b) => Number(b.isAssigned) - Number(a.isAssigned));
   });
 
   constructor() {

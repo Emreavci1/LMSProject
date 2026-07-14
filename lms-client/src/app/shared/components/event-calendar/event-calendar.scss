@@ -7,6 +7,76 @@ mat-calendar {
   font-family: inherit;
 }
 
+// Tıklanan günün olaylarını gösteren kısa bilgi paneli
+.day-info {
+  margin-top: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #f8fafc;
+  padding: 10px 12px;
+  animation: dayInfoIn 0.15s ease;
+
+  .day-info-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+
+    strong { font-size: 13px; color: #0f172a; }
+
+    button {
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      padding: 2px;
+      color: #94a3b8;
+      border-radius: 6px;
+
+      mat-icon { font-size: 18px; width: 18px; height: 18px; }
+      &:hover { background: #e2e8f0; color: #475569; }
+    }
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    color: #334155;
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-top: 4px;
+      flex-shrink: 0;
+
+      &.deadline { background: #dc2626; }
+      &.publish { background: #0284c7; }
+      &.announcement { background: #16a34a; }
+    }
+
+    .text { flex: 1; }
+  }
+}
+
+@keyframes dayInfoIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 // mat-calendar iç yapısı bileşen kapsülü dışında render edildiği için ::ng-deep gerekli
 :host ::ng-deep {
   // Başlık: daha kompakt ve belirgin
@@ -49,9 +119,10 @@ mat-calendar {
   }
 
   // --- Olay işaretleri ---
-  // Ortak: dolu renkli daire + altında minik nokta + hafif gölge
+  // Ortak: dolu renkli daire + hafif gölge
   .publish-day .mat-calendar-body-cell-content,
-  .deadline-day .mat-calendar-body-cell-content {
+  .deadline-day .mat-calendar-body-cell-content,
+  .announcement-day .mat-calendar-body-cell-content {
     color: #fff;
     font-weight: 700;
     position: relative;
@@ -63,7 +134,13 @@ mat-calendar {
     box-shadow: 0 2px 6px rgba(3, 105, 161, 0.35);
   }
 
-  // Zorunlu eğitim son tarihi — kırmızı (aynı güne ikisi de düşerse bu kazanır)
+  // Duyuru — yeşil
+  .announcement-day .mat-calendar-body-cell-content {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35);
+  }
+
+  // Zorunlu eğitim son tarihi — kırmızı (aynı güne birden fazla düşerse bu kazanır)
   .deadline-day .mat-calendar-body-cell-content {
     background: linear-gradient(135deg, #dc2626, #b91c1c);
     box-shadow: 0 2px 6px rgba(185, 28, 28, 0.35);
@@ -71,6 +148,7 @@ mat-calendar {
 
   // İşaretli gün seçiliyse Material'ın kendi seçim rengi araya girmesin
   .publish-day.mat-calendar-body-selected .mat-calendar-body-cell-content,
+  .announcement-day.mat-calendar-body-selected .mat-calendar-body-cell-content,
   .deadline-day.mat-calendar-body-selected .mat-calendar-body-cell-content {
     border: none;
   }

@@ -4,7 +4,6 @@ import {
   MockCourse,
   MockScheduleEvent,
   MockStudentProgress,
-  MockTransaction,
 } from '../models/mock.models';
 
 // GEÇİCİ: UI-first geliştirme için sahte veri merkezi.
@@ -28,15 +27,6 @@ export class MockDataService {
       'Genel', 'Sağlık', 'Teknoloji', 'Kişisel Gelişim', 'Sanat',
     ]
   );
-
-  // --- Bakiye ---
-  readonly balance = signal(250);
-  readonly transactions = signal<MockTransaction[]>([
-    { date: '2026-06-28', description: 'Bakiye yükleme', amount: 200 },
-    { date: '2026-06-15', description: 'Hediye bakiye (LÖSEV)', amount: 100 },
-    { date: '2026-06-10', description: 'Etkinlik katılım iadesi', amount: 50 },
-    { date: '2026-05-30', description: 'Atölye malzeme ücreti', amount: -100 },
-  ]);
 
   // --- Eğitmen programı (haftalık) ---
   readonly scheduleEvents = signal<MockScheduleEvent[]>([

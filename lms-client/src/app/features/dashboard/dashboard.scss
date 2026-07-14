@@ -1,13 +1,15 @@
 // Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
 @use '../../tokens' as *;
 
+// Dashboard'ı da global sayfa genişliğine hizala (tutarlılık)
 .dashboard {
-  padding: 16px;
-  max-width: 1600px;
+  max-width: 1280px;
   margin: 0 auto;
+  padding: 20px 16px;
+  box-sizing: border-box;
 
   @media (min-width: 768px) {
-    padding: 24px;
+    padding: 28px 32px;
   }
 }
 
@@ -52,66 +54,29 @@
 .student-dashboard {
   // Removed .glass-card, moved to global styles.scss
   
-  // Welcome Banner
+  // Karşılama bandı: global .page-banner görünümünü kullanır, burada yalnızca
+  // tipografi + alt boşluk ayarlanır (AI görselli eski banner kaldırıldı)
   .welcome-banner {
-    padding: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
     margin-bottom: 24px;
 
-    .banner-bg {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to right, $primary-light, transparent);
-      z-index: 0;
-    }
-
-    .banner-content {
-      position: relative;
-      z-index: 10;
-      max-width: 600px;
-      margin-bottom: 24px;
-
-      h1 { 
-        font-size: 24px; 
-        font-weight: 700; 
-        margin: 0 0 16px; 
-        @media (min-width: 1024px) { font-size: 32px; }
+    .welcome-text {
+      h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0;
+        color: $on-surface;
+        @media (min-width: 1024px) { font-size: 28px; }
       }
-      p { 
-        font-size: 15px; 
-        color: var(--color-on-surface-variant); 
-        margin: 0; 
-        @media (min-width: 1024px) { font-size: 18px; }
+      .subtitle {
+        font-size: 14px;
+        color: $on-surface-variant;
+        margin: 4px 0 0;
+        @media (min-width: 1024px) { font-size: 15px; }
       }
     }
 
-    .banner-image {
-      position: relative;
-      z-index: 10;
-      width: 100%;
-      display: flex;
-      justify-content: center;
-
-      img {
-        height: 160px;
-        object-fit: contain;
-        filter: drop-shadow(0 20px 13px rgba(0,0,0,0.1));
-      }
-    }
-  }
-
-  @media (min-width: 768px) {
-    .welcome-banner {
-      flex-direction: row;
-      justify-content: space-between;
-
-      .banner-content { margin-bottom: 0; }
-      .banner-image { width: 33%; justify-content: flex-end; }
-    }
+    // Bant içindeki aksiyon butonu daralmasın
+    .btn { flex-shrink: 0; }
   }
 
   // Grid Layout
@@ -319,17 +284,80 @@
   }
 }
 
-// --- Eğitmen ana sayfası (student-dashboard stil altyapısını paylaşır) ---
-.instructor-dashboard {
-  .banner-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 20px;
+// --- Duyurular kartı (her iki dashboard'da ortak) ---
+.announcements-card {
+  padding: 20px 24px;
 
-    mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+
+    h2 { font-size: 18px; font-weight: 600; margin: 0; color: $on-surface; }
+
+    .see-all {
+      font-size: 13px;
+      font-weight: 600;
+      color: $primary;
+      text-decoration: none;
+      &:hover { opacity: 0.8; }
+    }
   }
 
+  .ann-list { display: flex; flex-direction: column; gap: 4px; }
+
+  .ann-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background 0.15s;
+
+    &:hover { background: $surface-low; }
+
+    // Genel duyuru mavi, kurs duyurusu yeşil nokta
+    .ann-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: $green;
+      flex-shrink: 0;
+      &.global { background: $primary; }
+    }
+
+    .ann-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+
+      strong {
+        font-size: 13.5px;
+        font-weight: 600;
+        color: $on-surface;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      span { font-size: 12px; color: $on-surface-variant; }
+    }
+
+    .ann-clip {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      color: $on-surface-variant;
+      flex-shrink: 0;
+    }
+  }
+}
+
+// --- Eğitmen ana sayfası (student-dashboard stil altyapısını paylaşır) ---
+.instructor-dashboard {
   .my-courses-panel {
     padding: 24px;
 

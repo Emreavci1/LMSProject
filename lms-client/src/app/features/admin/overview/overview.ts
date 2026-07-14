@@ -2,6 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { RouterLink } from '@angular/router';
 import { catchError, forkJoin, map, of } from 'rxjs';
 import {
   CalendarEvent,
@@ -20,18 +21,19 @@ interface CourseWithAttendees {
   attendees: CourseAttendee[];
 }
 
-// Son aktivite satırı: katılım veya gecikme uyarısı
+// Son aktivite satırı: katılım, gecikme uyarısı veya yeni eğitim açılışı
 interface ActivityItem {
   text: string;
   date: string;
   overdue: boolean; // gecikme uyarıları kırmızı gösterilir
+  isCourseOpen?: boolean; // eğitmenin açtığı yeni eğitim (mavi nokta)
 }
 
 // Admin: Genel Bakış — GERÇEK verilerle KPI'lar, takvim,
 // en çok katılınan kategoriler ve son aktiviteler (gecikme uyarılı).
 @Component({
   selector: 'app-overview',
-  imports: [DatePipe, MatIconModule, MatProgressSpinnerModule, EventCalendar],
+  imports: [DatePipe, MatIconModule, MatProgressSpinnerModule, RouterLink, EventCalendar],
   templateUrl: './overview.html',
   styleUrl: './overview.scss',
 })
@@ -140,12 +142,22 @@ export class Overview {
       }));
   });
 
-  // --- Son aktiviteler: gecikme uyarıları (önce) + son katılımlar ---
+  // --- Son aktiviteler: gecikme uyarıları (önce) + eğitim açılışları + son katılımlar ---
   readonly activities = computed<ActivityItem[]>(() => {
     const overdues: ActivityItem[] = [];
-    const enrollments: ActivityItem[] = [];
+    const normal: ActivityItem[] = [];
 
     for (const { course, attendees } of this.data()) {
+      // Eğitmenin açtığı yeni eğitim (Admin'in açtıkları isOfficial=true, onları saymayız)
+      if (!course.isOfficial) {
+        normal.push({
+          text: `${course.instructorName}, "${course.title}" eğitimini açtı`,
+          date: course.createdDate,
+          overdue: false,
+          isCourseOpen: true,
+        });
+      }
+
       for (const a of attendees) {
         if (a.isOverdue) {
           overdues.push({
@@ -154,7 +166,7 @@ export class Overview {
             overdue: true,
           });
         }
-        enrollments.push({
+        normal.push({
           text: `${a.fullName}, "${course.title}" eğitimine katıldı`,
           date: a.enrollDate,
           overdue: false,
@@ -163,9 +175,10 @@ export class Overview {
     }
 
     overdues.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    enrollments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Katılımlar + eğitim açılışları tarihe göre birlikte sıralanır (yeniden eskiye)
+    normal.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    // Gecikmeler her zaman en üstte; kalan yer son katılımlarla dolar
-    return [...overdues, ...enrollments].slice(0, 8);
+    // Gecikmeler her zaman en üstte; kalan yer en yeni katılım/açılışlarla dolar
+    return [...overdues, ...normal].slice(0, 8);
   });
 }

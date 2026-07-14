@@ -1,0 +1,205 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss
+@use '../../../tokens' as *;
+
+// Genişlik/padding + başlık tipografisi global (styles.scss .page / .page-banner)
+.page-banner {
+  margin-bottom: 20px;
+}
+
+// İki sütun: akış + takvim
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .content-grid { grid-template-columns: 1fr; }
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $on-surface;
+
+  mat-icon { color: $primary; font-size: 20px; width: 20px; height: 20px; }
+}
+
+// --- Duyuru akışı ---
+.announcement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.announcement-card {
+  background: #fff;
+  border: 1px solid $outline-variant;
+  border-left: 4px solid $green; // eğitime özel: yeşil
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+  transition: box-shadow 0.2s, transform 0.2s;
+
+  &:hover {
+    box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.1);
+    transform: translateY(-2px);
+  }
+
+  // Genel duyuru: mavi vurgu
+  &.global { border-left-color: $primary; }
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: $surface-high;
+    flex-shrink: 0;
+  }
+
+  .head-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+  .head-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .author { font-size: 14px; color: $on-surface; }
+  .date { font-size: 12px; color: $on-surface-variant; }
+}
+
+.badge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+
+  &.global { background: rgba($primary, 0.1); color: $primary; }
+  &.course { background: rgba($green, 0.12); color: $green; }
+}
+
+// Son geçerlilik notu
+.expiry-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b45309;
+  background: #fef3c7;
+  border-radius: 6px;
+  padding: 3px 8px;
+
+  mat-icon { font-size: 14px; width: 14px; height: 14px; }
+}
+
+.card-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: $on-surface;
+}
+
+.card-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: $on-surface-variant;
+  white-space: pre-wrap;
+}
+
+// Ek dosya indirme bağlantısı
+.attachment-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 8px 12px;
+  border: 1px solid $outline-variant;
+  border-radius: 8px;
+  background: $surface-low;
+  text-decoration: none;
+  color: $on-surface;
+  font-size: 13px;
+  font-weight: 500;
+  max-width: 100%;
+  transition: background 0.15s, border-color 0.15s;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $primary; flex-shrink: 0; }
+  .dl { color: $on-surface-variant; }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &:hover { background: rgba($primary, 0.06); border-color: $primary; }
+}
+
+// Boş durum
+.empty-card {
+  background: #fff;
+  border: 1px dashed $outline-variant;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: $on-surface-variant;
+
+  mat-icon { font-size: 44px; width: 44px; height: 44px; opacity: 0.4; margin-bottom: 8px; }
+  p { margin: 0; }
+}
+
+// --- Takvim ---
+.calendar-card {
+  position: sticky;
+  top: 24px;
+  background: #fff;
+  border: 1px solid $outline-variant;
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+}
+
+.calendar-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  padding-top: 12px;
+  margin-top: 8px;
+  border-top: 1px solid rgba($outline-variant, 0.5);
+  font-size: 12px;
+  color: $on-surface-variant;
+
+  span { display: inline-flex; align-items: center; gap: 5px; }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+
+    &.deadline { background: #dc2626; }
+    &.publish { background: #0284c7; }
+    &.announcement { background: #16a34a; }
+  }
+}

@@ -5,36 +5,11 @@
 // Renk sistemi mevcut projeden: $navy (#0f172a), $primary (#0284c7)
 
 
+// Genişlik/padding + başlık tipografisi global (styles.scss .page / .page-banner)
 .page {
-  padding: 24px 16px;
-  max-width: 1200px;
-  margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
-
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin: 0;
-    color: $on-surface;
-  }
-
-  .subtitle {
-    color: $on-surface-variant;
-    font-size: 14px;
-    margin: 4px 0 0;
-  }
-}
-
-@media (min-width: 768px) {
-  .page {
-    padding: 24px 40px;
-
-    h1 {
-      font-size: 2rem;
-    }
-  }
 }
 
 // --- KPI kartları ---
@@ -479,6 +454,16 @@ table {
   padding: 8px 0;
 }
 
+// Rapora giden tıklanabilir KPI kartı
+.kpi-card.kpi-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+
+  .kpi-go { color: $on-surface-variant; opacity: 0.5; transition: opacity 0.15s; }
+  &:hover .kpi-go { opacity: 1; }
+}
+
 // Geciken zorunlu eğitim KPI'sı: değer > 0 ise kırmızı uyarı görünümü
 .kpi-card.kpi-alert {
   border-color: rgba($red, 0.4);
@@ -545,10 +530,31 @@ table {
 
 .charts-grid { gap: 14px; margin-top: 14px; }
 
+// Takvim dar sütunda (içeriği kadar), kategoriler kalan genişliği alır —
+// eskiden takvim 2/3 genişlikteydi ve iki yanı boş kalıyordu
+@media (min-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: minmax(320px, 400px) 1fr;
+    align-items: start;
+  }
+}
+
 .chart-card {
   padding: 16px 18px;
 
   h2 { font-size: 1rem; margin-bottom: 2px; }
+}
+
+.chart-header { margin-bottom: 10px; }
+
+.calendar-wrap app-event-calendar { max-width: 360px; }
+
+// Kategori barları: kartın dibine yaslanma yerine başlığın hemen altında
+.category-bars {
+  margin-top: 14px;
+  gap: 12px;
+  flex: none;
+  justify-content: flex-start;
 }
 
 .bottom-grid { margin-top: 14px; }
@@ -556,4 +562,10 @@ table {
 .activity-card {
   padding: 16px 18px;
   h2 { font-size: 1rem; }
+}
+
+// Eğitmenin yeni eğitim açması: dolu mavi nokta (pozisyon bazlı renkleri ezer)
+.timeline-dot.course-open {
+  background: $primary !important;
+  border-color: $primary !important;
 }

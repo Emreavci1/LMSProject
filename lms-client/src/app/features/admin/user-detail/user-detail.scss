@@ -1,11 +1,7 @@
 // Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
 @use '../../../tokens' as *;
 
-.page {
-  padding: 24px 16px;
-  max-width: 900px;
-  margin: 0 auto;
-}
+// Genişlik/padding global (.page + .page-narrow)
 
 .back-link {
   margin-bottom: 12px;

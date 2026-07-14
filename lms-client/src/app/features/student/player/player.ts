@@ -1,6 +1,5 @@
 import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
@@ -10,6 +9,7 @@ import { Course } from '../../../core/models/course.models';
 import { Lesson } from '../../../core/models/lesson.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
+import { EnrollmentService } from '../../../core/services/enrollment.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ProgressService } from '../../../core/services/progress.service';
 import { formatCourseHours, sumLessonMinutes } from '../../../core/utils/duration.util';
@@ -24,7 +24,6 @@ import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
     MatIconModule,
     MatButtonModule,
     MatTabsModule,
-    MatCheckboxModule,
     MatProgressBarModule,
   ],
   templateUrl: './player.html',
@@ -36,6 +35,7 @@ export class Player implements OnInit {
   private progressService = inject(ProgressService);
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
+  private enrollmentService = inject(EnrollmentService);
   private sanitizer = inject(DomSanitizer);
   private auth = inject(AuthService);
 
@@ -56,6 +56,14 @@ export class Player implements OnInit {
   readonly lessons = signal<Lesson[]>([]);
 
   readonly activeLesson = signal<Lesson | null>(null);
+
+  // Bu kurs kayıt olarak KULLANICIYA ATANMIŞ mı (zorunlu)?
+  // Admin'in zorunlu işaretlediği kurslar VE public bir kursa tek tek atama —
+  // ikisi de enrollment.isAssigned = true olur. Video izleme zorunluluğu buna bağlı.
+  readonly assigned = signal(false);
+
+  // Bu oturumda videosu sonuna kadar izlenen ders id'leri (zorunlu video kilidi için)
+  readonly watchedVideoIds = signal<Set<number>>(new Set());
 
   // Dersleri bölümlere grupla: [{ section, lessons }]
   readonly sections = computed(() => {
@@ -138,6 +146,30 @@ export class Player implements OnInit {
     return this.sanitizer.bypassSecurityTrustResourceUrl(href);
   });
 
+  // --- Zorunlu video izleme kilidi ---
+  // Aktif ders, tamamlanmadan önce videosunun sonuna kadar izlenmesi GEREKEN bir ders mi?
+  // Koşullar: atanmış (zorunlu) kurs + yüklenmiş video dersi (bitişi <video> ile algılanabilir)
+  // + öğrenci görünümü (önizlemede kilit yok) + henüz tamamlanmamış.
+  readonly mustWatchActive = computed(() => {
+    const lesson = this.activeLesson();
+    if (!lesson) return false;
+    if (this.isPreview()) return false;
+    if (!this.assigned()) return false;
+    if (lesson.contentType !== 'Video') return false;
+    if (this.uploadedVideoUrl() === null) return false; // yalnızca yerel <video> (YouTube'un bitişi algılanamaz)
+    if (this.isCompleted(lesson.id)) return false;
+    return true;
+  });
+
+  // Aktif dersin videosu bu oturumda sonuna kadar izlendi mi?
+  readonly activeVideoWatched = computed(() => {
+    const lesson = this.activeLesson();
+    return lesson ? this.watchedVideoIds().has(lesson.id) : false;
+  });
+
+  // "Tamamla" butonu kilitli mi? (izlenmesi gerekiyor ama daha bitmedi)
+  readonly completeLocked = computed(() => this.mustWatchActive() && !this.activeVideoWatched());
+
   constructor() {
     // Tamamlanan dersleri backend'den çek (ilerleme çubuğu ve işaretler için)
     this.progressService.load();
@@ -170,21 +202,35 @@ export class Player implements OnInit {
       next: (list) => this.lessons.set(list),
       error: () => this.lessons.set([]),
     });
+
+    // Öğrenci görünümünde bu kursa ait kaydın atanmış (zorunlu) olup olmadığını çek
+    if (!this.isPreview()) {
+      this.enrollmentService.getMyEnrollments().subscribe({
+        next: (list) => {
+          const enrollment = list.find((e) => e.courseId === courseId);
+          this.assigned.set(enrollment?.isAssigned ?? false);
+        },
+        error: () => this.assigned.set(false),
+      });
+    }
   }
 
   selectLesson(lesson: Lesson): void {
     this.activeLesson.set(lesson);
   }
 
+  // <video> sonuna gelince: aktif dersi "izlendi" olarak işaretle → kilit açılır
+  onVideoEnded(): void {
+    const lesson = this.activeLesson();
+    if (lesson) this.watchedVideoIds.update((s) => new Set(s).add(lesson.id));
+  }
+
   isCompleted(lessonId: number): boolean {
     return this.progressService.isCompleted(lessonId);
   }
 
-  toggleCompleted(lesson: Lesson): void {
-    // Önizleme (eğitmen/admin): ilerleme kaydedilmez, backend zaten reddeder
-    if (this.isPreview()) return;
-    this.progressService.toggle(lesson.id);
-  }
+  // Kurs tamamlama tebrik ekranı (son ders tamamlanınca açılır)
+  readonly showCongrats = signal(false);
 
   goPrev(): void {
     if (this.hasPrev()) this.activeLesson.set(this.lessons()[this.activeIndex() - 1]);
@@ -194,14 +240,27 @@ export class Player implements OnInit {
     if (this.hasNext()) this.activeLesson.set(this.lessons()[this.activeIndex() + 1]);
   }
 
-  // Aktif dersi tamamla ve sıradakine geç
+  // Aktif dersi tamamla ve sıradakine geç.
+  // Bu, dersleri tamamlamanın TEK yolu — listedeki işaretler salt göstergedir.
   completeAndNext(): void {
     const current = this.activeLesson();
     if (!current) return;
 
+    // Zorunlu video henüz sonuna kadar izlenmedi: tamamlamaya izin verme
+    if (this.completeLocked()) return;
+
     // Önizlemede yalnızca gezinilir, tamamlama kaydedilmez
     if (!this.isPreview() && !this.isCompleted(current.id)) {
       this.progressService.toggle(current.id);
+
+      // Bu ders son eksikti ise kurs bitti: tebrik ekranını aç
+      const allDone = this.lessons().every(
+        (l) => l.id === current.id || this.isCompleted(l.id)
+      );
+      if (allDone) {
+        this.showCongrats.set(true);
+        return;
+      }
     }
     this.goNext();
   }

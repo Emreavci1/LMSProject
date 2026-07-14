@@ -1,22 +1,14 @@
 // Renkler tek kaynaktan: src/app/_tokens.scss (styles.scss :root ile es)
 @use '../../../tokens' as *;
 
+// Genişlik/padding global (.page-container + .page-narrow); başlık global .page-banner
 .page-container {
-  padding: 24px 32px 32px;
-  max-width: 960px;
-  margin: 0 auto;
   font-family: 'Inter', sans-serif;
   color: $on-surface;
-
-  @media (max-width: 640px) {
-    padding: 16px;
-  }
 }
 
 .page-header {
   margin-bottom: 20px;
-  h2 { font-size: 21px; font-weight: 700; margin: 0 0 2px; color: $on-surface; }
-  p { font-size: 13px; color: $on-surface-muted; margin: 0; }
 }
 
 /* Custom Stepper */

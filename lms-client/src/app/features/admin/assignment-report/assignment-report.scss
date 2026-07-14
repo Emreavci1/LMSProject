@@ -1,0 +1,285 @@
+// Renkler tek kaynaktan: src/app/_tokens.scss
+@use '../../../tokens' as *;
+
+// Genişlik/padding + başlık tipografisi global (styles.scss .page / .page-banner)
+
+// Eğitimler sayfasına geri dönüş
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $on-surface-variant;
+  text-decoration: none;
+  margin-bottom: 8px;
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  &:hover { color: $primary; }
+}
+
+.center-box {
+  display: flex;
+  justify-content: center;
+  padding: 56px;
+}
+
+// Hiç atama yokken gösterilen boş durum kartı
+.empty-card {
+  background: #fff;
+  border: 1px dashed $outline-variant;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  color: $on-surface-variant;
+
+  mat-icon { font-size: 40px; width: 40px; height: 40px; opacity: 0.5; }
+  p { margin: 12px 0 4px; font-weight: 600; color: $on-surface; }
+  span { font-size: 13px; }
+}
+
+// --- Filtre + arama satırı ---
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.status-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid $outline-variant;
+    background: #fff;
+    color: $on-surface-variant;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+
+    .count {
+      font-size: 11px;
+      font-weight: 700;
+      background: $surface-high;
+      color: $on-surface-variant;
+      border-radius: 999px;
+      padding: 1px 7px;
+    }
+
+    &:hover { background: $surface-low; }
+
+    &.active {
+      background: $on-surface;
+      border-color: $on-surface;
+      color: #fff;
+      .count { background: rgba(255, 255, 255, 0.2); color: #fff; }
+    }
+
+    // Gecikti filtresi aktifken kırmızı, Tamamladı aktifken yeşil
+    &.f-overdue.active { background: $red; border-color: $red; }
+    &.f-completed.active { background: $green; border-color: $green; }
+  }
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid $outline-variant;
+  border-radius: 8px;
+  padding: 6px 10px;
+  min-width: 240px;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; color: $on-surface-variant; }
+
+  input {
+    border: none;
+    outline: none;
+    font-size: 13px;
+    width: 100%;
+    background: transparent;
+    color: $on-surface;
+  }
+}
+
+// --- Tablo ---
+.table-card {
+  background: #fff;
+  border: 1px solid $outline-variant;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05);
+  overflow: hidden;
+}
+
+// Mobilde yatay taşma kontrollü; 40-50 satırda dikey scroll + yapışkan başlık
+.table-wrapper {
+  overflow-x: auto;
+  max-height: 65vh;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 720px;
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: $surface-low;
+    padding: 10px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: $on-surface-variant;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid $outline-variant;
+  }
+
+  td {
+    padding: 10px 16px;
+    font-size: 14px;
+    color: $on-surface;
+    border-bottom: 1px solid rgba($outline-variant, 0.4);
+  }
+
+  tbody tr:hover { background: $surface-low; }
+}
+
+// Katılımcı hücresi: avatar + isim + e-posta (kullanıcı detayına link)
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: $surface-high;
+  }
+
+  .name {
+    display: block;
+    font-weight: 600;
+    font-size: 13.5px;
+  }
+
+  .email {
+    display: block;
+    font-size: 12px;
+    color: $on-surface-variant;
+  }
+
+  &:hover .name { color: $primary; }
+}
+
+.course-title { font-weight: 500; }
+
+.due {
+  white-space: nowrap;
+  color: $on-surface-variant;
+  font-size: 13px;
+
+  &.overdue { color: $red; font-weight: 600; }
+}
+
+// İlerleme çubuğu
+.progress-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span { font-size: 12.5px; font-weight: 600; color: $on-surface-variant; min-width: 36px; }
+}
+
+.bar-track {
+  width: 110px;
+  height: 6px;
+  background: $surface-high;
+  border-radius: 999px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: $primary;
+
+  &.done { background: $green; }
+  &.late { background: $red; }
+}
+
+// Durum rozeti
+.status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+
+  &.overdue { background: rgba($red, 0.1); color: $red; }
+  &.completed { background: rgba($green, 0.12); color: $green; }
+  &.inprogress { background: rgba($primary, 0.1); color: $primary; }
+}
+
+.no-result {
+  text-align: center;
+  color: $on-surface-variant;
+  padding: 32px !important;
+}
+
+// --- Sayfalama çubuğu ---
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid $outline-variant;
+  font-size: 13px;
+  color: $on-surface-variant;
+
+  .range { margin-right: 8px; }
+
+  .page-no { font-weight: 600; color: $on-surface; }
+
+  button {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1px solid $outline-variant;
+    background: #fff;
+    color: $on-surface;
+    cursor: pointer;
+
+    mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
+    &:hover:not(:disabled) { background: $surface-low; }
+    &:disabled { opacity: 0.4; cursor: default; }
+  }
+}
+
+// Başlık bandı ile içerik arası boşluk
+.page-banner { margin-bottom: 18px; }

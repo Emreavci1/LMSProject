@@ -257,7 +257,8 @@ export class CourseCreate {
         contentUrl: type !== 'Text' ? this.newContentUrl().trim() : undefined,
         textContent: type === 'Text' ? this.newTextContent().trim() : undefined,
         notes: this.newNotes().trim() || undefined,
-        fileName: this.newUploadedFileName() || undefined
+        fileName: this.newUploadedFileName() || undefined,
+        weight: this.newWeight(),
       },
     ]);
 
@@ -268,6 +269,7 @@ export class CourseCreate {
     this.newTextContent.set('');
     this.newNotes.set('');
     this.newUploadedFileName.set('');
+    this.newWeight.set(1);
   }
 
   removeDraftLesson(index: number): void {
@@ -458,6 +460,7 @@ export class CourseCreate {
       contentUrl: l.contentType !== 'Text' ? (l.contentUrl ?? null) : null,
       textContent: l.contentType === 'Text' ? (l.textContent ?? null) : null,
       notes: l.notes ?? null,
+      weight: l.weight ?? 1,
     };
   }
 

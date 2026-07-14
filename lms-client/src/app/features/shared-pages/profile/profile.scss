@@ -1,19 +1,4 @@
-.page {
-  padding: 24px 16px;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-h1 {
-  font-size: 1.6rem;
-  color: #1e293b;
-  margin: 0;
-}
-
-.subtitle {
-  color: #64748b;
-  margin: 4px 0 20px;
-}
+// Genişlik/padding global (.page + .page-narrow); başlık tipografisi global .page-banner
 
 .profile-card {
   display: grid;
@@ -115,3 +100,6 @@ img.big-avatar {
   &:hover { transform: scale(1.08); }
   &.selected { border-color: #006194; }
 }
+
+// Başlık bandı ile içerik arası boşluk
+.page-banner { margin-bottom: 18px; }
