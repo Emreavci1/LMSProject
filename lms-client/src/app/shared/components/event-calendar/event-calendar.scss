@@ -100,12 +100,34 @@ mat-calendar {
     background: #e2e8f0;
   }
 
+  // Gün satırları hafif basık: Material varsayılanı tam kare hücre (padding-top
+  // %14.28) takvimi dikeyde gereksiz uzatıyordu — genişlik aynı, yükseklik ~%15 kısa
+  .mat-calendar-body-cell-container {
+    padding-top: 10.5% !important;
+  }
+
+  // Ay başlığı çevresindeki geniş boşluklar (Material varsayılanı %5 margin) kısıldı
+  .mat-calendar-controls {
+    margin-top: 0;
+    margin-bottom: 4px;
+  }
+
   // Gün hücreleri
   .mat-calendar-body-cell-content {
     border-radius: 50%;
     font-size: 12.5px;
     border: none;
     transition: transform 0.12s ease, box-shadow 0.12s ease;
+    // Basık hücrede bugün halkası ve renkli işaretler elips olmasın:
+    // kareyi yükseklikten türet, yatayda ortala.
+    // Çap %80: %90'da üst üste satırlardaki daireler birbirine değiyordu
+    height: 74%;
+    top: 13%;
+    width: auto;
+    aspect-ratio: 1 / 1;
+    left: 0;
+    right: 0;
+    margin-inline: auto;
   }
 
   .mat-calendar-body-cell:hover .mat-calendar-body-cell-content {

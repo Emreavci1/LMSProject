@@ -269,7 +269,9 @@
 
 .timeline {
   position: relative;
-  padding-left: 16px;
+  // Noktalar item'a göre -20px solda durur; iç boşluk 22px olmalı ki
+  // noktalar kutunun içinde kalsın (16px'te soldan 4px taşıp kesiliyordu)
+  padding-left: 22px;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -277,7 +279,7 @@
   &::before {
     content: '';
     position: absolute;
-    left: 3px;
+    left: 9px;
     top: 6px;
     bottom: 6px;
     width: 1px;
@@ -487,7 +489,7 @@ table {
   display: flex;
   gap: 16px;
   justify-content: center;
-  padding-top: 8px;
+  padding-top: 4px;
   font-size: 12px;
   color: $on-surface-variant;
 
@@ -535,8 +537,9 @@ table {
 // eskiden takvim 2/3 genişlikteydi ve iki yanı boş kalıyordu
 @media (min-width: 1024px) {
   .charts-grid {
-    grid-template-columns: minmax(320px, 400px) 1fr;
-    align-items: start;
+    grid-template-columns: minmax(280px, 330px) 1fr;
+    // stretch: iki kart da satır yüksekliğine uzar — alt sınırlar aynı hizada
+    align-items: stretch;
   }
 }
 
@@ -548,7 +551,7 @@ table {
 
 .chart-header { margin-bottom: 10px; }
 
-.calendar-wrap app-event-calendar { max-width: 360px; }
+.calendar-wrap app-event-calendar { max-width: 300px; }
 
 // Kategori barları: kartın dibine yaslanma yerine başlığın hemen altında
 .category-bars {
@@ -565,10 +568,25 @@ table {
   h2 { font-size: 1rem; }
 }
 
-// Aktiviteler takvimin yanındayken liste kartı aşırı uzatmasın (kendi içinde kayar)
+// Mobilde (kartlar alt alta) liste kartı aşırı uzatmasın (kendi içinde kayar)
 .charts-grid .activity-card .timeline {
   max-height: 380px;
   overflow-y: auto;
+}
+
+// Masaüstünde aktivite kartı, takvim kartıyla aynı boyda (çerçeve altları hizalı);
+// liste başlıktan sonra kalan alanı doldurur, taşarsa kendi içinde kayar
+@media (min-width: 1024px) {
+  .charts-grid .activity-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .charts-grid .activity-card .timeline {
+    max-height: none;
+    flex: 1 1 0;
+    min-height: 0;
+  }
 }
 
 // Eğitmenin yeni eğitim açması: dolu mavi nokta (pozisyon bazlı renkleri ezer)
@@ -576,3 +594,20 @@ table {
   background: $primary !important;
   border-color: $primary !important;
 }
+
+// --- Takvim + aktiviteler satırı: genel küçültme (çok yer kaplıyordu) ---
+.charts-grid .chart-card,
+.charts-grid .activity-card {
+  padding: 12px 14px;
+}
+
+.charts-grid .activity-card h2 { margin-bottom: 10px; }
+
+.charts-grid .chart-header { margin-bottom: 6px; }
+
+.charts-grid .timeline { gap: 14px; }
+
+.timeline-content p { font-size: 13px; }
+.timeline-content .time { font-size: 11px; }
+
+.calendar-legend { font-size: 11px; gap: 12px; }
