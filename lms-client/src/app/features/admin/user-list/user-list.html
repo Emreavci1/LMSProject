@@ -7,6 +7,32 @@
     </button>
   </div>
 
+  <!-- Filtre barı: arama + rol + durum -->
+  <div class="filter-bar">
+    <div class="search-wrap">
+      <mat-icon class="search-icon">search</mat-icon>
+      <input
+        type="text"
+        placeholder="İsim veya email ara..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+      />
+    </div>
+    <div class="filter-controls">
+      <select [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+        <option value="all">Tüm Roller</option>
+        <option value="Admin">Yönetici</option>
+        <option value="Instructor">Eğitmen</option>
+        <option value="CourseAttendee">Katılımcı</option>
+      </select>
+      <select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="all">Tüm Durumlar</option>
+        <option value="active">Aktif</option>
+        <option value="passive">Pasif</option>
+      </select>
+    </div>
+  </div>
+
   @if (loading()) {
     <div class="center-box">
       <mat-spinner diameter="40" />
@@ -14,7 +40,7 @@
   } @else {
     <!-- Masaüstü: tablo görünümü -->
     <div class="table-wrapper">
-      <table mat-table [dataSource]="users()" class="user-table">
+      <table mat-table [dataSource]="filteredUsers()" class="user-table">
         <ng-container matColumnDef="role">
           <th mat-header-cell *matHeaderCellDef>Rol</th>
           <td mat-cell *matCellDef="let user">
@@ -78,7 +104,7 @@
 
     <!-- Mobil: kart görünümü -->
     <div class="card-list">
-      @for (user of users(); track user.id) {
+      @for (user of filteredUsers(); track user.id) {
         <mat-card class="user-card">
           <mat-card-content>
             <div class="card-row">
@@ -119,5 +145,13 @@
         </mat-card>
       }
     </div>
+
+    <!-- Filtreye uyan kullanıcı yoksa -->
+    @if (filteredUsers().length === 0) {
+      <div class="empty">
+        <mat-icon>search_off</mat-icon>
+        <p>Bu filtrelere uygun kullanıcı bulunamadı.</p>
+      </div>
+    }
   }
 </div>

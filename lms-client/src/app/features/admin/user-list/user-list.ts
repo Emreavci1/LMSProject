@@ -1,4 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -18,6 +19,7 @@ import { avatarSrc } from '../../../core/utils/avatar.util';
 @Component({
   selector: 'app-user-list',
   imports: [
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -41,6 +43,30 @@ export class UserList {
   readonly loading = signal(true);
   readonly users = signal<User[]>([]);
   readonly displayedColumns = ['role', 'fullName', 'email', 'status', 'actions'];
+
+  // Filtreleme: arama + rol + durum (client-side; kullanıcı sayısı az)
+  readonly searchTerm = signal('');
+  readonly roleFilter = signal<string>('all'); // 'all' | 'Admin' | 'Instructor' | 'CourseAttendee'
+  readonly statusFilter = signal<'all' | 'active' | 'passive'>('all');
+
+  readonly filteredUsers = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    const role = this.roleFilter();
+    const status = this.statusFilter();
+
+    return this.users().filter((u) => {
+      if (role !== 'all' && u.role !== role) return false;
+      if (status === 'active' && !u.isActive) return false;
+      if (status === 'passive' && u.isActive) return false;
+      if (
+        term &&
+        !u.fullName.toLowerCase().includes(term) &&
+        !u.email.toLowerCase().includes(term)
+      )
+        return false;
+      return true;
+    });
+  });
 
   // mat-table satırları 'any' tipli olduğundan string index kullanıyoruz
   readonly roleLabels: Record<string, string> = {
