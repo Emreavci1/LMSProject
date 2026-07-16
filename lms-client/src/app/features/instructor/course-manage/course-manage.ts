@@ -27,6 +27,7 @@ import { UploadService } from '../../../core/services/upload.service';
 import { avatarSrc } from '../../../core/utils/avatar.util';
 import { coverCss } from '../../../core/utils/cover.util';
 import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
+import { FileDropDirective } from '../../../shared/directives/file-drop.directive';
 
 export type ContentType = LessonContentType;
 
@@ -44,6 +45,7 @@ export type ContentType = LessonContentType;
     MatInputModule,
     MatProgressBarModule,
     MatProgressSpinnerModule,
+    FileDropDirective,
   ],
   templateUrl: './course-manage.html',
   styleUrl: './course-manage.scss',
@@ -185,8 +187,12 @@ export class CourseManage {
   onLessonFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (file) this.uploadLessonFile(file);
+    input.value = ''; // aynı dosya tekrar seçilebilsin
+  }
 
+  // Dosya seçici VE sürükle-bırak (appFileDrop) buradan yükler
+  uploadLessonFile(file: File): void {
     this.uploadingFile.set(true);
     this.uploadService.upload(file, this.newContentType()).subscribe({
       next: (result) => {
@@ -200,7 +206,6 @@ export class CourseManage {
         this.notification.fromHttpError(err, 'Dosya yüklenemedi.');
       },
     });
-    input.value = ''; // aynı dosya tekrar seçilebilsin
   }
 
   // 5 içerik tipi. Link ve Text bugün tam çalışır;

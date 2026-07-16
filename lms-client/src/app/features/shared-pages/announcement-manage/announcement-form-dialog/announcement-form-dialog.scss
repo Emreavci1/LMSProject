@@ -141,6 +141,12 @@
 
   &:hover { border-color: $primary; background: rgba($primary, 0.04); }
   &.busy { cursor: default; opacity: 0.7; }
+  // Üzerine dosya sürüklenirken (appFileDrop) belirgin vurgu
+  &.drag-over {
+    border-color: $primary;
+    border-style: solid;
+    background: rgba($primary, 0.08);
+  }
 
   .spin { animation: att-spin 1s linear infinite; }
 }

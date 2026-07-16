@@ -1,4 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -23,7 +25,7 @@ export interface AssignAttendeeData {
 }
 
 // Admin: zorunlu eğitime katılımcı atama dialogu.
-// Şimdilik tek tek seçim; filtreleme/toplu atama ileride eklenecek.
+// Çoklu seçim desteklenir: işaretlenen herkese aynı son tarihle atama yapılır.
 @Component({
   selector: 'app-assign-attendee-dialog',
   imports: [
@@ -51,7 +53,8 @@ export class AssignAttendeeDialog {
   readonly candidates = signal<User[]>([]);
 
   readonly search = signal('');
-  readonly selectedUserId = signal<number | null>(null);
+  // Çoklu seçim: işaretlenen kullanıcı id'leri
+  readonly selectedIds = signal<Set<number>>(new Set());
 
   // Tarih + saat seçici: bugünden önce seçilemesin.
   // Saat varsayılanı 23:59 — yalnızca tarih seçen için "gün sonuna kadar" davranışı
@@ -86,29 +89,71 @@ export class AssignAttendeeDialog {
     });
   }
 
+  // Satıra tıklayınca seçimi aç/kapat (çoklu seçim)
   select(userId: number): void {
-    this.selectedUserId.set(this.selectedUserId() === userId ? null : userId);
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(userId)) next.delete(userId);
+      else next.add(userId);
+      return next;
+    });
+  }
+
+  isSelected(userId: number): boolean {
+    return this.selectedIds().has(userId);
+  }
+
+  // Filtrelenmiş listenin tamamı seçili mi? (Tümünü Seç butonunun durumu)
+  readonly allFilteredSelected = computed(() => {
+    const list = this.filtered();
+    return list.length > 0 && list.every((u) => this.selectedIds().has(u.id));
+  });
+
+  // Aramada görünenlerin hepsini seç / hepsini bırak
+  toggleAll(): void {
+    const list = this.filtered();
+    const allSelected = this.allFilteredSelected();
+    this.selectedIds.update((set) => {
+      const next = new Set(set);
+      for (const u of list) {
+        if (allSelected) next.delete(u.id);
+        else next.add(u.id);
+      }
+      return next;
+    });
   }
 
   assign(): void {
-    const userId = this.selectedUserId();
-    if (!userId || !this.dueDate() || this.saving()) return;
+    const ids = [...this.selectedIds()];
+    if (ids.length === 0 || !this.dueDate() || this.saving()) return;
 
     // Yerel tarih+saat → UTC (ISO): backend tüm tarihleri UTC saklar/karşılaştırır
     const dueDateIso = new Date(`${this.dueDate()}T${this.dueTime() || '23:59'}`).toISOString();
 
     this.saving.set(true);
-    this.enrollmentService
-      .assign({ userId, courseId: this.data.courseId, dueDate: dueDateIso })
-      .subscribe({
-        next: () => {
-          this.notification.success('Katılımcı atandı.');
-          this.dialogRef.close(true); // true → liste yenilensin
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.notification.fromHttpError(err, 'Atama yapılamadı.');
-        },
-      });
+    // Her kullanıcı için ayrı atama isteği; biri hata verse de diğerleri sürer
+    forkJoin(
+      ids.map((userId) =>
+        this.enrollmentService
+          .assign({ userId, courseId: this.data.courseId, dueDate: dueDateIso })
+          .pipe(
+            map(() => true),
+            catchError(() => of(false))
+          )
+      )
+    ).subscribe((results) => {
+      const ok = results.filter(Boolean).length;
+      const fail = results.length - ok;
+      if (fail === 0) {
+        this.notification.success(ok === 1 ? 'Katılımcı atandı.' : `${ok} katılımcı atandı.`);
+      } else if (ok > 0) {
+        this.notification.error(`${ok} katılımcı atandı, ${fail} atama başarısız oldu.`);
+      } else {
+        this.notification.error('Atamalar yapılamadı.');
+      }
+      // En az bir atama başarılıysa listeyi yeniletmek için true döneriz
+      if (ok > 0) this.dialogRef.close(true);
+      else this.saving.set(false);
+    });
   }
 }

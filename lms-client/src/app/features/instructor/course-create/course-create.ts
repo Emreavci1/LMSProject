@@ -15,7 +15,8 @@ import { CourseService } from '../../../core/services/course.service';
 import { CourseStatus } from '../../../core/models/course.models';
 import { CreateLesson } from '../../../core/models/lesson.models';
 import { LessonService } from '../../../core/services/lesson.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
+import { CategoryService } from '../../../core/services/category.service';
+import { FileDropDirective } from '../../../shared/directives/file-drop.directive';
 import { NotificationService } from '../../../core/services/notification.service';
 import { UploadService } from '../../../core/services/upload.service';
 import { coverCss } from '../../../core/utils/cover.util';
@@ -49,6 +50,7 @@ export interface DraftLesson {
     FormsModule,
     RouterModule,
     DragDropModule,
+    FileDropDirective,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -61,7 +63,7 @@ export interface DraftLesson {
 })
 export class CourseCreate {
   private fb = inject(FormBuilder);
-  protected mock = inject(MockDataService); // yalnızca kategori listesi için
+  private categoryService = inject(CategoryService);
   private auth = inject(AuthService);
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
@@ -73,6 +75,18 @@ export class CourseCreate {
 
   // Kaydetme sırasında butonları kilitlemek için
   readonly saving = signal(false);
+
+  // Kategori dropdown'ı — backend'den gelir (Categories tablosu)
+  readonly categories = signal<string[]>([]);
+
+  constructor() {
+    this.categoryService.getAll().subscribe({
+      next: (list) => this.categories.set(list.map((c) => c.name)),
+      error: () => {
+        /* liste boş kalır; form yine kaydedilebilir */
+      },
+    });
+  }
 
   // Template'ten kapak CSS'i üretmek için (gradient/url ayrımını util yapar)
   protected readonly coverCss = coverCss;
@@ -203,8 +217,12 @@ export class CourseCreate {
   onLessonFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (file) this.uploadLessonFile(file);
+    input.value = ''; // aynı dosya tekrar seçilebilsin
+  }
 
+  // Dosya seçici VE sürükle-bırak (appFileDrop) buradan yükler
+  uploadLessonFile(file: File): void {
     this.uploadingFile.set(true);
     this.uploadService.upload(file, this.newContentType()).subscribe({
       next: (result) => {
@@ -218,7 +236,6 @@ export class CourseCreate {
         this.notification.fromHttpError(err, 'Dosya yüklenemedi.');
       },
     });
-    input.value = ''; // aynı dosya tekrar seçilebilsin
   }
 
   addDraftLesson(): void {

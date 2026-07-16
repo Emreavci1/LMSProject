@@ -1,0 +1,43 @@
+<h2 mat-dialog-title class="dialog-title">
+  <mat-icon>campaign</mat-icon>
+  {{ announcement.title }}
+</h2>
+
+<mat-dialog-content>
+  <!-- Üst bilgi: gönderen + hedef -->
+  <div class="meta-row">
+    <div class="author-cell">
+      <img class="avatar" [src]="avatarSrc(announcement.authorAvatarUrl)" alt="" />
+      <span>{{ announcement.authorName }}</span>
+    </div>
+    @if (announcement.isGlobal) {
+      <span class="target-badge global">Genel</span>
+    } @else {
+      <span class="target-badge course">Eğitime Özel</span>
+    }
+  </div>
+
+  <!-- Tarihler -->
+  <div class="date-row">
+    <span><mat-icon>event</mat-icon> {{ announcement.publishDate | date: 'dd MMM yyyy, HH:mm' }}</span>
+    @if (announcement.expiryDate) {
+      <span><mat-icon>schedule</mat-icon> {{ announcement.expiryDate | date: 'dd MMM yyyy, HH:mm' }}'e kadar</span>
+    }
+  </div>
+
+  <!-- Tam içerik (satır sonları korunur) -->
+  <p class="content">{{ announcement.content }}</p>
+
+  <!-- Ek dosya (varsa) -->
+  @if (announcement.attachmentUrl) {
+    <a class="attachment-chip" [href]="fileUrl(announcement.attachmentUrl)" target="_blank" rel="noopener">
+      <mat-icon>attachment</mat-icon>
+      <span class="att-name">{{ announcement.attachmentName || 'Ek dosya' }}</span>
+      <mat-icon class="ext">open_in_new</mat-icon>
+    </a>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Kapat</button>
+</mat-dialog-actions>

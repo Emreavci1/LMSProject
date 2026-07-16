@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { AnnouncementFormDialogComponent } from './announcement-form-dialog/announcement-form-dialog';
+import { AnnouncementDetailDialogComponent } from './announcement-detail-dialog/announcement-detail-dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 import { avatarSrc } from '../../../core/utils/avatar.util';
@@ -52,6 +53,14 @@ export class AnnouncementManageComponent implements OnInit {
     this.announcementService.getManagedAnnouncements().subscribe({
       next: (data) => this.announcements.set(data),
       error: () => this.snackBar.open('Duyurular yüklenirken hata oluştu.', 'Kapat', { duration: 3000 })
+    });
+  }
+
+  // Başlığa tıklayınca duyurunun tam içeriğini salt-okunur gösterir
+  openDetail(announcement: Announcement): void {
+    this.dialog.open(AnnouncementDetailDialogComponent, {
+      width: '600px',
+      data: announcement,
     });
   }
 

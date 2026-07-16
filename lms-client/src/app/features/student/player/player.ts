@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -7,6 +8,8 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { Course } from '../../../core/models/course.models';
 import { Lesson } from '../../../core/models/lesson.models';
+import { Announcement } from '../../../core/models/announcement.models';
+import { AnnouncementService } from '../../../core/services/announcement.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
@@ -21,6 +24,7 @@ import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
   selector: 'app-player',
   imports: [
     RouterLink,
+    DatePipe,
     MatIconModule,
     MatButtonModule,
     MatTabsModule,
@@ -36,10 +40,14 @@ export class Player implements OnInit {
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
   private enrollmentService = inject(EnrollmentService);
+  private announcementService = inject(AnnouncementService);
   private sanitizer = inject(DomSanitizer);
   private auth = inject(AuthService);
 
   readonly courseId = computed(() => Number(this.id()));
+
+  // Duyuru ek dosyası bağlantısı için (template'te kullanılır)
+  protected readonly fileUrl = fileUrl;
 
   // Eğitmen/Admin "Önizle" ile geldiyse geri dönüş kendi eğitim listesine gider
   readonly isPreview = computed(
@@ -64,6 +72,9 @@ export class Player implements OnInit {
 
   // Bu oturumda videosu sonuna kadar izlenen ders id'leri (zorunlu video kilidi için)
   readonly watchedVideoIds = signal<Set<number>>(new Set());
+
+  // Bu kursa özel duyurular ("Duyurular" sekmesinde gösterilir)
+  readonly announcements = signal<Announcement[]>([]);
 
   // Dersleri bölümlere grupla: [{ section, lessons }]
   readonly sections = computed(() => {
@@ -201,6 +212,12 @@ export class Player implements OnInit {
     this.lessonService.getByCourse(courseId).subscribe({
       next: (list) => this.lessons.set(list),
       error: () => this.lessons.set([]),
+    });
+
+    // Kursa özel duyurular (yayınlanmış + süresi geçmemiş olanlar backend'den gelir)
+    this.announcementService.getCourseAnnouncements(courseId).subscribe({
+      next: (list) => this.announcements.set(list),
+      error: () => this.announcements.set([]), // sekme "duyuru yok" gösterir
     });
 
     // Öğrenci görünümünde bu kursa ait kaydın atanmış (zorunlu) olup olmadığını çek

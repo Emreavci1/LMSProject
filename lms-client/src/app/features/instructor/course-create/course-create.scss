@@ -392,6 +392,13 @@
   &:hover { border-color: $primary; background: $surface-container; }
   &.has-file { border: 2px solid $primary; background: #fff; color: $primary; }
   &.busy { pointer-events: none; opacity: 0.7; }
+  // Üzerine dosya sürüklenirken (appFileDrop) belirgin vurgu
+  &.drag-over {
+    border-color: $primary;
+    border-style: solid;
+    background: rgba($primary, 0.08);
+    color: $primary;
+  }
 }
 
 // Taslak ders önizlemesinde yüklenen foto/video

@@ -11,7 +11,7 @@
   } @else if (candidates().length === 0) {
     <p class="empty-text">Atanabilecek katılımcı yok (hepsi zaten kayıtlı veya aktif katılımcı bulunmuyor).</p>
   } @else {
-    <!-- Arama -->
+    <!-- Arama + tümünü seç -->
     <div class="search-box">
       <mat-icon>search</mat-icon>
       <input
@@ -22,13 +22,23 @@
       />
     </div>
 
-    <!-- Kullanıcı listesi: tıklayınca seçilir -->
+    <div class="list-toolbar">
+      <button type="button" class="select-all-btn" (click)="toggleAll()">
+        <mat-icon>{{ allFilteredSelected() ? 'deselect' : 'done_all' }}</mat-icon>
+        {{ allFilteredSelected() ? 'Seçimi Bırak' : 'Tümünü Seç' }}
+      </button>
+      @if (selectedIds().size > 0) {
+        <span class="selected-count">{{ selectedIds().size }} katılımcı seçildi</span>
+      }
+    </div>
+
+    <!-- Kullanıcı listesi: tıklayınca seçim aç/kapat (çoklu seçim) -->
     <div class="user-list">
       @for (user of filtered(); track user.id) {
         <button
           type="button"
           class="user-row"
-          [class.selected]="selectedUserId() === user.id"
+          [class.selected]="isSelected(user.id)"
           (click)="select(user.id)"
         >
           <img class="mini-avatar" [src]="avatarSrc(user.avatarUrl)" [alt]="user.fullName" />
@@ -36,9 +46,7 @@
             <strong>{{ user.fullName }}</strong>
             <small>{{ user.email }}</small>
           </span>
-          @if (selectedUserId() === user.id) {
-            <mat-icon class="check">check_circle</mat-icon>
-          }
+          <mat-icon class="check">{{ isSelected(user.id) ? 'check_circle' : 'radio_button_unchecked' }}</mat-icon>
         </button>
       } @empty {
         <p class="empty-text">Aramayla eşleşen katılımcı yok.</p>
@@ -74,12 +82,12 @@
     mat-flat-button
     color="primary"
     (click)="assign()"
-    [disabled]="!selectedUserId() || !dueDate() || saving()"
+    [disabled]="selectedIds().size === 0 || !dueDate() || saving()"
   >
     @if (saving()) {
       <mat-spinner diameter="20" />
     } @else {
-      Ata
+      Ata @if (selectedIds().size > 1) { ({{ selectedIds().size }}) }
     }
   </button>
 </mat-dialog-actions>

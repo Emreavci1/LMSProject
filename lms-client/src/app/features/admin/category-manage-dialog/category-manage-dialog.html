@@ -11,23 +11,23 @@
       (ngModelChange)="newCategoryName.set($event)"
       (keyup.enter)="addCategory()"
     />
-    <button mat-flat-button color="primary" (click)="addCategory()">
+    <button mat-flat-button color="primary" (click)="addCategory()" [disabled]="busy()">
       <mat-icon>add</mat-icon> Ekle
     </button>
   </div>
 
   <!-- Kategori listesi + kurs sayıları -->
   <div class="category-list">
-    @for (cat of mock.categories(); track cat) {
+    @for (cat of categories(); track cat.id) {
       <div class="category-row">
         <mat-icon class="cat-icon">category</mat-icon>
-        <span class="cat-name">{{ cat }}</span>
-        <span class="cat-count">{{ courseCount(cat) }} eğitim</span>
+        <span class="cat-name">{{ cat.name }}</span>
+        <span class="cat-count">{{ courseCount(cat.name) }} eğitim</span>
         <button
           mat-icon-button
           class="remove-btn"
-          [disabled]="courseCount(cat) > 0"
-          [title]="courseCount(cat) > 0 ? 'Kategoride eğitim var, silinemez' : 'Sil'"
+          [disabled]="courseCount(cat.name) > 0 || busy()"
+          [title]="courseCount(cat.name) > 0 ? 'Kategoride eğitim var, silinemez' : 'Sil'"
           (click)="removeCategory(cat)"
         >
           <mat-icon>delete_outline</mat-icon>

@@ -4,6 +4,7 @@ using LMS.DTO.Enrollments;
 using LMS.DTO.Lessons;
 using LMS.DTO.Users;
 using LMS.DTO.Announcements;
+using LMS.DTO.Categories;
 using LMS.Entities;
 using LMS.Entities.Enums;
 
@@ -55,5 +56,7 @@ public class MappingProfile : Profile
                 s => s.Author.Role == UserRole.Admin ? "LÖSEV LMS" : s.Author.FullName))
             .ForMember(d => d.AuthorAvatarUrl, opt => opt.MapFrom(s => s.Author.AvatarUrl))
             .ForMember(d => d.IsGlobal, opt => opt.MapFrom(s => s.CourseId == null));
+
+        CreateMap<Category, CategoryDto>();
     }
 }

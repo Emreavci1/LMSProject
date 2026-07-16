@@ -16,6 +16,7 @@ import { Announcement } from '../../../../core/models/announcement.models';
 import { Course } from '../../../../core/models/course.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../../core/services/auth.service';
+import { FileDropDirective } from '../../../../shared/directives/file-drop.directive';
 
 @Component({
   selector: 'app-announcement-form-dialog',
@@ -30,7 +31,8 @@ import { AuthService } from '../../../../core/services/auth.service';
     MatSlideToggleModule,
     MatSelectModule,
     MatIconModule,
-    MatDividerModule
+    MatDividerModule,
+    FileDropDirective
   ],
   templateUrl: './announcement-form-dialog.html',
   styleUrl: './announcement-form-dialog.scss'
@@ -133,8 +135,12 @@ export class AnnouncementFormDialogComponent implements OnInit {
   onAttachmentSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
-    if (!file) return;
+    if (file) this.uploadAttachmentFile(file);
+    input.value = ''; // aynı dosya tekrar seçilebilsin
+  }
 
+  // Dosya seçici VE sürükle-bırak (appFileDrop) buradan yükler
+  uploadAttachmentFile(file: File): void {
     this.uploadingAttachment = true;
     this.uploadService.uploadAttachment(file).subscribe({
       next: (res) => {
@@ -148,7 +154,6 @@ export class AnnouncementFormDialogComponent implements OnInit {
         this.snackBar.open(msg, 'Kapat', { duration: 4000 });
       },
     });
-    input.value = ''; // aynı dosya tekrar seçilebilsin
   }
 
   removeAttachment(): void {

@@ -4,7 +4,7 @@ LÖSEV için geliştirilen **kapalı kurumsal eğitim yönetim sistemi** (Learni
 Kurum içi eğitmenler eğitim/kurs oluşturur, katılımcılar bu eğitimlere katılır ve ilerlemeleri takip edilir.
 Halka açık bir platform değildir — kullanıcıları yalnızca Admin ekler, dışarıdan kayıt olunamaz.
 
-> Ayrıntılı teknik şartname için: [CLAUDE.md](CLAUDE.md) · Geliştirme rehberi için: [PROJE-REHBERI.md](PROJE-REHBERI.md)
+> Ayrıntılı teknik şartname için: [CLAUDE.md](CLAUDE.md)
 
 ---
 
@@ -14,9 +14,12 @@ Halka açık bir platform değildir — kullanıcıları yalnızca Admin ekler, 
 - 👥 **3 rol**: Admin, Instructor (eğitmen), CourseAttendee (katılımcı) — hem backend hem frontend'de yetki kontrolü
 - 📚 **Kurs yönetimi** — eğitmen kendi kurslarını oluşturur/düzenler; kaynak sahipliği kontrolü backend'de
 - 📖 **Ders modülü** — 5 içerik tipi: URL bağlantısı (YouTube gömme destekli), okuma metni, fotoğraf, sunum/PDF, video
-- 📤 **Dosya yükleme** — foto (5MB) / sunum-PDF (25MB) / video (300MB), uzantı beyaz listesi, sunucuda `wwwroot/uploads` altında
+- 📤 **Dosya yükleme** — foto (5MB) / sunum-PDF (25MB) / video (300MB), uzantı beyaz listesi, S3-uyumlu **MinIO**'da saklanır (yerel diske de dönülebilir)
 - ✅ **İlerleme takibi** — ders tamamlama işaretleme, kurs bazında yüzde; eğitmen katılımcıların gerçek ilerlemesini görür
-- 🧑‍💼 **Admin paneli** — kullanıcı yönetimi (ekleme/rol atama/pasifleştirme) ve tüm eğitimlerin yönetimi (aktif/pasif dahil)
+- 📢 **Duyuru modülü** — genel veya eğitime özel duyurular; yayın/son geçerlilik tarihi, ek dosya; katılımcı ve eğitmenlere dashboard/takvimde gösterilir
+- 📌 **Zorunlu eğitim** — Admin katılımcıya son tarihli eğitim atar; görünürlük kuralları, gecikme raporu ve katılımcı rozetleri
+- 🗓️ **Ortak takvim** — eğitim yayınları, zorunlu eğitim son tarihleri ve duyurular tek takvimde (dashboard, program ve admin genel bakışta)
+- 🧑‍💼 **Admin paneli** — kullanıcı yönetimi (ekleme/rol atama/pasifleştirme), tüm eğitimlerin yönetimi (aktif/pasif dahil) ve gerçek verili genel bakış (KPI + takvim + aktiviteler)
 - 📱 **Responsive tasarım** — mobil/tablet/masaüstü
 
 ## Teknoloji Stack
@@ -104,22 +107,25 @@ Proje Scrum pratikleriyle yürütülür: iş kalemleri **Product Backlog**'da tu
 - ✅ Angular temel yapı: login, interceptor, guard'lar, role göre dashboard
 - ✅ Ders modülü (5 içerik tipi) + ders oynatıcı (player)
 - ✅ İlerleme takibi (LessonCompletions) + eğitmen katılımcı listesi
-- ✅ Dosya yükleme altyapısı (upload API + statik sunum + form entegrasyonu)
+- ✅ Dosya yükleme altyapısı (upload API + form entegrasyonu) → MinIO (S3-uyumlu) depolamaya geçildi
 - ✅ Admin eğitim yönetimi gerçek veriye bağlandı (pasif/taslak dahil listeleme, durum toggle, detay)
 - ✅ Zorunlu eğitim backend'i: atama API'si (due date'li), görünürlük kuralları, gecikme raporu
+- ✅ Zorunlu eğitim frontend'i: admin atama ekranı, tamamlama/gecikme raporu, katılımcı rozetleri
+- ✅ Duyuru modülü: genel/eğitime özel duyurular, yayın-son geçerlilik tarihi, ek dosya, içerik detay görünümü
+- ✅ Ortak takvim: yayınlar + zorunlu son tarihler + duyurular (dashboard, program, admin genel bakış)
+- ✅ Admin Genel Bakış gerçek veriye bağlandı (KPI + takvim + son aktiviteler)
+- ✅ Kategori yönetimi backend'e taşındı (`Categories` tablosu + API); son mock verisi (`MockDataService`) silindi
 
 ### Product Backlog (Sıradaki İşler)
-- 🔜 Zorunlu eğitim frontend'i: admin atama ekranı + tamamlama/gecikme raporu + katılımcı rozetleri
-- 🔜 Admin panelinin kalan mock sayfaları (Kategoriler, Genel Bakış) → gerçek veriye bağlanacak
-- 🔜 Duyuru (announcements) modülü — şimdilik ertelendi
 - 🔜 Sertifika sistemi
-- 🔜 Periyodik eğitim mekanizması (yıllık zorunlu eğitim, hatırlatma)
-- 🔜 Section/şube sistemi (bir dersi birden fazla eğitmenin vermesi)
-- 🔜 Canlı ortam hazırlığı (korumalı dosya sunumu, AutoMapper güvenlik güncellemesi)
+- 🔜 Profil ve Ayarlar sayfalarının gerçek veriye bağlanması
+- 🔜 Canlı ortam hazırlığı (korumalı dosya sunumu, AutoMapper güvenlik güncellemesi, seed test kullanıcılarının kaldırılması)
+
+> Kapsam dışı (karar 2026-07-16): Section/şube sistemi ve periyodik eğitim mekanizması yapılmayacak.
 
 ## Güvenlik Notları
 
 - Şifreler ASP.NET Core Identity hash mekanizmasıyla saklanır, asla düz metin tutulmaz
 - Frontend'deki gizleme/guard'lar yalnızca kullanıcı deneyimi içindir — **gerçek güvenlik backend'dedir**, her istek yeniden doğrulanır
 - Yüklenen dosyalar uzantı beyaz listesi + boyut sınırından geçer, GUID adla saklanır (path traversal engeli)
-- Bilinen kısıt: statik dosya sunumu (`/uploads/...`) token istemez — kapalı kurum içi ağ için kabul edildi, canlıda korumalı sunum planlanacak
+- Bilinen kısıt: yüklenen dosyalar (MinIO `lms-uploads` bucket'ı public-read; "Local" modda `/uploads/...`) token istemez — kapalı kurum içi ağ için kabul edildi, canlıda korumalı sunum planlanacak

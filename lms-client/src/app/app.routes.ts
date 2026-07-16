@@ -159,26 +159,7 @@ export const routes: Routes = [
         data: { roles: ['Admin'] },
       },
 
-      // ---- Eski genel kurs sayfaları (herkes erişebilir) ----
-      {
-        path: 'courses',
-        loadComponent: () =>
-          import('./features/courses/course-list/course-list').then((m) => m.CourseList),
-      },
-      {
-        path: 'courses/new',
-        loadComponent: () =>
-          import('./features/courses/course-form/course-form').then((m) => m.CourseForm),
-        canActivate: [roleGuard],
-        data: { roles: ['Instructor', 'Admin'] },
-      },
-      {
-        path: 'courses/:id/edit',
-        loadComponent: () =>
-          import('./features/courses/course-form/course-form').then((m) => m.CourseForm),
-        canActivate: [roleGuard],
-        data: { roles: ['Instructor', 'Admin'] },
-      },
+      // Kurs detayı (Keşfet ve Eğitimlerim kartlarından açılır)
       {
         path: 'courses/:id',
         loadComponent: () =>

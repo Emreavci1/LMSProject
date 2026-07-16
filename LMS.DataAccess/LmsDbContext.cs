@@ -17,6 +17,7 @@ public class LmsDbContext : DbContext
     public DbSet<Lesson> Lessons => Set<Lesson>();
     public DbSet<LessonCompletion> LessonCompletions => Set<LessonCompletion>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<Category> Categories => Set<Category>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -121,6 +122,15 @@ public class LmsDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(a => a.AuthorId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // --- Category ---
+        modelBuilder.Entity<Category>(entity =>
+        {
+            entity.Property(c => c.Name).HasMaxLength(100).IsRequired();
+
+            // Aynı adla iki kategori olamaz
+            entity.HasIndex(c => c.Name).IsUnique();
         });
     }
 }

@@ -51,7 +51,7 @@
         <div class="chart-header">
           <div>
             <h2>Eğitim Takvimi</h2>
-            <p class="chart-sub">Zorunlu eğitim son tarihleri ve planlanan yayınlar — gün üzerine gelerek detayı görün</p>
+            <p class="chart-sub">Zorunlu eğitim son tarihleri, planlanan yayınlar ve duyurular — gün üzerine gelerek detayı görün</p>
           </div>
         </div>
         <div class="calendar-wrap">
@@ -60,10 +60,33 @@
         <div class="calendar-legend">
           <span><i class="dot deadline"></i> Zorunlu son tarih</span>
           <span><i class="dot publish"></i> Eğitim yayını</span>
+          <span><i class="dot announcement"></i> Duyuru</span>
         </div>
       </div>
 
-      <!-- En Çok Katılınan Kategoriler -->
+      <!-- Son Aktiviteler (gecikme uyarıları üstte, kırmızı) -->
+      <div class="activity-card">
+        <h2>Son Aktiviteler</h2>
+        @if (activities().length === 0) {
+          <p class="empty-text">Henüz aktivite yok.</p>
+        } @else {
+          <div class="timeline">
+            @for (activity of activities(); track activity.text + activity.date) {
+              <div class="timeline-item">
+                <div class="timeline-dot" [class.overdue]="activity.overdue" [class.course-open]="activity.isCourseOpen"></div>
+                <div class="timeline-content">
+                  <p [class.overdue-text]="activity.overdue">{{ activity.text }}</p>
+                  <span class="time">{{ activity.date | date: 'dd.MM.yyyy' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <!-- En Çok Katılınan Kategoriler -->
+    <section class="bottom-grid">
       <div class="chart-card">
         <h2>En Çok Katılınan Kategoriler</h2>
         <p class="chart-sub">Katılım sayısına göre dağılım</p>
@@ -79,28 +102,6 @@
                 </div>
                 <div class="cat-bar-track">
                   <div class="cat-bar-fill" [style.width.%]="cat.percent"></div>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-    </section>
-
-    <!-- Son Aktiviteler (gecikme uyarıları üstte, kırmızı) -->
-    <section class="bottom-grid">
-      <div class="activity-card">
-        <h2>Son Aktiviteler</h2>
-        @if (activities().length === 0) {
-          <p class="empty-text">Henüz aktivite yok.</p>
-        } @else {
-          <div class="timeline">
-            @for (activity of activities(); track activity.text + activity.date) {
-              <div class="timeline-item">
-                <div class="timeline-dot" [class.overdue]="activity.overdue" [class.course-open]="activity.isCourseOpen"></div>
-                <div class="timeline-content">
-                  <p [class.overdue-text]="activity.overdue">{{ activity.text }}</p>
-                  <span class="time">{{ activity.date | date: 'dd.MM.yyyy' }}</span>
                 </div>
               </div>
             }

@@ -99,13 +99,14 @@
           </button>
         </div>
       } @else {
-        <label class="attachment-drop" [class.busy]="uploadingAttachment">
+        <label class="attachment-drop" [class.busy]="uploadingAttachment"
+               appFileDrop (fileDropped)="uploadAttachmentFile($event)">
           @if (uploadingAttachment) {
             <mat-icon class="spin">progress_activity</mat-icon>
             <span>Yükleniyor...</span>
           } @else {
             <mat-icon>upload_file</mat-icon>
-            <span>Dosya seç (PDF, görsel, sunum, zip · en fazla 25 MB)</span>
+            <span>Dosya seç veya sürükle (PDF, görsel, sunum, zip · en fazla 25 MB)</span>
           }
           <input type="file" hidden (change)="onAttachmentSelected($event)"
                  accept=".pdf,.ppt,.pptx,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.zip,.txt" />

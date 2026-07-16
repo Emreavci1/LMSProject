@@ -33,6 +33,15 @@ public static class DbSeeder
             await context.SaveChangesAsync();
         }
 
+        // Varsayılan eğitim kategorileri (tablo boşsa bir kez eklenir).
+        // Eski localStorage tabanlı listeyle aynı başlangıç seti.
+        if (!await context.Categories.AnyAsync())
+        {
+            var defaultNames = new[] { "Genel", "Sağlık", "Teknoloji", "Kişisel Gelişim", "Sanat" };
+            context.Categories.AddRange(defaultNames.Select(name => new Category { Name = name }));
+            await context.SaveChangesAsync();
+        }
+
         // Frontend login ekranındaki "hızlı giriş" test kullanıcıları (login.ts).
         // Sadece geliştirme kolaylığı için; production'a geçerken kaldırılmalı.
         await SeedTestUserAsync(context, passwordHasher, "egitmen1@losev.org.tr", "Egitmen123!", "Test Eğitmen", UserRole.Instructor);

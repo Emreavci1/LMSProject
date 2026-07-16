@@ -192,7 +192,28 @@
             }
           </mat-tab>
           <mat-tab label="Duyurular">
-            <div class="tab-content muted">Bu kurs için duyuru bulunmuyor.</div>
+            @if (announcements().length > 0) {
+              <div class="tab-content">
+                @for (a of announcements(); track a.id) {
+                  <div class="announcement-item">
+                    <div class="announcement-head">
+                      <mat-icon>campaign</mat-icon>
+                      <strong>{{ a.title }}</strong>
+                      <span class="announcement-date">{{ a.publishDate | date: 'dd MMM yyyy, HH:mm' }}</span>
+                    </div>
+                    <p class="announcement-body">{{ a.content }}</p>
+                    @if (a.attachmentUrl) {
+                      <a class="announcement-attachment" [href]="fileUrl(a.attachmentUrl)" target="_blank" rel="noopener">
+                        <mat-icon>attachment</mat-icon>
+                        {{ a.attachmentName || 'Ek dosya' }}
+                      </a>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="tab-content muted">Bu kurs için duyuru bulunmuyor.</div>
+            }
           </mat-tab>
         </mat-tab-group>
       </div>

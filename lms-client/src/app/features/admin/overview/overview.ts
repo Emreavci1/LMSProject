@@ -12,8 +12,10 @@ import {
 import { Course } from '../../../core/models/course.models';
 import { CourseAttendee } from '../../../core/models/enrollment.models';
 import { User } from '../../../core/models/user.models';
+import { Announcement } from '../../../core/models/announcement.models';
 import { CourseService } from '../../../core/services/course.service';
 import { UserService } from '../../../core/services/user.service';
+import { AnnouncementService } from '../../../core/services/announcement.service';
 
 // Kurs + katılımcıları (aktivite/gecikme/takvim hesapları için)
 interface CourseWithAttendees {
@@ -40,12 +42,23 @@ interface ActivityItem {
 export class Overview {
   private courseService = inject(CourseService);
   private userService = inject(UserService);
+  private announcementService = inject(AnnouncementService);
 
   readonly loading = signal(true);
   readonly users = signal<User[]>([]);
   readonly data = signal<CourseWithAttendees[]>([]);
+  // Tüm duyurular (admin hepsini görür) — takvimde yeşil işaret olarak gösterilir
+  readonly announcements = signal<Announcement[]>([]);
 
   constructor() {
+    // Duyuruları ayrıca çek (takvim işaretleri için); hata olsa da sayfa açılır
+    this.announcementService.getManagedAnnouncements().subscribe({
+      next: (list) => this.announcements.set(list),
+      error: () => {
+        /* takvim duyurusuz kalır */
+      },
+    });
+
     forkJoin({
       courses: this.courseService.getAllForAdmin(),
       users: this.userService.getAll(),
@@ -116,6 +129,22 @@ export class Overview {
           date: course.publishDate,
           label: `Yayınlanacak (${timeLabel(course.publishDate)}): ${course.title}`,
           kind: 'publish',
+        });
+      }
+    }
+
+    // Duyuru olayları: yayın günü + varsa son geçerlilik günü (yeşil işaret)
+    for (const a of this.announcements()) {
+      events.push({
+        date: a.publishDate,
+        label: `Duyuru (${timeLabel(a.publishDate)}): ${a.title}`,
+        kind: 'announcement',
+      });
+      if (a.expiryDate) {
+        events.push({
+          date: a.expiryDate,
+          label: `Duyuru bitiş (${timeLabel(a.expiryDate)}): ${a.title}`,
+          kind: 'announcement',
         });
       }
     }

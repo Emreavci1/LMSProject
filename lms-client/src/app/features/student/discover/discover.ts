@@ -5,7 +5,6 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CourseService } from '../../../core/services/course.service';
 import { EnrollmentService } from '../../../core/services/enrollment.service';
-import { MockDataService } from '../../../core/services/mock-data.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { coverCss } from '../../../core/utils/cover.util';
 import { formatCourseHours } from '../../../core/utils/duration.util';
@@ -37,7 +36,6 @@ interface CatalogCourse {
   styleUrl: './discover.scss',
 })
 export class Discover {
-  protected mock = inject(MockDataService);
   private auth = inject(AuthService);
   private courseService = inject(CourseService);
   private enrollmentService = inject(EnrollmentService);
@@ -93,10 +91,11 @@ export class Discover {
     }
   }
 
-  // Kategori hapları: tanımlı kategoriler + gerçek kurslardan gelenler (tekrarsız)
+  // Kategori hapları: yayındaki kursların kategorilerinden (tekrarsız).
+  // Boş kategoride kurs olmayacağı için ayrı kategori listesi çekmeye gerek yok.
   readonly categories = computed(() => {
-    const set = new Set(this.mock.categories());
-    this.realCourses().forEach((c) => set.add(c.category));
+    const set = new Set<string>();
+    this.realCourses().forEach((c) => set.add(c.category || 'Genel'));
     return [...set];
   });
 

@@ -43,7 +43,7 @@
             <div class="select-wrapper">
               <select id="course-category" formControlName="category" class="custom-select">
                 <option value="" disabled selected>Bir kategori seçin...</option>
-                @for (category of mock.categories(); track category) {
+                @for (category of categories(); track category) {
                   <option [value]="category">{{ category }}</option>
                 }
               </select>
@@ -228,9 +228,10 @@
                 <div class="form-row items-center">
                   <div class="form-group flex-2">
                     <label>Fotoğraf (JPG / PNG / GIF / WebP — en fazla 5 MB)</label>
-                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="imageInput.click()">
+                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="imageInput.click()"
+                         appFileDrop (fileDropped)="uploadLessonFile($event)">
                       <mat-icon>{{ uploadingFile() ? 'hourglass_top' : (newContentUrl() ? 'check_circle' : 'add_photo_alternate') }}</mat-icon>
-                      <span>{{ uploadingFile() ? 'Yükleniyor...' : (newUploadedFileName() || 'Fotoğraf Yükle') }}</span>
+                      <span>{{ uploadingFile() ? 'Yükleniyor...' : (newUploadedFileName() || 'Fotoğraf Yükle veya Sürükle') }}</span>
                       <input #imageInput type="file" accept=".jpg,.jpeg,.png,.gif,.webp" (change)="onLessonFileSelected($event)" style="display:none;" />
                     </div>
                   </div>
@@ -254,9 +255,10 @@
                 <div class="form-row items-center">
                   <div class="form-group flex-2">
                     <label>Sunum / PDF (PDF / PPT / DOC — en fazla 25 MB)</label>
-                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="docInput.click()">
+                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="docInput.click()"
+                         appFileDrop (fileDropped)="uploadLessonFile($event)">
                       <mat-icon>{{ uploadingFile() ? 'hourglass_top' : (newContentUrl() ? 'check_circle' : 'upload_file') }}</mat-icon>
-                      <span>{{ uploadingFile() ? 'Yükleniyor...' : (newUploadedFileName() || 'Sunum / PDF Yükle') }}</span>
+                      <span>{{ uploadingFile() ? 'Yükleniyor...' : (newUploadedFileName() || 'Sunum / PDF Yükle veya Sürükle') }}</span>
                       <input #docInput type="file" accept=".pdf,.ppt,.pptx,.doc,.docx" (change)="onLessonFileSelected($event)" style="display:none;" />
                     </div>
                   </div>
@@ -270,9 +272,10 @@
                 <div class="form-row items-center">
                   <div class="form-group flex-2">
                     <label>Video (MP4 / WebM — en fazla 300 MB)</label>
-                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="videoInput.click()">
+                    <div class="upload-box" [class.has-file]="newContentUrl()" [class.busy]="uploadingFile()" (click)="videoInput.click()"
+                         appFileDrop (fileDropped)="uploadLessonFile($event)">
                       <mat-icon>{{ uploadingFile() ? 'hourglass_top' : (newContentUrl() ? 'check_circle' : 'video_file') }}</mat-icon>
-                      <span>{{ uploadingFile() ? 'Yükleniyor... (büyük dosyalar zaman alabilir)' : (newUploadedFileName() || 'Video Yükle') }}</span>
+                      <span>{{ uploadingFile() ? 'Yükleniyor... (büyük dosyalar zaman alabilir)' : (newUploadedFileName() || 'Video Yükle veya Sürükle') }}</span>
                       <input #videoInput type="file" accept=".mp4,.webm" (change)="onLessonFileSelected($event)" style="display:none;" />
                     </div>
                   </div>

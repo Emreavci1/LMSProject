@@ -501,6 +501,7 @@ table {
 
     &.deadline { background: #fee2e2; border: 2px solid #b91c1c; }
     &.publish { background: #e0f2fe; border: 2px solid #0369a1; }
+    &.announcement { background: #dcfce7; border: 2px solid #15803d; }
   }
 }
 
@@ -562,6 +563,12 @@ table {
 .activity-card {
   padding: 16px 18px;
   h2 { font-size: 1rem; }
+}
+
+// Aktiviteler takvimin yanındayken liste kartı aşırı uzatmasın (kendi içinde kayar)
+.charts-grid .activity-card .timeline {
+  max-height: 380px;
+  overflow-y: auto;
 }
 
 // Eğitmenin yeni eğitim açması: dolu mavi nokta (pozisyon bazlı renkleri ezer)

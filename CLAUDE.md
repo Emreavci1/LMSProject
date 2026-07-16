@@ -163,7 +163,7 @@ Enrollment
 
 Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, tablo ekleme, varsayımda bulunma. Netleştiğinde doküman güncellenecek:
 
-- Section/şube sistemi (bir dersi birden fazla Instructor'ın vermesi)
+- Section/şube sistemi — **KARAR (2026-07-16): YAPILMAYACAK** (kapsam dışı bırakıldı)
 - Ders içerik yapısı (video, doküman, quiz vb.):
   - **YAPILDI (2026-07-07) — Backend ders depolama (URL/metin tabanlı):** `Lesson` entity +
     `Lessons` tablosu + migration + CRUD API (`/api/courses/{courseId}/lessons`, sahiplik
@@ -212,7 +212,7 @@ Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, ta
     Aynı gün: kurs kapağı base64/dataURL olarak DB'ye yazılmıyor artık — upload API ile dosya
     olarak kaydediliyor (1.8MB'lık liste cevabı 438B'a düştü; mevcut kayıt taşındı).
 - Sertifika sistemi
-- Periyodik eğitim mekanizması (yıllık tekrar, hatırlatma vb.)
+- Periyodik eğitim mekanizması — **KARAR (2026-07-16): YAPILMAYACAK** (kapsam dışı bırakıldı)
 - İlerleme (progress) ölçümü:
   - **YAPILDI (2026-07-08) — Ders tamamlama takibi backend'de:** `LessonCompletion` entity +
     `LessonCompletions` tablosu (UserId+LessonId unique) + `ProgressController`

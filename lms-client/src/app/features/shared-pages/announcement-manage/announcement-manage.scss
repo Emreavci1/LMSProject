@@ -62,6 +62,22 @@ table {
 }
 
 .cell-title { font-weight: 600; }
+
+// Başlık, içeriği açan tıklanabilir bir bağlantı gibi davranır
+.title-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: $primary;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
 .cell-date {
   white-space: nowrap;
   color: $on-surface-variant;

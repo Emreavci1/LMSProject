@@ -235,6 +235,51 @@
   font-size: 14px;
 }
 
+// Kursa özel duyurular ("Duyurular" sekmesi)
+.announcement-item {
+  padding: 12px 0;
+
+  & + .announcement-item {
+    border-top: 1px solid #e2e8f0;
+  }
+
+  .announcement-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    mat-icon { color: #0284c7; font-size: 20px; width: 20px; height: 20px; }
+    strong { color: #1e293b; }
+
+    .announcement-date {
+      margin-left: auto;
+      color: #94a3b8;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+  }
+
+  .announcement-body {
+    margin: 6px 0 0 28px;
+    white-space: pre-wrap; // satır sonları korunur
+  }
+
+  .announcement-attachment {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 8px 0 0 28px;
+    color: #0284c7;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover { text-decoration: underline; }
+    mat-icon { font-size: 16px; width: 16px; height: 16px; }
+  }
+}
+
 // Eğitmen ders notları ("Notlar" sekmesi)
 .notes-header {
   display: flex;

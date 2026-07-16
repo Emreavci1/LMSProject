@@ -33,7 +33,11 @@
           <tbody>
             @for (a of announcements(); track a.id) {
               <tr>
-                <td class="cell-title">{{ a.title }}</td>
+                <td class="cell-title">
+                  <button type="button" class="title-link" (click)="openDetail(a)" matTooltip="İçeriği gör">
+                    {{ a.title }}
+                  </button>
+                </td>
                 <td>
                   <div class="author-cell">
                     <img class="avatar" [src]="avatarSrc(a.authorAvatarUrl)" alt="" />
