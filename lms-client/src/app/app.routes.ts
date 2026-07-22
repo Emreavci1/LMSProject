@@ -43,6 +43,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/student/player/player').then((m) => m.Player),
       },
+      // Sınav çözme sayfası (öğrenci) — kurs oynatıcısından açılır
+      {
+        path: 'learn/:courseId/exam/:examId',
+        loadComponent: () =>
+          import('./features/student/exam-take/exam-take').then((m) => m.ExamTake),
+      },
       // ---- Ortak sayfalar ----
       {
         path: 'profile',

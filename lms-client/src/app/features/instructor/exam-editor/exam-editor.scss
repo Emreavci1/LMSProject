@@ -1,0 +1,350 @@
+// Renkler tek kaynaktan (course-manage/course-create ile aynı token'lar)
+@use '../../../tokens' as *;
+
+// --- Ortak form sınıfları (course-manage deseniyle aynı; bileşen kapsamlı) ---
+.add-lesson-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    color: $on-surface;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.flex-1 { flex: 1; min-width: 140px; }
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: $on-surface;
+  }
+}
+
+.custom-input, .custom-select, .custom-textarea {
+  width: 100%;
+  background: #fff;
+  border: 1px solid $surface-variant;
+  border-radius: 6px;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: $on-surface;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &:focus {
+    outline: none;
+    border-color: $primary;
+    box-shadow: 0 0 0 2px rgba($primary, 0.2);
+  }
+  &::placeholder { color: $on-surface-muted; opacity: 0.7; }
+}
+.custom-textarea { resize: vertical; }
+
+.select-wrapper {
+  position: relative;
+  .custom-select { appearance: none; padding-right: 36px; cursor: pointer; }
+  .select-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: $on-surface-muted;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.custom-btn-primary {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: none;
+  background: $primary;
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  mat-icon { font-size: 18px; width: 18px; height: 18px; }
+  &:hover:not(:disabled) { filter: brightness(0.9); box-shadow: 0 2px 8px rgba($primary, 0.3); }
+  &:disabled { opacity: 0.6; cursor: default; }
+}
+
+.optional-label {
+  font-weight: 400;
+  font-size: 12px;
+  color: $on-surface-muted;
+}
+
+.empty-state-box {
+  text-align: center;
+  padding: 40px;
+  background: $surface;
+  border-radius: 12px;
+  border: 1px dashed $surface-variant;
+  color: $on-surface-muted;
+  mat-icon { font-size: 48px; width: 48px; height: 48px; opacity: 0.3; margin-bottom: 12px; }
+  p { margin: 0; }
+}
+
+.center-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+}
+
+.muted { color: #64748b; font-size: 13px; }
+
+// --- Sınav listesi ipucu ---
+.exam-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #1e40af;
+
+  mat-icon { font-size: 18px; width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+}
+
+// --- Sınav listesi ---
+.exam-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exam-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+
+  .icon-box {
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f1f5f9;
+    color: $primary;
+    flex-shrink: 0;
+  }
+}
+
+.exam-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  strong { font-size: 14px; color: #1e293b; }
+  span { font-size: 12px; color: #94a3b8; }
+}
+
+.exam-actions {
+  display: flex;
+  flex-shrink: 0;
+}
+
+// --- Sınav formu ---
+.exam-form {
+  &.busy { opacity: 0.7; pointer-events: none; }
+
+  .form-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px;
+    color: $on-surface;
+  }
+}
+
+.timelimit-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 9px 12px;
+  border: 1px solid $surface-variant;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.check-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: $on-surface;
+  cursor: pointer;
+  input { width: 16px; height: 16px; cursor: pointer; }
+}
+
+.minutes-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  .custom-input { max-width: 110px; }
+  span { font-size: 13px; color: $on-surface-muted; }
+}
+
+.muted-inline { font-size: 12px; color: $on-surface-muted; }
+
+.questions-header {
+  margin: 20px 0 12px;
+  padding-top: 16px;
+  border-top: 1px dashed #e2e8f0;
+
+  h4 { font-size: 14px; font-weight: 700; color: #475569; margin: 0; }
+}
+
+// Soru kartı
+.question-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: #f8fafc;
+}
+
+.question-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+
+  .q-number {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f172a;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+  }
+
+  .q-type { flex: 1; max-width: 200px; }
+  .q-remove { margin-left: auto; flex-shrink: 0; }
+}
+
+// Şıklar
+.options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .option-input { flex: 1; }
+  .opt-remove { flex-shrink: 0; }
+
+  // Doğru şık vurgusu
+  &.correct .option-input {
+    border-color: #86efac;
+    background: #f0fdf4;
+  }
+}
+
+// Doğru cevap radyosu (özel görünüm)
+.correct-radio {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  flex-shrink: 0;
+
+  input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+  .radio-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    transition: all 0.15s;
+    display: inline-block;
+  }
+
+  input:checked + .radio-dot {
+    border-color: #16a34a;
+    background: #16a34a;
+    box-shadow: inset 0 0 0 3px #fff;
+  }
+}
+
+.add-option-btn, .add-question-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0284c7;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover { border-color: #0284c7; background: #f0f9ff; }
+  mat-icon { font-size: 17px; width: 17px; height: 17px; }
+}
+
+.add-question-btn {
+  width: 100%;
+  justify-content: center;
+  padding: 10px;
+  margin-bottom: 16px;
+}
+
+.open-ended-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}

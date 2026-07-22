@@ -55,6 +55,7 @@
               <th>Eğitim</th>
               <th>Son Tarih</th>
               <th class="col-progress">İlerleme</th>
+              <th>Sınav</th>
               <th>Durum</th>
             </tr>
           </thead>
@@ -87,6 +88,18 @@
                     <span>%{{ row.progress }}</span>
                   </div>
                 </td>
+                <td class="exam-col">
+                  @if (row.examsTotal > 0) {
+                    <div class="exam-cell">
+                      <span class="es-count">{{ row.examsSubmitted }}/{{ row.examsTotal }}</span>
+                      @if (row.examsPendingEval > 0) { <span class="es-pending">{{ row.examsPendingEval }} bekliyor</span> }
+                      @if (row.examsPassed > 0) { <span class="es-pass">{{ row.examsPassed }} geçti</span> }
+                      @if (row.examsFailed > 0) { <span class="es-fail">{{ row.examsFailed }} kaldı</span> }
+                    </div>
+                  } @else {
+                    <span class="muted-dash">—</span>
+                  }
+                </td>
                 <td>
                   <span class="status-badge" [class]="'status-badge ' + statusOf(row)">
                     {{ statusLabel(row) }}
@@ -95,7 +108,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="no-result">Filtreyle eşleşen kayıt yok.</td>
+                <td colspan="6" class="no-result">Filtreyle eşleşen kayıt yok.</td>
               </tr>
             }
           </tbody>

@@ -1,8 +1,5 @@
-.page {
-  padding: 16px;
-  max-width: 1300px;
-  margin: 0 auto;
-}
+// Genişlik/padding global .page kuralından gelir (styles.scss) — diğer
+// sayfalarla aynı sınır kullanılır, sidebar açıkken kırpılmayı önler.
 
 .top-bar {
   display: flex;
@@ -82,6 +79,11 @@
     width: 100%;
     height: 100%;
     display: block;
+    // Windows'ta Chrome/Edge <video>'yu donanım overlay katmanına alıp z-index
+    // sırasını atlayabiliyor (sidebar gibi fixed elemanların üzerinden geçiyor,
+    // hatta overflow:hidden'ı bile yok sayıyor). opacity !=1 vermek tarayıcıyı
+    // bu donanım overlay yolundan çıkarıp normal katmanlamaya zorluyor.
+    opacity: 0.9999;
   }
 }
 
@@ -322,6 +324,23 @@
   letter-spacing: 0.5px;
   color: #64748b;
   padding: 12px 0 6px;
+
+  .section-lock {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    vertical-align: middle;
+    margin-left: 4px;
+    color: #b45309;
+  }
+}
+
+// Sınav satırı: kilitliyken tıklanamaz görünüm
+.exams-section .section-title { display: flex; align-items: center; }
+.exam-item.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+  &:hover { background: transparent; }
 }
 
 // Önceki / Tamamla / Sonraki buton grubu

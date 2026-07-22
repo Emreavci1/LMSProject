@@ -42,6 +42,18 @@ public class LessonController : ApiControllerBase
         return CreatedAtAction(nameof(GetByCourse), new { courseId }, result.Data);
     }
 
+    // PUT /api/courses/{courseId}/lessons/{lessonId} — ders güncelle (şimdilik başlık; yalnızca sahibi Instructor veya Admin)
+    [HttpPut("{lessonId:int}")]
+    [Authorize(Roles = "Instructor,Admin")]
+    public async Task<ActionResult<LessonDto>> Update(int courseId, int lessonId, [FromBody] UpdateLessonDto dto)
+    {
+        var result = await _lessonService.UpdateAsync(courseId, lessonId, dto, CurrentUserId, IsAdmin);
+        if (!result.Success)
+            return ToErrorResponse(result);
+
+        return Ok(result.Data);
+    }
+
     // DELETE /api/courses/{courseId}/lessons/{lessonId} — ders sil (yalnızca sahibi Instructor veya Admin)
     [HttpDelete("{lessonId:int}")]
     [Authorize(Roles = "Instructor,Admin")]

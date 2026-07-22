@@ -1,0 +1,185 @@
+<div class="page page-narrow">
+  <a mat-button [routerLink]="backLink()" class="back-link">
+    <mat-icon>arrow_back</mat-icon> Eğitime Dön
+  </a>
+
+  @switch (view()) {
+    @case ('loading') {
+      <div class="center-box"><mat-spinner diameter="40" /></div>
+    }
+
+    @case ('notfound') {
+      <div class="center-box">
+        <p class="muted">Sınav bulunamadı veya erişim yetkiniz yok.</p>
+        <a mat-flat-button color="primary" [routerLink]="backLink()">Eğitime Dön</a>
+      </div>
+    }
+
+    <!-- KİLİTLİ: dersler bitmeden sınav açılmaz -->
+    @case ('locked') {
+      @if (exam(); as e) {
+        <div class="exam-card locked-card">
+          <div class="lock-icon"><mat-icon>lock</mat-icon></div>
+          <h1>{{ e.title }}</h1>
+          <p class="lock-reason">{{ e.lockReason }}</p>
+          <div class="lesson-progress">
+            <mat-progress-bar mode="determinate"
+              [value]="e.lessonsTotal ? (e.lessonsCompleted / e.lessonsTotal) * 100 : 0" />
+            <span>{{ e.lessonsCompleted }} / {{ e.lessonsTotal }} ders tamamlandı</span>
+          </div>
+          <a mat-flat-button color="primary" [routerLink]="backLink()">
+            <mat-icon>menu_book</mat-icon> Derslere Git
+          </a>
+        </div>
+      }
+    }
+
+    <!-- GİRİŞ: başlat / önceki sonuç + tekrar dene -->
+    @case ('intro') {
+      @if (exam(); as e) {
+        <div class="exam-card">
+          <div class="exam-badge"><mat-icon>quiz</mat-icon></div>
+          <h1>{{ e.title }}</h1>
+          @if (e.description) { <p class="exam-desc">{{ e.description }}</p> }
+
+          <div class="exam-meta">
+            <span><mat-icon>help_outline</mat-icon> {{ e.questions.length }} soru</span>
+            <span><mat-icon>timer</mat-icon> {{ e.timeLimitMin ? e.timeLimitMin + ' dakika' : 'Süresiz' }}</span>
+            <span><mat-icon>replay</mat-icon> {{ e.attemptsUsed }} / {{ e.maxAttempts }} deneme</span>
+          </div>
+
+          <!-- Sınav sonucu (son deneme) -->
+          @if (e.lastResult; as r) {
+            @if (r.pending) {
+              <div class="result-strip pending">
+                <mat-icon>hourglass_top</mat-icon>
+                <span>Sınavın gönderildi — sonucun, açık uçlu sorular değerlendirilince görünecek.</span>
+              </div>
+            } @else {
+              <!-- Puan yüzde olarak + (varsa) geçti/kaldı -->
+              <div class="result-box"
+                   [class.passed]="r.passed === true"
+                   [class.failed]="r.passed === false">
+                <span class="rb-label">Sınav sonucun</span>
+                <span class="rb-score">%{{ r.score }}</span>
+                @if (r.passed === true) {
+                  <span class="rb-badge pass"><mat-icon>verified</mat-icon> Geçti</span>
+                } @else if (r.passed === false) {
+                  <span class="rb-badge fail"><mat-icon>cancel</mat-icon> Kaldı</span>
+                }
+              </div>
+            }
+          }
+
+          @if (e.timeLimitMin) {
+            <p class="warn-note">
+              <mat-icon>info</mat-icon>
+              Süreli sınav: başlattığında {{ e.timeLimitMin }} dakikalık sayaç işlemeye başlar ve
+              süre dolunca cevapların otomatik gönderilir.
+            </p>
+          }
+
+          @if (e.canStartNew) {
+            <button mat-flat-button color="primary" class="big-btn" (click)="start()">
+              <mat-icon>play_arrow</mat-icon>
+              {{ e.attemptsUsed > 0 ? 'Tekrar Dene' : 'Sınava Başla' }}
+            </button>
+          } @else {
+            <p class="muted no-attempts">
+              @if (e.attemptsUsed >= e.maxAttempts) {
+                Bu sınav için deneme hakkın doldu.
+              } @else {
+                Şu an yeni deneme başlatılamıyor.
+              }
+            </p>
+            <a mat-stroked-button [routerLink]="backLink()">Eğitime Dön</a>
+          }
+        </div>
+      }
+    }
+
+    <!-- ÇÖZME: sorular + (süreli ise) sayaç -->
+    @case ('taking') {
+      @if (exam(); as e) {
+        <div class="taking-header">
+          <div class="th-info">
+            <h1>{{ e.title }}</h1>
+            <span>{{ answeredCount() }} / {{ e.questions.length }} soru cevaplandı</span>
+          </div>
+          @if (isTimed()) {
+            <div class="timer" [class.danger]="(remaining() ?? 0) <= 30">
+              <mat-icon>timer</mat-icon>
+              <span>{{ remainingLabel() }}</span>
+            </div>
+          }
+        </div>
+
+        <div class="questions">
+          @for (q of e.questions; track q.id; let i = $index) {
+            <div class="q-card">
+              <div class="q-head">
+                <span class="q-num">{{ i + 1 }}</span>
+                <p class="q-text">{{ q.text }}</p>
+              </div>
+
+              @if (q.type === 'MultipleChoice') {
+                <div class="options">
+                  @for (opt of q.options; track opt.id) {
+                    <label class="opt" [class.selected]="selectedOption(q.id) === opt.id">
+                      <input type="radio" [name]="'q-' + q.id"
+                             [checked]="selectedOption(q.id) === opt.id"
+                             (change)="setOption(q.id, opt.id)" />
+                      <span class="opt-dot"></span>
+                      <span class="opt-text">{{ opt.text }}</span>
+                    </label>
+                  }
+                </div>
+              } @else {
+                <textarea class="open-answer" rows="4" placeholder="Cevabını buraya yaz..."
+                          [ngModel]="textFor(q.id)" (ngModelChange)="setText(q.id, $event)"></textarea>
+                <p class="open-hint"><mat-icon>info</mat-icon> Bu soru eğitmen tarafından elle değerlendirilecek.</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="taking-actions">
+          @if (!isTimed()) {
+            <button mat-stroked-button (click)="save()" [disabled]="saving() || submitting()">
+              <mat-icon>save</mat-icon> {{ saving() ? 'Kaydediliyor...' : 'Kaydet ve Sonra Devam Et' }}
+            </button>
+          }
+          <button mat-flat-button color="primary" (click)="submit()" [disabled]="submitting()">
+            <mat-icon>send</mat-icon> {{ submitting() ? 'Gönderiliyor...' : 'Sınavı Gönder' }}
+          </button>
+        </div>
+      }
+    }
+
+    <!-- SONUÇ: gönderim sonrası -->
+    @case ('result') {
+      <div class="exam-card result-card">
+        @if (submitResult(); as r) {
+          @if (r.pending) {
+            <div class="result-icon pending"><mat-icon>hourglass_top</mat-icon></div>
+            <h1>Sınav Gönderildi</h1>
+            <p class="result-text">
+              Cevapların kaydedildi. Sınavda açık uçlu soru olduğu için puanın, eğitmen
+              değerlendirmesi tamamlanınca görünecek.
+            </p>
+          } @else {
+            <div class="result-icon"><mat-icon>emoji_events</mat-icon></div>
+            <h1>Sınav Tamamlandı</h1>
+            <div class="score-big">%{{ r.score }}</div>
+            <p class="result-text">Çoktan seçmeli cevapların otomatik değerlendirildi.</p>
+          }
+        }
+        <div class="result-actions">
+          <a mat-flat-button color="primary" [routerLink]="backLink()">
+            <mat-icon>menu_book</mat-icon> Eğitime Dön
+          </a>
+        </div>
+      </div>
+    }
+  }
+</div>

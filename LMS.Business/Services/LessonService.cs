@@ -75,6 +75,26 @@ public class LessonService : ILessonService
         return ServiceResult<LessonDto>.Ok(_mapper.Map<LessonDto>(lesson));
     }
 
+    public async Task<ServiceResult<LessonDto>> UpdateAsync(int courseId, int lessonId, UpdateLessonDto dto, int currentUserId, bool isAdmin)
+    {
+        // Kurs var mı + sahiplik kontrolü (ekleme/silme ile aynı kural)
+        var (_, error) = await LoadOwnedCourseAsync(courseId, currentUserId, isAdmin);
+        if (error is not null)
+            return ServiceResult<LessonDto>.Fail(error.Value.Type, error.Value.Message);
+
+        var lessons = await _lessonRepository.GetByCourseAsync(courseId);
+        var lesson = lessons.FirstOrDefault(l => l.Id == lessonId);
+        if (lesson is null)
+            return ServiceResult<LessonDto>.Fail(ServiceErrorType.NotFound, "Ders bulunamadı.");
+
+        // Şimdilik yalnızca başlık güncellenir (hızlı başlık düzenleme)
+        lesson.Title = dto.Title.Trim();
+
+        _lessonRepository.Update(lesson);
+        await _lessonRepository.SaveChangesAsync();
+        return ServiceResult<LessonDto>.Ok(_mapper.Map<LessonDto>(lesson));
+    }
+
     public async Task<ServiceResult> DeleteAsync(int courseId, int lessonId, int currentUserId, bool isAdmin)
     {
         var (_, error) = await LoadOwnedCourseAsync(courseId, currentUserId, isAdmin);

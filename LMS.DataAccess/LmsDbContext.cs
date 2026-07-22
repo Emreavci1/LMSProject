@@ -19,6 +19,13 @@ public class LmsDbContext : DbContext
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<Category> Categories => Set<Category>();
 
+    // --- Sınav sistemi ---
+    public DbSet<Exam> Exams => Set<Exam>();
+    public DbSet<Question> Questions => Set<Question>();
+    public DbSet<QuestionOption> QuestionOptions => Set<QuestionOption>();
+    public DbSet<ExamAttempt> ExamAttempts => Set<ExamAttempt>();
+    public DbSet<ExamAnswer> ExamAnswers => Set<ExamAnswer>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -131,6 +138,91 @@ public class LmsDbContext : DbContext
 
             // Aynı adla iki kategori olamaz
             entity.HasIndex(c => c.Name).IsUnique();
+        });
+
+        // --- Exam ---
+        modelBuilder.Entity<Exam>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            // Deneme hakkı varsayılan 1 (mevcut/ileriki kayıtlarda DEFAULT 1)
+            entity.Property(e => e.MaxAttempts).HasDefaultValue(1);
+
+            // Sınav kursa aittir; kurs silinince sınavları da silinsin (Cascade)
+            entity.HasOne(e => e.Course)
+                  .WithMany(c => c.Exams)
+                  .HasForeignKey(e => e.CourseId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // --- Question ---
+        modelBuilder.Entity<Question>(entity =>
+        {
+            entity.Property(q => q.Text).HasMaxLength(2000).IsRequired();
+
+            // Soru sınava aittir; sınav silinince soruları da silinsin (Cascade)
+            entity.HasOne(q => q.Exam)
+                  .WithMany(e => e.Questions)
+                  .HasForeignKey(q => q.ExamId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // --- QuestionOption ---
+        modelBuilder.Entity<QuestionOption>(entity =>
+        {
+            entity.Property(o => o.Text).HasMaxLength(1000).IsRequired();
+
+            // Şık soruya aittir; soru silinince şıkları da silinsin (Cascade)
+            entity.HasOne(o => o.Question)
+                  .WithMany(q => q.Options)
+                  .HasForeignKey(o => o.QuestionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // --- ExamAttempt ---
+        modelBuilder.Entity<ExamAttempt>(entity =>
+        {
+            // Deneme sınava aittir; sınav silinince denemeleri de silinsin (Cascade)
+            entity.HasOne(a => a.Exam)
+                  .WithMany(e => e.Attempts)
+                  .HasForeignKey(a => a.ExamId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // Öğrenci tarafında Restrict (LessonCompletion ile aynı yaklaşım):
+            // kullanıcı soft-delete edilir, denemeleri korunur.
+            entity.HasOne(a => a.User)
+                  .WithMany()
+                  .HasForeignKey(a => a.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            // Değerlendiren (eğitmen/admin) — opsiyonel; cascade YOK (çoklu yol olmasın)
+            entity.HasOne(a => a.EvaluatedBy)
+                  .WithMany()
+                  .HasForeignKey(a => a.EvaluatedById)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // --- ExamAnswer ---
+        modelBuilder.Entity<ExamAnswer>(entity =>
+        {
+            // Cevap denemeye aittir; deneme silinince cevapları da silinsin (Cascade)
+            entity.HasOne(ans => ans.Attempt)
+                  .WithMany(a => a.Answers)
+                  .HasForeignKey(ans => ans.AttemptId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            // Soru ve seçilen şık yalnızca referans — cascade YOK ki tabloya
+            // birden çok cascade yolu oluşmasın (SQL Server buna izin vermez).
+            // Silme sırası service katmanında yönetilir.
+            entity.HasOne(ans => ans.Question)
+                  .WithMany()
+                  .HasForeignKey(ans => ans.QuestionId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(ans => ans.SelectedOption)
+                  .WithMany()
+                  .HasForeignKey(ans => ans.SelectedOptionId)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

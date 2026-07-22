@@ -211,6 +211,131 @@ Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, ta
     tanır). MinIO Windows'ta tek exe: `minio.exe server C:\minio\data --console-address :9001`.
     Aynı gün: kurs kapağı base64/dataURL olarak DB'ye yazılmıyor artık — upload API ile dosya
     olarak kaydediliyor (1.8MB'lık liste cevabı 438B'a düştü; mevcut kayıt taşındı).
+  - **YAPILDI (2026-07-21) — Ders başlığı güncelleme + kurs yönetim sayfası hızlı düzenleme:**
+    Yeni uç `PUT /api/courses/{courseId}/lessons/{lessonId}` (şimdilik yalnızca `Title`;
+    `UpdateLessonDto` + `UpdateLessonValidator` başlık 1-200 char; sahiplik kontrolü ekleme/silme
+    ile ortak `LoadOwnedCourseAsync`). Kurs yönetim sayfasına (`course-manage`,
+    `/instructor/courses/:id` — Admin ve sahibi eğitmen) üç satır içi düzenleme eklendi:
+    (1) başlık yanındaki kalem ile **kurs başlığı** düzenleme, (2) başlığın altında
+    **Özel ⇄ Herkese Açık** görünürlük toggle butonu (`isMandatory`'yi çevirir; `PUT /api/courses/{id}`),
+    (3) her ders satırında kalem ile **ders başlığı** düzenleme. Kurs güncellemeleri tek yerden
+    (`patchCourse` helper: mevcut alanları koru, yalnızca değişeni gönder). Not: eski header'daki
+    ayrı "Özel" rozeti kaldırıldı — toggle butonu zaten durumu gösteriyor.
+- Sınav (exam) sistemi — **DEVAM EDİYOR (2026-07-21)**:
+  - **Kilitlenmiş spec (kullanıcı kararları):**
+    - Sınav bağımsız değil, KURSA bağlı ve eğitimin sonunda. Bir kursta BİRDEN ÇOK sınav olabilir
+      (dersler gibi müfredat öğesi). Sınava ancak kursun TÜM dersleri tamamlanınca girilebilir.
+    - Soru tipleri KARMA: `MultipleChoice` (otomatik puanlanır) + `OpenEnded` (açık uçlu, elle değerlendirilir).
+    - Puanlar şimdilik tüm sorulara EŞİT (nihai puan = soruların kredi ortalaması, 0-100); ağırlık sonraya.
+    - Süre sınırı OPSİYONEL (`TimeLimitMin` null=süresiz → öğrenci bölerek cevaplayıp sonra gönderir/resume;
+      dolu → başlatınca sayaç, tek oturum). Deneme hakkı sayısını eğitmen belirler (`MaxAttempts`).
+    - Puan öğrenciye açık uçlu varsa ancak değerlendirme bitince gösterilir. Geçti/kaldı kararı HER ZAMAN
+      elle eğitmen/admin verir (sabit baraj YOK). Sınav "ders gibi" tamamlanır: gönderilmesi (Submitted)
+      kurs ilerlemesine sayılır; geçti/kaldı bundan ayrıdır.
+    - Oluşturma: eğitim açma sihirbazında opsiyonel adım + kurs oluştuktan sonra yönetim sayfasından da.
+      Yetki: kursun sahibi eğitmen + admin (derslerle aynı).
+  - **Faz planı (yol haritası — sonra devam edilecek):**
+    - [x] **Faz 1 — Backend veri modeli:** entity + enum + DbContext + migration. BİTTİ (aşağıda).
+    - [x] **Faz 2 — Sınav yönetimi (oluşturma):** BİTTİ (backend + frontend, aşağıda). Sihirbaz
+      adımı "yayınla sonrası yönlendir" olarak yapıldı (kullanıcı kararı).
+    - [x] **Faz 3 — Öğrenci sınava girme:** BİTTİ (backend + frontend, aşağıda).
+      **Kilitlenen kararlar (2026-07-22):** (1) İLERLEME: sınavlar da ağırlıklı ilerleme formülüne
+      katılır (her sınav = ağırlık 1 birim); tüm dersler bitince alt-%100, sınav(lar) gönderilince
+      %100. Backend'de 3 hesap yeri (EnrollmentService: attendees/user/report) + player güncellenir.
+      (2) EKRAN: ayrı odaklı sayfa `/learn/:courseId/exam/:examId`. (3) SÜRE: sunucu denetler —
+      `StartedDate` sunucuda; deadline = StartedDate+TimeLimitMin; süre dolunca kayıtlı cevaplarla
+      otomatik gönderilir (yükleme sırasında lazy auto-submit), geri gelirse kalan süre kadar devam.
+      (4) DENEME/PUAN: ilk gönderim (Submitted) ilerlemeye sayılır; MaxAttempts'e kadar tekrar
+      girilebilir; EN SON gönderilen deneme geçerli sonuçtur. MC otomatik puanlanır (CreditPercent
+      0/100); açık uçlu varsa Score değerlendirme bitene kadar (Faz 4) null kalır, yoksa submit'te
+      Score = kredi ortalaması.
+    - [x] **Faz 4 — Değerlendirme + sonuç:** BİTTİ (backend + frontend, aşağıda).
+      **Kilitlenen kararlar (2026-07-22):** (1) Geçti/kaldı YALNIZCA açık uçlu içeren sınavlarda elle
+      verilir; çoktan seçmeli-only sınavlar submit'te otomatik tamamlanır (puan yeter, Passed=null).
+      (2) Rapor 4 yerde: değerlendirme ekranı + öğrencinin kendi sonucu + Öğrenciler sekmesi rozeti +
+      Zorunlu Eğitim Raporu sütunu.
+  - **YAPILDI (2026-07-21) — Faz 1 (veri modeli):** 5 entity (`Exam`, `Question`, `QuestionOption`,
+    `ExamAttempt`, `ExamAnswer`) + 2 enum (`QuestionType`, `ExamAttemptStatus`) + `Course.Exams` nav +
+    DbContext yapılandırması + migration `AddExamSystem` (uygulandı, 5 tablo DB'de). Delete: sahiplik
+    zincirleri Cascade (Course→Exam→Question→Option, Exam→Attempt→Answer); referans FK'ler
+    (Answer→Question, Answer→SelectedOption, Attempt→EvaluatedBy) NoAction, Attempt→User Restrict —
+    tek cascade yolu olsun diye (silme sırası ileride service'te yönetilecek). Puan modeli:
+    `ExamAnswer.CreditPercent` (0-100 soru kredisi; MC otomatik 0/100, açık uçlu elle), attempt.Score =
+    kredilerin ortalaması. API/UI HENÜZ YOK (Faz 2 sıradaki iş).
+  - **YAPILDI (2026-07-22) — Faz 2 BACKEND:** Sınav yönetimi API'si eklendi (frontend HENÜZ YOK).
+    Tasarım kararı: sınav **bütün olarak** kaydedilir — granular soru/şık endpoint'i yok, tek iç içe
+    (nested) payload (`SaveExamDto` → sorular → şıklar). DTO'lar (`LMS.DTO/Exams/`: `ExamDto`,
+    `ExamListItemDto`, `QuestionDto`, `QuestionOptionDto` + `SaveExamDto`/`SaveQuestionDto`/
+    `SaveQuestionOptionDto`) + validator'lar (`SaveExamValidator`/`SaveQuestionValidator`/
+    `SaveQuestionOptionValidator`: başlık≤200, açıklama≤2000, süre 1-600dk opsiyonel, deneme 1-20,
+    ≥1 soru; MC'de ≥2 şık + ≥1 doğru) + `ExamRepository` (liste soruları Include, detay
+    soru+şık Include) + `ExamService` (sahiplik `LoadOwnedCourseAsync`, güncelleme = soruları
+    tam yenileme/cascade) + `ExamController` (`/api/courses/{courseId}/exams`) + AutoMapper +
+    Program.cs DI. Yetki: liste=giriş yapan herkes (özet, cevap sızmaz); detay+CRUD=sahibi
+    eğitmen/Admin. Test edildi: create 201 / list+count / detay 200 / update tam-yenileme 200 /
+    delete 204 / 404 / validasyon 400 / sahip olmayan eğitmen 403. NOT: denemesi olan sınavın
+    sorularını yeniden yazmaya karşı koruma Faz 3/4'e bırakıldı (şimdilik attempt yok).
+    SIRADAKİ: Faz 2 FRONTEND (model+service, `course-manage` "Sınavlar" sekmesi, `course-create`
+    opsiyonel adım).
+  - **YAPILDI (2026-07-22) — Faz 2 FRONTEND (kurs yönetimi sekmesi):** Sınav yönetimi arayüzü
+    kurs yönetim sayfasına eklendi. `exam.models.ts` + `exam.service.ts` (backend DTO'larıyla
+    birebir). Yeni bileşen `features/instructor/exam-editor/` (kendi kendine yeten: sınav
+    listeler + oluştur/düzenle/sil). Form iç içe: sınav başlık/açıklama/süre(opsiyonel toggle)/
+    deneme hakkı + sorular (Çoktan Seçmeli/Açık Uçlu) + çoktan seçmelide şıklar (tekli radio ile
+    doğru şık, yeşil vurgu). Sinyal + immutable draft deseni. `course-manage`'e "Sınavlar" sekmesi
+    (İçerik ile Öğrenciler arasında) `<app-exam-editor [courseId]>` ile gömüldü. Playwright ile
+    uçtan uca doğrulandı (oluştur→liste→düzenle, sayfa hatası yok).
+  - **YAPILDI (2026-07-22) — Faz 3 BACKEND (öğrenci sınava girme):** Öğrenci deneme akışı API'si
+    (frontend HENÜZ YOK). Student DTO'lar (`LMS.DTO/Exams/`: `StudentExamDto`/`StudentQuestionDto`/
+    `StudentOptionDto` — doğru cevap SIZMAZ; `StudentAttemptDto`/`StudentAnswerDto`/`StudentResultDto`
+    + `SaveAnswersDto`). `ExamAttemptRepository` (aktif deneme+cevaplar, id+cevaplar, ilerleme için
+    gönderilen sınav id'leri: kurs/kullanıcı/çoklu-kurs) + `ExamRepository.GetByCoursesAsync`.
+    `ExamAttemptService`: GetStudentExam (kilit+deneme durumu), StartAttempt, SaveAnswers, Submit —
+    kilit (tüm dersler bitince), deneme hakkı (MaxAttempts), sunucu-taraflı süre (deadline =
+    StartedDate+TimeLimitMin; yüklemede/kaydette/gönderde süre dolduysa kayıtlı cevaplarla lazy
+    auto-submit), MC otomatik puanlama (CreditPercent 0/100; açık uçlu varsa Score null=Pending,
+    yoksa Score=kredi ortalaması), son deneme geçerli. `ExamAttemptController`
+    (`/api/exams/{examId}`: GET my, POST attempts, PUT attempts/{id}, POST attempts/{id}/submit;
+    yalnızca CourseAttendee). İLERLEME ENTEGRASYONU: her sınav=1 birim; EnrollmentService 3 hesap
+    yeri (attendees/user/report) + `GET /api/progress/exams/my` (player için). curl ile uçtan uca
+    doğrulandı: kilit→403, ders bitince açılır, başlat/kaydet/gönder, otomatik puan (2 MC → 50/100),
+    deneme hakkı+son-deneme-geçerli, açık uçlu→Pending, süreli deadline, ilerleme %100. SIRADAKİ:
+    Faz 3 FRONTEND (sınav çözme sayfası `/learn/:courseId/exam/:examId` + player'a sınav girişi +
+    player ilerlemesine sınav dahil).
+  - **YAPILDI (2026-07-22) — Faz 3 FRONTEND (öğrenci sınav arayüzü):** `exam.models.ts`'e student
+    tipleri + `exam.service.ts`'e öğrenci metodları (getStudentExam/startAttempt/saveAnswers/
+    submitAttempt) + `progress.service.ts`'e `submittedExamIds` + `loadExams()`. Yeni sayfa
+    `features/student/exam-take/` (route `learn/:courseId/exam/:examId`): durumlar kilitli/giriş/
+    çözme/sonuç; süreli sınavda mm:ss geri sayım (0'da otomatik gönder), süresizde "Kaydet ve sonra
+    devam"; MC radio + açık uçlu textarea; gönderim onayı; sonuç ekranı (puan veya "değerlendirme
+    bekliyor"). Player entegrasyonu: sağ panelde "Sınavlar" bölümü (tüm dersler bitince açılır,
+    kilit ikonu; gönderilince yeşil check), tıklayınca sınav sayfasına gider; ilerleme çubuğu artık
+    dersler + sınavları (her biri 1 birim) kapsar; tebrik ekranı tüm dersler+sınavlar bitince.
+    Playwright ile uçtan uca doğrulandı: kilitli→ders bitince açıldı→başlat→cevapla→gönder→100/100
+    →panelde check + %100. FAZ 3 TAMAMEN BİTTİ; sıradaki iş Faz 4 (değerlendirme + geçti/kaldı).
+  - **YAPILDI (2026-07-22) — Faz 4 (değerlendirme + sonuç) — SINAV SİSTEMİ TAMAMLANDI:**
+    BACKEND: değerlendirme DTO'ları (`ExamAttemptListItemDto`/`ExamAttemptDetailDto`/`EvalAnswerDto`/
+    `EvaluateAttemptDto`) + `ExamAttemptRepository`'ye deneme/rapor sorguları + `ExamEvaluationService`
+    (GetAttempts=öğrenci başına son deneme, GetAttemptDetail, Evaluate: açık uçlu kredi + Passed →
+    Score yeniden hesap + Evaluated; MC-only'de evaluate=400) + `ExamEvaluationController`
+    (`/api/courses/{courseId}/exams/{examId}/attempts`, Instructor/Admin). Rapor: `CourseAttendeeDto`
+    + `AssignmentReportDto`'ya sınav özeti (Total/Submitted/PendingEval/Passed/Failed) + EnrollmentService
+    site 1 & 3'te `ComputeExamSummary` (geçti/kaldı yalnızca açık uçlu sınavda). FRONTEND:
+    `exam.models`+`exam.service`'e değerlendirme metodları; yeni `exam-results` bileşeni (deneme
+    listesi + puanlama: MC doğru/seçim vurgusu + otomatik puan, açık uçlu metin + 0-100 kredi girişi +
+    canlı nihai puan önizleme + Geçti/Kaldı) `exam-editor`'a "Sonuçlar" (assessment) butonuyla gömüldü;
+    `exam-take` intro'da geçti/kaldı rozeti; `course-manage` Öğrenciler sekmesinde sınav özeti rozeti
+    (+ sekmeye geçişte tazeleme); Zorunlu Eğitim Raporu'na "Sınav" sütunu. Playwright + curl ile uçtan
+    uca doğrulandı: bekliyor→puanla(70)+geçti→85/100 ((100+70)/2)→öğrenci "85/100·Geçti" + rozet
+    "1/1 1 geçti"; MC-only otomatik; 403/400 sınırları. **4 FAZ DA BİTTİ.**
+  - **YAPILDI (2026-07-22) — Faz 2 FRONTEND (sihirbaz adımı):** Kullanıcı kararı: sihirbaza tam
+    taslak sınav adımı YERİNE "yayınla sonrası yönlendir". `course-create` 3. adımdaki yayın
+    kutusuna "Kaydettikten sonra sınav ekle" checkbox'ı (`addExamsAfter` signal) eklendi; işaretli
+    ve kurs kaydedilince (`finishCreate`) kullanıcı `/instructor/courses/{id}?tab=exams`'e
+    yönlendirilir. `course-manage` `tab` query param'ını input olarak alır (withComponentInputBinding)
+    ve `tab=exams` ise mat-tab-group `[selectedIndex]=1` (Sınavlar) ile açılır. Playwright ile
+    uçtan uca doğrulandı (sihirbaz→taslak→Sınavlar sekmesi aktif). FAZ 2 TAMAMEN BİTTİ; sıradaki
+    iş Faz 3 (öğrenci sınava girme).
 - Sertifika sistemi
 - Periyodik eğitim mekanizması — **KARAR (2026-07-16): YAPILMAYACAK** (kapsam dışı bırakıldı)
 - İlerleme (progress) ölçümü:
@@ -239,6 +364,18 @@ Aşağıdaki konular henüz karara bağlanmadı. Bunlar için altyapı kurma, ta
     ekranı, rapor tablosu, "Zorunlu" rozetleri, "Ayrıl" gizleme sıradaki iş.
   - Karar (2026-07-13): kullanıcı seçimi şimdilik tek tek; filtre/toplu atama sonra.
     İleride genel "permit listesi" (kurs bazlı görünürlük) planlanıyor — henüz yapma.
+  - **YAPILDI (2026-07-21) — Kavram netleştirme + arayüz yeniden adlandırma:** Kurs seviyesi
+    `Course.IsMandatory` flag'i aslında "zorunlu" değil, **görünürlük/gizlilik** demek (katalogda
+    görünmez, yalnızca atananlar erişir). Bir kursu katılımcı için zorunlu yapan şey ATAMADIR
+    (`Enrollment.IsAssigned`) — kursun özel ya da herkese açık olması bunu değiştirmez.
+    Bu yüzden kurs seviyesi flag'in KULLANICIYA GÖRÜNEN adı "Zorunlu" → **"Özel Eğitim"** olarak
+    değiştirildi (admin kurs listesi çip+filtre, kurs oluşturma checkbox+açıklama, kullanıcı
+    detayı ve eğitmen kurs yönetimi rozetleri). Karşıtı "Herkese Açık" kaldı. **Backend alanı
+    `IsMandatory` aynı bırakıldı** (kullanıcı kararı: sadece arayüz etiketi; davranışı zaten
+    "özel" demek). Katılımcının atamadan gelen "Zorunlu · Son tarih" rozetleri OLDUĞU GİBİ durur.
+    Ayrıca: admin kurs listesinde "Öğrenci" sütununda sayı 0 ise kırmızı+kalın gösterilir
+    (`.student-count.zero`). NOT: "Zorunlu Eğitim Raporu" butonu/sayfası (atama raporu) adı
+    korundu — orada "zorunlu" atama anlamında doğru kullanılıyor.
 
 ---
 

@@ -185,6 +185,127 @@ namespace LMS.DataAccess.Migrations
                     b.ToTable("Enrollments");
                 });
 
+            modelBuilder.Entity("LMS.Entities.Exam", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("MaxAttempts")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TimeLimitMin")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("Exams");
+                });
+
+            modelBuilder.Entity("LMS.Entities.ExamAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttemptId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CreditPercent")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SelectedOptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TextAnswer")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("SelectedOptionId");
+
+                    b.ToTable("ExamAnswers");
+                });
+
+            modelBuilder.Entity("LMS.Entities.ExamAttempt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("EvaluatedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("EvaluatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("Passed")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("SubmittedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EvaluatedById");
+
+                    b.HasIndex("ExamId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ExamAttempts");
+                });
+
             modelBuilder.Entity("LMS.Entities.Lesson", b =>
                 {
                     b.Property<int>("Id")
@@ -270,6 +391,67 @@ namespace LMS.DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("LessonCompletions");
+                });
+
+            modelBuilder.Entity("LMS.Entities.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExamId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExamId");
+
+                    b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("LMS.Entities.QuestionOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("QuestionOptions");
                 });
 
             modelBuilder.Entity("LMS.Entities.User", b =>
@@ -362,6 +544,69 @@ namespace LMS.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LMS.Entities.Exam", b =>
+                {
+                    b.HasOne("LMS.Entities.Course", "Course")
+                        .WithMany("Exams")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("LMS.Entities.ExamAnswer", b =>
+                {
+                    b.HasOne("LMS.Entities.ExamAttempt", "Attempt")
+                        .WithMany("Answers")
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LMS.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("LMS.Entities.QuestionOption", "SelectedOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedOptionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Attempt");
+
+                    b.Navigation("Question");
+
+                    b.Navigation("SelectedOption");
+                });
+
+            modelBuilder.Entity("LMS.Entities.ExamAttempt", b =>
+                {
+                    b.HasOne("LMS.Entities.User", "EvaluatedBy")
+                        .WithMany()
+                        .HasForeignKey("EvaluatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("LMS.Entities.Exam", "Exam")
+                        .WithMany("Attempts")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("LMS.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("EvaluatedBy");
+
+                    b.Navigation("Exam");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("LMS.Entities.Lesson", b =>
                 {
                     b.HasOne("LMS.Entities.Course", "Course")
@@ -392,11 +637,52 @@ namespace LMS.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("LMS.Entities.Question", b =>
+                {
+                    b.HasOne("LMS.Entities.Exam", "Exam")
+                        .WithMany("Questions")
+                        .HasForeignKey("ExamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exam");
+                });
+
+            modelBuilder.Entity("LMS.Entities.QuestionOption", b =>
+                {
+                    b.HasOne("LMS.Entities.Question", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+                });
+
             modelBuilder.Entity("LMS.Entities.Course", b =>
                 {
                     b.Navigation("Enrollments");
 
+                    b.Navigation("Exams");
+
                     b.Navigation("Lessons");
+                });
+
+            modelBuilder.Entity("LMS.Entities.Exam", b =>
+                {
+                    b.Navigation("Attempts");
+
+                    b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("LMS.Entities.ExamAttempt", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("LMS.Entities.Question", b =>
+                {
+                    b.Navigation("Options");
                 });
 
             modelBuilder.Entity("LMS.Entities.User", b =>

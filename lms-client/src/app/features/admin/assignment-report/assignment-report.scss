@@ -283,3 +283,20 @@ table {
 
 // Başlık bandı ile içerik arası boşluk
 .page-banner { margin-bottom: 18px; }
+
+// Sınav sütunu (Faz 4)
+.exam-col { white-space: nowrap; }
+.exam-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  .es-count { color: #334155; }
+  .es-pending { color: #b45309; }
+  .es-pass { color: #15803d; }
+  .es-fail { color: #b91c1c; }
+  > span:not(.es-count)::before { content: '· '; color: #cbd5e1; margin-right: 2px; }
+}
+.muted-dash { color: #cbd5e1; }

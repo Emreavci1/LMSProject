@@ -19,4 +19,11 @@ public class AssignmentReportDto
 
     // Gecikmiş: son tarih geçti ve ilerleme < %100 (anlık hesaplanır)
     public bool IsOverdue { get; set; }
+
+    // --- Sınav durumu özeti (kursta sınav varsa) ---
+    public int ExamsTotal { get; set; }
+    public int ExamsSubmitted { get; set; }
+    public int ExamsPendingEval { get; set; }
+    public int ExamsPassed { get; set; }
+    public int ExamsFailed { get; set; }
 }

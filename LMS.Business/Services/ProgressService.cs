@@ -10,15 +10,18 @@ public class ProgressService : IProgressService
     private readonly ILessonCompletionRepository _completionRepository;
     private readonly ILessonRepository _lessonRepository;
     private readonly IEnrollmentRepository _enrollmentRepository;
+    private readonly IExamAttemptRepository _attemptRepository;
 
     public ProgressService(
         ILessonCompletionRepository completionRepository,
         ILessonRepository lessonRepository,
-        IEnrollmentRepository enrollmentRepository)
+        IEnrollmentRepository enrollmentRepository,
+        IExamAttemptRepository attemptRepository)
     {
         _completionRepository = completionRepository;
         _lessonRepository = lessonRepository;
         _enrollmentRepository = enrollmentRepository;
+        _attemptRepository = attemptRepository;
     }
 
     public async Task<ServiceResult<LessonCompletionStateDto>> ToggleAsync(int userId, int lessonId)
@@ -73,4 +76,7 @@ public class ProgressService : IProgressService
 
     public Task<List<int>> GetMyCompletedLessonIdsAsync(int userId)
         => _completionRepository.GetLessonIdsByUserAsync(userId);
+
+    public Task<List<int>> GetMySubmittedExamIdsAsync(int userId)
+        => _attemptRepository.GetSubmittedExamIdsByUserAsync(userId);
 }

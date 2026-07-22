@@ -28,6 +28,12 @@ export interface CourseAttendee {
   dueDate?: string | null;
   // Gecikmiş: son tarih geçti ve ilerleme < %100 (backend hesaplar)
   isOverdue: boolean;
+  // Sınav durumu özeti (kursta sınav varsa)
+  examsTotal: number;
+  examsSubmitted: number;
+  examsPendingEval: number;
+  examsPassed: number;
+  examsFailed: number;
 }
 
 // POST /api/enrollments/assign isteği (AssignEnrollmentDto) — yalnızca Admin
@@ -50,6 +56,12 @@ export interface AssignmentReport {
   progress: number;
   // Gecikmiş: son tarih geçti ve ilerleme < %100
   isOverdue: boolean;
+  // Sınav durumu özeti (kursta sınav varsa)
+  examsTotal: number;
+  examsSubmitted: number;
+  examsPendingEval: number;
+  examsPassed: number;
+  examsFailed: number;
 }
 
 // GET /api/users/{id}/enrollments cevabı (UserEnrollmentDto) — Admin kullanıcı detayı

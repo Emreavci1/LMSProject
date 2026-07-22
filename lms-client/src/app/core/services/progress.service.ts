@@ -21,6 +21,10 @@ export class ProgressService {
   // Kullanıcının tamamladığı derslerin id kümesi
   readonly completedLessonIds = signal<Set<number>>(new Set());
 
+  // Kullanıcının gönderdiği (tamamlanmış sayılan) sınav id kümesi —
+  // player ilerleme çubuğuna sınavları dahil etmek için
+  readonly submittedExamIds = signal<Set<number>>(new Set());
+
   // Tamamlananları API'den (yeniden) yükle — sayfa açılışlarında çağrılır
   load(): void {
     this.http.get<number[]>(`${this.base}/my`).subscribe({
@@ -29,6 +33,20 @@ export class ProgressService {
         /* liste boş kalır; sayfa yine de çalışır */
       },
     });
+  }
+
+  // Gönderilen sınav id'lerini yükle (ilerleme hesabı için)
+  loadExams(): void {
+    this.http.get<number[]>(`${this.base}/exams/my`).subscribe({
+      next: (ids) => this.submittedExamIds.set(new Set(ids)),
+      error: () => {
+        /* boş kalır */
+      },
+    });
+  }
+
+  isExamSubmitted(examId: number): boolean {
+    return this.submittedExamIds().has(examId);
   }
 
   // Dersi tamamla / işareti geri al. Optimistik: önce UI güncellenir,

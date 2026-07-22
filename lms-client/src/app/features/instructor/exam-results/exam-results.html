@@ -1,0 +1,140 @@
+@if (view() === 'list') {
+  <!-- ===== DENEME LİSTESİ ===== -->
+  <div class="results-header">
+    <button class="link-btn" (click)="close.emit()">
+      <mat-icon>arrow_back</mat-icon> Sınavlar
+    </button>
+    <h3>{{ examTitle() }} — Sonuçlar</h3>
+  </div>
+
+  @if (loading()) {
+    <div class="center-box"><mat-spinner diameter="32" /></div>
+  } @else if (attempts().length === 0) {
+    <div class="empty-state-box">
+      <mat-icon>fact_check</mat-icon>
+      <p>Henüz kimse bu sınava girmedi.</p>
+    </div>
+  } @else {
+    <div class="attempt-list">
+      @for (a of attempts(); track a.attemptId) {
+        <div class="attempt-row">
+          <div class="stu-info">
+            <strong>{{ a.studentName }}</strong>
+            <span>{{ a.studentEmail }} · {{ a.submittedDate | date: 'dd.MM.yyyy HH:mm' }}</span>
+          </div>
+
+          <!-- Durum + puan -->
+          <div class="attempt-status">
+            @if (a.needsEvaluation) {
+              <span class="chip pending">Değerlendirme bekliyor</span>
+            } @else if (a.status === 'Evaluated') {
+              @if (a.passed) {
+                <span class="chip passed">Geçti</span>
+              } @else {
+                <span class="chip failed">Kaldı</span>
+              }
+              <span class="score">{{ a.score }}/100</span>
+            } @else {
+              <!-- MC-only: otomatik puanlandı -->
+              <span class="chip done">Tamamlandı</span>
+              <span class="score">{{ a.score }}/100</span>
+            }
+          </div>
+
+          <button class="custom-btn-primary sm" (click)="openDetail(a)">
+            <mat-icon>{{ a.needsEvaluation ? 'grading' : 'visibility' }}</mat-icon>
+            {{ a.needsEvaluation ? 'Değerlendir' : 'Görüntüle' }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+} @else {
+  <!-- ===== PUANLAMA EKRANI ===== -->
+  <div class="results-header">
+    <button class="link-btn" (click)="backToList()">
+      <mat-icon>arrow_back</mat-icon> Denemeler
+    </button>
+  </div>
+
+  @if (loadingDetail()) {
+    <div class="center-box"><mat-spinner diameter="32" /></div>
+  } @else if (selected(); as d) {
+    <div class="grade-head">
+      <div>
+        <strong>{{ d.studentName }}</strong>
+        <span>{{ d.studentEmail }} · Gönderim: {{ d.submittedDate | date: 'dd.MM.yyyy HH:mm' }}</span>
+      </div>
+      @if (d.status === 'Evaluated') {
+        <span class="chip" [class.passed]="d.passed" [class.failed]="!d.passed">
+          {{ d.passed ? 'Geçti' : 'Kaldı' }} · {{ d.score }}/100
+        </span>
+      }
+    </div>
+
+    <div class="answers">
+      @for (ans of d.answers; track ans.questionId; let i = $index) {
+        <div class="ans-card">
+          <div class="ans-head">
+            <span class="q-num">{{ i + 1 }}</span>
+            <p class="q-text">{{ ans.questionText }}</p>
+          </div>
+
+          @if (ans.type === 'MultipleChoice') {
+            <!-- Öğrencinin seçimi + doğru şık -->
+            <div class="mc-options">
+              @for (opt of ans.options; track opt.id) {
+                <div class="mc-opt"
+                     [class.correct]="opt.isCorrect"
+                     [class.chosen]="ans.selectedOptionId === opt.id">
+                  <mat-icon>
+                    {{ opt.isCorrect ? 'check_circle' : (ans.selectedOptionId === opt.id ? 'cancel' : 'radio_button_unchecked') }}
+                  </mat-icon>
+                  <span>{{ opt.text }}</span>
+                  @if (ans.selectedOptionId === opt.id) { <span class="tag">öğrencinin seçimi</span> }
+                </div>
+              }
+            </div>
+            <p class="auto-credit">Otomatik puan: <strong>{{ ans.creditPercent ?? 0 }}/100</strong></p>
+          } @else {
+            <!-- Açık uçlu: öğrenci cevabı + kredi girişi -->
+            <div class="open-answer-box">
+              @if (ans.textAnswer) { {{ ans.textAnswer }} } @else { <em class="muted">(boş bırakıldı)</em> }
+            </div>
+            <div class="credit-input">
+              <label>Puan (0-100):</label>
+              <input #ci type="number" min="0" max="100" class="custom-input sm"
+                     [value]="creditFor(ans.questionId)"
+                     (change)="onCreditChange(ans.questionId, ci)" />
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (d.hasOpenEnded) {
+      <div class="grade-footer">
+        <div class="preview">
+          Nihai puan (önizleme): <strong>{{ previewScore() }}/100</strong>
+        </div>
+        <div class="pass-toggle">
+          <span>Sonuç:</span>
+          <button type="button" class="pf-btn" [class.on]="passed()" (click)="passed.set(true)">
+            <mat-icon>check</mat-icon> Geçti
+          </button>
+          <button type="button" class="pf-btn fail" [class.on]="!passed()" (click)="passed.set(false)">
+            <mat-icon>close</mat-icon> Kaldı
+          </button>
+        </div>
+        <button class="custom-btn-primary" (click)="saveEvaluation()" [disabled]="saving()">
+          <mat-icon>save</mat-icon> {{ saving() ? 'Kaydediliyor...' : 'Değerlendirmeyi Kaydet' }}
+        </button>
+      </div>
+    } @else {
+      <p class="mc-only-note">
+        <mat-icon>info</mat-icon>
+        Bu sınav yalnızca çoktan seçmeli sorulardan oluşuyor; otomatik puanlandı, elle değerlendirme gerekmez.
+      </p>
+    }
+  }
+}

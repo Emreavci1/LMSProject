@@ -23,6 +23,12 @@ export interface Lesson {
   order: number;
 }
 
+// PUT /api/courses/{courseId}/lessons/{lessonId} isteği (UpdateLessonDto).
+// Şimdilik yalnızca başlık düzenlenir (hızlı başlık değiştirme).
+export interface UpdateLesson {
+  title: string;
+}
+
 // POST /api/courses/{courseId}/lessons isteği (CreateLessonDto)
 export interface CreateLesson {
   section: string;

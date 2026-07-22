@@ -35,4 +35,10 @@ public class ProgressController : ApiControllerBase
     [HttpGet("my")]
     public async Task<ActionResult<List<int>>> GetMyCompletions()
         => Ok(await _progressService.GetMyCompletedLessonIdsAsync(CurrentUserId));
+
+    // GET /api/progress/exams/my — kullanıcının gönderdiği sınavların id listesi
+    // (player ilerleme çubuğuna sınavları dahil etmek için)
+    [HttpGet("exams/my")]
+    public async Task<ActionResult<List<int>>> GetMySubmittedExams()
+        => Ok(await _progressService.GetMySubmittedExamIdsAsync(CurrentUserId));
 }

@@ -147,7 +147,8 @@ mat-calendar {
   .announcement-day .mat-calendar-body-cell-content {
     color: #fff;
     font-weight: 700;
-    position: relative;
+    // Not: position: relative KOYMA — Material'ın absolute'unu ezer ve
+    // top: %13 bu işaretleri normal günlerin altına kaydırır
   }
 
   // Yayın tarihi (zamanlanmış eğitim) — mavi

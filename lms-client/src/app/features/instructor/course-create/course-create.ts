@@ -104,6 +104,10 @@ export class CourseCreate {
   // Zorunlu eğitim işareti — eğitmen ve Admin işaretleyebilir (atamayı Admin yapar)
   readonly isMandatory = signal(false);
 
+  // Yayınla/Taslak sonrası kullanıcıyı kurs yönetimindeki "Sınavlar" sekmesine götür.
+  // (Sihirbazda kurs henüz yok — courseId oluşunca sınav eklemek için yönlendiririz.)
+  readonly addExamsAfter = signal(false);
+
   // Kayıt/iptal sonrası dönülecek liste: Admin → Eğitim Yönetimi, eğitmen → Eğitimlerim
   readonly coursesLink = computed(() =>
     this.auth.role() === 'Admin' ? '/admin/courses' : '/instructor/courses'
@@ -435,7 +439,7 @@ export class CourseCreate {
         next: (created) => {
           const drafts = this.draftLessons();
           if (drafts.length === 0) {
-            this.finishCreate(successMsg);
+            this.finishCreate(successMsg, created.id);
             return;
           }
 
@@ -447,7 +451,7 @@ export class CourseCreate {
               toArray()
             )
             .subscribe({
-              next: () => this.finishCreate(successMsg),
+              next: () => this.finishCreate(successMsg, created.id),
               error: () => {
                 // Kurs oluştu ama dersler eklenirken hata oldu — yine de Yönet sayfasına yönlendir
                 this.saving.set(false);
@@ -481,10 +485,15 @@ export class CourseCreate {
     };
   }
 
-  // Kurs + dersler başarıyla oluşturuldu: bildir ve role uygun listeye dön
-  private finishCreate(msg: string): void {
+  // Kurs + dersler başarıyla oluşturuldu: bildir ve yönlendir.
+  // "Sınav ekle" seçiliyse kurs yönetimindeki Sınavlar sekmesine, değilse listeye dön.
+  private finishCreate(msg: string, createdId: number): void {
     this.notification.success(msg);
-    this.router.navigate([this.coursesLink()]);
+    if (this.addExamsAfter()) {
+      this.router.navigate(['/instructor/courses', createdId], { queryParams: { tab: 'exams' } });
+    } else {
+      this.router.navigate([this.coursesLink()]);
+    }
   }
 
   // Taslak olarak kaydet: yalnızca eğitmen görür, öğrencilere yayınlanmaz

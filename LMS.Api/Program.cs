@@ -29,6 +29,8 @@ builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<ILessonRepository, LessonRepository>();
 builder.Services.AddScoped<ILessonCompletionRepository, LessonCompletionRepository>();
 builder.Services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
+builder.Services.AddScoped<IExamRepository, ExamRepository>();
+builder.Services.AddScoped<IExamAttemptRepository, ExamAttemptRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
@@ -37,6 +39,9 @@ builder.Services.AddScoped<ILessonService, LessonService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IAnnouncementService, AnnouncementService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IExamService, ExamService>();
+builder.Services.AddScoped<IExamAttemptService, ExamAttemptService>();
+builder.Services.AddScoped<IExamEvaluationService, ExamEvaluationService>();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 
 // Arka plan görevi: yayın tarihi gelen zamanlanmış kursları otomatik yayınlar
@@ -95,11 +100,14 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     // Tüm tarih/saat alanları UTC taşınır ("Z" ekli) — tarayıcı yerel saate çevirir
     options.JsonSerializerOptions.Converters.Add(new LMS.Api.UtcDateTimeConverter()));
 
-// CORS: Angular geliştirme sunucusundan (4200) gelen isteklere izin ver
+// CORS: Angular istemcisinden gelen isteklere izin ver.
+// Kapalı kurum içi sistem: ağdaki farklı makinelerden (http://192.168.x.x:4200)
+// de erişilebilsin diye origin kısıtlaması yok. Kimlik zaten JWT header'ı ile
+// taşındığından (cookie yok) AllowAnyOrigin güvenlik açığı yaratmaz.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAngularClient", policy =>
-        policy.WithOrigins("http://localhost:4200")
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -143,7 +151,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// HTTPS'e otomatik yönlendirme YOK: API, LAN'daki makinelerden düz http (5091)
+// ile erişilebilmesi için tasarlandı (bkz. api.config.ts). Yönlendirme burada
+// olsaydı istekler yalnızca localhost'ta dinleyen https://localhost:7150'ye
+// gidiyor ve güvenilmeyen dev sertifikası yüzünden tarayıcıda başarısız oluyordu.
 
 // wwwroot altındaki dosyaları sun (yüklenen ders içerikleri: /uploads/...).
 // Not: statik dosyalar token istemez — URL'i bilen erişebilir. Kapalı kurum içi

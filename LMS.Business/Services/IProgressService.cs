@@ -12,4 +12,8 @@ public interface IProgressService
 
     // Kullanıcının tamamladığı tüm derslerin id listesi
     Task<List<int>> GetMyCompletedLessonIdsAsync(int userId);
+
+    // Kullanıcının gönderdiği (tamamlanmış sayılan) tüm sınavların id listesi
+    // — player ilerleme çubuğuna sınavları dahil etmek için
+    Task<List<int>> GetMySubmittedExamIdsAsync(int userId);
 }

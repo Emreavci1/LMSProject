@@ -570,6 +570,70 @@
   }
 }
 
+// Başlık düzenleme (satır içi): kalem butonu + input
+.edit-title-btn {
+  color: #94a3b8;
+  &:hover { color: #0284c7; }
+}
+
+.title-edit-input {
+  flex: 1;
+  min-width: 200px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1e293b;
+  padding: 4px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+
+  &:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+}
+
+// Görünürlük butonu: Herkese Açık (yeşil) / Özel (kırmızı)
+.visibility-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid #bbf7d0;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+
+  &:hover:not(:disabled) { filter: brightness(0.97); }
+  &:disabled { opacity: 0.6; cursor: default; }
+
+  mat-icon { font-size: 16px; width: 16px; height: 16px; }
+
+  .toggle-hint { font-weight: 500; opacity: 0.75; }
+
+  &.private {
+    border-color: #fecaca;
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+}
+
+// Ders başlığı düzenleme input'u (satır içi)
+.lesson-title-edit {
+  width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1e293b;
+  padding: 4px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  outline: none;
+
+  &:focus { border-color: #0284c7; box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15); }
+}
+
 // Atama satırı: son tarih bilgisi
 .due-info {
   display: inline-flex;
@@ -601,4 +665,22 @@
 .unassign-btn {
   color: #94a3b8;
   &:hover { color: #b91c1c; }
+}
+
+// Öğrenci satırında sınav durumu özeti
+.exam-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+
+  mat-icon { font-size: 15px; width: 15px; height: 15px; color: #0284c7; }
+  .es-count { color: #334155; }
+  .es-pending { color: #b45309; }
+  .es-pass { color: #15803d; }
+  .es-fail { color: #b91c1c; }
+
+  > span:not(.es-count)::before { content: '· '; color: #cbd5e1; }
 }

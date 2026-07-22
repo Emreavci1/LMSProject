@@ -1,6 +1,7 @@
 using AutoMapper;
 using LMS.DTO.Courses;
 using LMS.DTO.Enrollments;
+using LMS.DTO.Exams;
 using LMS.DTO.Lessons;
 using LMS.DTO.Users;
 using LMS.DTO.Announcements;
@@ -58,5 +59,18 @@ public class MappingProfile : Profile
             .ForMember(d => d.IsGlobal, opt => opt.MapFrom(s => s.CourseId == null));
 
         CreateMap<Category, CategoryDto>();
+
+        // --- Sınav sistemi ---
+        // Liste özeti: soru sayısı sorulardan hesaplanır (şıklar yüklenmez)
+        CreateMap<Exam, ExamListItemDto>()
+            .ForMember(d => d.QuestionCount, opt => opt.MapFrom(s => s.Questions.Count));
+
+        // Tam sınav (düzenleme için) — sorular + şıklar dahil
+        CreateMap<Exam, ExamDto>();
+
+        CreateMap<Question, QuestionDto>()
+            .ForMember(d => d.Type, opt => opt.MapFrom(s => s.Type.ToString()));
+
+        CreateMap<QuestionOption, QuestionOptionDto>();
     }
 }

@@ -38,4 +38,7 @@ public class Course
 
     // Kursun dersleri (müfredat). Kurs silinince dersleri de silinir (cascade).
     public ICollection<Lesson> Lessons { get; set; } = new List<Lesson>();
+
+    // Kursun sınavları (eğitimin sonunda). Kurs silinince sınavları da silinir (cascade).
+    public ICollection<Exam> Exams { get; set; } = new List<Exam>();
 }

@@ -245,6 +245,12 @@ table {
 
 .student-count {
   font-weight: 500;
+
+  // Hiç katılımcısı olmayan (0) eğitimlerde dikkat çekmesi için kırmızı
+  &.zero {
+    color: #dc2626;
+    font-weight: 700;
+  }
 }
 
 .toggle-label {

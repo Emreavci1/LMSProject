@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { API_URL } from '../api.config';
-import { CreateLesson, Lesson } from '../models/lesson.models';
+import { CreateLesson, Lesson, UpdateLesson } from '../models/lesson.models';
 
 // Dersler bir kursa bağlıdır: /api/courses/{courseId}/lessons
 @Injectable({ providedIn: 'root' })
@@ -21,6 +21,11 @@ export class LessonService {
   // Ders ekle (yalnızca kursun sahibi Instructor veya Admin)
   create(courseId: number, dto: CreateLesson): Observable<Lesson> {
     return this.http.post<Lesson>(this.base(courseId), dto);
+  }
+
+  // Ders güncelle — şimdilik başlık (yalnızca kursun sahibi Instructor veya Admin)
+  update(courseId: number, lessonId: number, dto: UpdateLesson): Observable<Lesson> {
+    return this.http.put<Lesson>(`${this.base(courseId)}/${lessonId}`, dto);
   }
 
   // Ders sil (yalnızca kursun sahibi Instructor veya Admin)

@@ -13,21 +13,48 @@
       <div class="cover" [style.background-image]="coverCss(c.coverImageUrl)"></div>
       <div class="header-info">
         <div class="title-line">
-          <h1>{{ c.title }}</h1>
-          <span class="badge"
-            [class.published]="c.status === 'Published'"
-            [class.draft]="c.status === 'Draft'"
-            [class.scheduled]="c.status === 'Scheduled'">
-            @switch (c.status) {
-              @case ('Published') { Yayında }
-              @case ('Scheduled') { Zamanlanmış }
-              @default { Taslak }
-            }
-          </span>
-          @if (c.isMandatory) {
-            <span class="badge mandatory"><mat-icon>gavel</mat-icon> Zorunlu</span>
+          @if (editingCourseTitle()) {
+            <!-- Satır içi başlık düzenleme -->
+            <input
+              class="title-edit-input"
+              [ngModel]="courseTitleDraft()"
+              (ngModelChange)="courseTitleDraft.set($event)"
+              (keyup.enter)="saveCourseTitle()"
+              (keyup.escape)="cancelEditCourseTitle()"
+              maxlength="200"
+              placeholder="Eğitim başlığı"
+            />
+            <button mat-icon-button color="primary" (click)="saveCourseTitle()" [disabled]="savingCourse()" aria-label="Kaydet">
+              <mat-icon>check</mat-icon>
+            </button>
+            <button mat-icon-button (click)="cancelEditCourseTitle()" aria-label="İptal">
+              <mat-icon>close</mat-icon>
+            </button>
+          } @else {
+            <h1>{{ c.title }}</h1>
+            <button mat-icon-button class="edit-title-btn" (click)="startEditCourseTitle()" title="Başlığı düzenle" aria-label="Başlığı düzenle">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <span class="badge"
+              [class.published]="c.status === 'Published'"
+              [class.draft]="c.status === 'Draft'"
+              [class.scheduled]="c.status === 'Scheduled'">
+              @switch (c.status) {
+                @case ('Published') { Yayında }
+                @case ('Scheduled') { Zamanlanmış }
+                @default { Taslak }
+              }
+            </span>
           }
         </div>
+
+        <!-- Görünürlük butonu: Özel (yalnızca atananlar) ⇄ Herkese Açık. Tıklayınca değişir. -->
+        <button class="visibility-toggle" [class.private]="c.isMandatory" (click)="toggleVisibility()" [disabled]="savingCourse()"
+                title="Eğitimin görünürlüğünü değiştir">
+          <mat-icon>{{ c.isMandatory ? 'lock' : 'public' }}</mat-icon>
+          <span>{{ c.isMandatory ? 'Özel eğitim' : 'Herkese açık' }}</span>
+          <span class="toggle-hint">· değiştirmek için tıkla</span>
+        </button>
         @if (c.description) {
           <p class="course-description">{{ c.description }}</p>
         }
@@ -40,7 +67,7 @@
       </div>
     </div>
 
-    <mat-tab-group class="manage-tabs">
+    <mat-tab-group class="manage-tabs" [selectedIndex]="initialTabIndex()" (selectedTabChange)="onTabChange($event.index)">
       <!-- İÇERİK sekmesi -->
       <mat-tab label="İçerik">
         <div class="tab-content">
@@ -203,28 +230,54 @@
                     <div class="icon-box" [class.video]="lesson.contentType === 'Video'" [class.doc]="lesson.contentType === 'Document'" [class.txt]="lesson.contentType === 'Text'">
                       <mat-icon>{{ contentTypeIcon(lesson.contentType) }}</mat-icon>
                     </div>
-                    <div class="lesson-info" (click)="togglePreview(lesson.id)">
-                      <strong>{{ lesson.title }}</strong>
-                      <span>
-                        {{ lesson.section }} · {{ lesson.durationMin }} dk
-                        @if (lesson.contentType) {
-                          · {{ contentTypeLabel(lesson.contentType) }}
-                        }
-                      </span>
+                    <div class="lesson-info">
+                      @if (editingLessonId() === lesson.id) {
+                        <!-- Satır içi ders başlığı düzenleme -->
+                        <input
+                          class="lesson-title-edit"
+                          [ngModel]="lessonTitleDraft()"
+                          (ngModelChange)="lessonTitleDraft.set($event)"
+                          (keyup.enter)="saveLessonTitle(lesson)"
+                          (keyup.escape)="cancelEditLesson()"
+                          (click)="$event.stopPropagation()"
+                          maxlength="200"
+                          placeholder="Ders başlığı"
+                        />
+                      } @else {
+                        <strong (click)="togglePreview(lesson.id)">{{ lesson.title }}</strong>
+                        <span (click)="togglePreview(lesson.id)">
+                          {{ lesson.section }} · {{ lesson.durationMin }} dk
+                          @if (lesson.contentType) {
+                            · {{ contentTypeLabel(lesson.contentType) }}
+                          }
+                        </span>
+                      }
                     </div>
                     <div class="lesson-actions">
-                      <button mat-icon-button (click)="togglePreview(lesson.id)" aria-label="Önizle">
-                        <mat-icon>{{ previewLessonId() === lesson.id ? 'expand_less' : 'visibility' }}</mat-icon>
-                      </button>
-                      <button mat-icon-button [disabled]="i === 0" (click)="moveLesson(lesson.id, -1)" aria-label="Yukarı taşı">
-                        <mat-icon>arrow_upward</mat-icon>
-                      </button>
-                      <button mat-icon-button [disabled]="last" (click)="moveLesson(lesson.id, 1)" aria-label="Aşağı taşı">
-                        <mat-icon>arrow_downward</mat-icon>
-                      </button>
-                      <button mat-icon-button color="warn" (click)="removeLesson(lesson.id)" aria-label="Sil">
-                        <mat-icon>delete</mat-icon>
-                      </button>
+                      @if (editingLessonId() === lesson.id) {
+                        <button mat-icon-button color="primary" (click)="saveLessonTitle(lesson)" [disabled]="savingLesson()" aria-label="Kaydet">
+                          <mat-icon>check</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="cancelEditLesson()" aria-label="İptal">
+                          <mat-icon>close</mat-icon>
+                        </button>
+                      } @else {
+                        <button mat-icon-button (click)="startEditLesson(lesson)" aria-label="Başlığı düzenle" title="Başlığı düzenle">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="togglePreview(lesson.id)" aria-label="Önizle">
+                          <mat-icon>{{ previewLessonId() === lesson.id ? 'expand_less' : 'visibility' }}</mat-icon>
+                        </button>
+                        <button mat-icon-button [disabled]="i === 0" (click)="moveLesson(lesson.id, -1)" aria-label="Yukarı taşı">
+                          <mat-icon>arrow_upward</mat-icon>
+                        </button>
+                        <button mat-icon-button [disabled]="last" (click)="moveLesson(lesson.id, 1)" aria-label="Aşağı taşı">
+                          <mat-icon>arrow_downward</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="removeLesson(lesson.id)" aria-label="Sil">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      }
                     </div>
                   </div>
 
@@ -296,6 +349,13 @@
         </div>
       </mat-tab>
 
+      <!-- SINAVLAR sekmesi (eğitim sonu sınavları — oluştur/düzenle/sil) -->
+      <mat-tab label="Sınavlar">
+        <div class="tab-content">
+          <app-exam-editor [courseId]="c.id" />
+        </div>
+      </mat-tab>
+
       <!-- ÖĞRENCİLER sekmesi (gerçek katılımlar + ilerleme) -->
       <mat-tab label="Öğrenciler">
         <div class="tab-content">
@@ -337,6 +397,23 @@
                     } @else {
                       <span class="status-chip in-progress">Devam ediyor</span>
                     }
+                  }
+
+                  <!-- Sınav durumu özeti (kursta sınav varsa) -->
+                  @if (student.examsTotal > 0) {
+                    <span class="exam-summary" title="Sınav durumu">
+                      <mat-icon>quiz</mat-icon>
+                      <span class="es-count">{{ student.examsSubmitted }}/{{ student.examsTotal }}</span>
+                      @if (student.examsPendingEval > 0) {
+                        <span class="es-pending">{{ student.examsPendingEval }} bekliyor</span>
+                      }
+                      @if (student.examsPassed > 0) {
+                        <span class="es-pass">{{ student.examsPassed }} geçti</span>
+                      }
+                      @if (student.examsFailed > 0) {
+                        <span class="es-fail">{{ student.examsFailed }} kaldı</span>
+                      }
+                    </span>
                   }
 
                   <div class="student-progress">

@@ -15,7 +15,7 @@ import {
   AssignAttendeeDialog,
   AssignAttendeeData,
 } from '../../admin/assign-attendee-dialog/assign-attendee-dialog';
-import { Course } from '../../../core/models/course.models';
+import { Course, UpdateCourse } from '../../../core/models/course.models';
 import { CourseAttendee } from '../../../core/models/enrollment.models';
 import { CreateLesson, Lesson, LessonContentType } from '../../../core/models/lesson.models';
 import { AuthService } from '../../../core/services/auth.service';
@@ -28,6 +28,7 @@ import { avatarSrc } from '../../../core/utils/avatar.util';
 import { coverCss } from '../../../core/utils/cover.util';
 import { fileUrl, isUploadedFile } from '../../../core/utils/file-url.util';
 import { FileDropDirective } from '../../../shared/directives/file-drop.directive';
+import { ExamEditor } from '../exam-editor/exam-editor';
 
 export type ContentType = LessonContentType;
 
@@ -46,12 +47,19 @@ export type ContentType = LessonContentType;
     MatProgressBarModule,
     MatProgressSpinnerModule,
     FileDropDirective,
+    ExamEditor,
   ],
   templateUrl: './course-manage.html',
   styleUrl: './course-manage.scss',
 })
 export class CourseManage {
   readonly id = input.required<string>();
+  // Sorgu parametresi (?tab=exams) — sihirbazdan "sınav ekle" ile gelince
+  // doğrudan Sınavlar sekmesi açılır. withComponentInputBinding sayesinde bağlanır.
+  readonly tab = input<string>('');
+
+  // Sekme sırası: İçerik(0) · Sınavlar(1) · Öğrenciler(2) · Ayarlar(3)
+  readonly initialTabIndex = computed(() => (this.tab() === 'exams' ? 1 : 0));
 
   private courseService = inject(CourseService);
   private lessonService = inject(LessonService);
@@ -124,6 +132,124 @@ export class CourseManage {
     this.courseService.getAttendees(courseId).subscribe({
       next: (list) => this.attendees.set(list),
       error: () => this.attendees.set([]),
+    });
+  }
+
+  // Öğrenciler sekmesine (index 2) her geçişte katılımcıları tazele —
+  // Sınavlar sekmesinde yapılan değerlendirme sonuçları rozetlere yansısın.
+  onTabChange(index: number): void {
+    if (index === 2) this.loadAttendees(Number(this.id()));
+  }
+
+  // --- Kurs başlığı düzenleme + görünürlük (Özel / Herkese Açık) ---
+  readonly editingCourseTitle = signal(false);
+  readonly courseTitleDraft = signal('');
+  // Kurs güncelleme sürerken butonları kilitle (çift tık / eşzamanlı istek olmasın)
+  readonly savingCourse = signal(false);
+
+  startEditCourseTitle(): void {
+    const c = this.course();
+    if (!c) return;
+    this.courseTitleDraft.set(c.title);
+    this.editingCourseTitle.set(true);
+  }
+
+  cancelEditCourseTitle(): void {
+    this.editingCourseTitle.set(false);
+  }
+
+  saveCourseTitle(): void {
+    const title = this.courseTitleDraft().trim();
+    if (!title) {
+      this.notification.error('Başlık boş olamaz.');
+      return;
+    }
+    this.patchCourse({ title }, 'Başlık güncellendi.', () => this.editingCourseTitle.set(false));
+  }
+
+  // Görünürlüğü değiştir: Özel (isMandatory=true) ⇄ Herkese Açık (false)
+  toggleVisibility(): void {
+    const c = this.course();
+    if (!c || this.savingCourse()) return;
+    const next = !c.isMandatory;
+    this.patchCourse(
+      { isMandatory: next },
+      next ? 'Eğitim artık özel: yalnızca atanan katılımcılar görür.' : 'Eğitim herkese açık yapıldı.'
+    );
+  }
+
+  // Kursu güncelle: mevcut tüm alanları koru, yalnızca verilen alanları değiştir
+  // (backend PUT tüm alanları ister). publish() ile aynı desen, tek yerde.
+  private patchCourse(changes: Partial<UpdateCourse>, successMsg: string, onSuccess?: () => void): void {
+    const c = this.course();
+    if (!c) return;
+    this.savingCourse.set(true);
+    const dto: UpdateCourse = {
+      title: c.title,
+      description: c.description,
+      coverImageUrl: c.coverImageUrl,
+      category: c.category,
+      level: c.level,
+      durationHours: c.durationHours,
+      lessonCount: c.lessonCount,
+      status: c.status,
+      publishDate: c.publishDate,
+      isActive: c.isActive,
+      isMandatory: c.isMandatory,
+      ...changes,
+    };
+    this.courseService.update(c.id, dto).subscribe({
+      next: (updated) => {
+        this.course.set(updated);
+        this.savingCourse.set(false);
+        onSuccess?.();
+        this.notification.success(successMsg);
+      },
+      error: (err) => {
+        this.savingCourse.set(false);
+        this.notification.fromHttpError(err, 'Güncelleme başarısız oldu.');
+      },
+    });
+  }
+
+  // --- Ders başlığı düzenleme (satır içi) ---
+  readonly editingLessonId = signal<number | null>(null);
+  readonly lessonTitleDraft = signal('');
+  readonly savingLesson = signal(false);
+
+  startEditLesson(lesson: Lesson): void {
+    this.previewLessonId.set(null); // önizleme açıksa kapat, düzenlemeyle çakışmasın
+    this.editingLessonId.set(lesson.id);
+    this.lessonTitleDraft.set(lesson.title);
+  }
+
+  cancelEditLesson(): void {
+    this.editingLessonId.set(null);
+  }
+
+  saveLessonTitle(lesson: Lesson): void {
+    const title = this.lessonTitleDraft().trim();
+    if (!title) {
+      this.notification.error('Ders başlığı boş olamaz.');
+      return;
+    }
+    // Değişiklik yoksa boşuna istek atma
+    if (title === lesson.title) {
+      this.editingLessonId.set(null);
+      return;
+    }
+    this.savingLesson.set(true);
+    this.lessonService.update(Number(this.id()), lesson.id, { title }).subscribe({
+      next: (updated) => {
+        this.lessons.update((list) => list.map((l) => (l.id === updated.id ? updated : l)));
+        this.editingLessonId.set(null);
+        this.savingLesson.set(false);
+        this.notification.success('Ders başlığı güncellendi.');
+      },
+      error: (err) => {
+        this.savingLesson.set(false);
+        this.notification.fromHttpError(err, 'Ders güncellenemedi.');
+      },
     });
   }
 

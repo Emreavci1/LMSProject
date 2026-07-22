@@ -20,4 +20,11 @@ public class CourseAttendeeDto
 
     // Gecikmiş mi: ilerleme < %100 VE son tarih geçmiş (anlık hesaplanır, saklanmaz)
     public bool IsOverdue { get; set; }
+
+    // --- Sınav durumu özeti (kursta sınav varsa) ---
+    public int ExamsTotal { get; set; }       // kurstaki sınav sayısı
+    public int ExamsSubmitted { get; set; }   // öğrencinin gönderdiği (farklı) sınav sayısı
+    public int ExamsPendingEval { get; set; } // açık uçlu, gönderilmiş ama değerlendirilmemiş
+    public int ExamsPassed { get; set; }      // değerlendirilip geçilen
+    public int ExamsFailed { get; set; }      // değerlendirilip kalınan
 }

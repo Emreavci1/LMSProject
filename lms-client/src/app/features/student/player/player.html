@@ -246,6 +246,34 @@
         @if (lessons().length === 0) {
           <p class="muted">Bu kursa henüz ders eklenmemiş.</p>
         }
+
+        <!-- Sınavlar: eğitim sonunda; tüm dersler tamamlanınca açılır -->
+        @if (exams().length > 0) {
+          <div class="section exams-section">
+            <div class="section-title">
+              Sınavlar
+              @if (!allLessonsDone()) {
+                <mat-icon class="section-lock" title="Tüm dersler tamamlanınca açılır">lock</mat-icon>
+              }
+            </div>
+            @for (exam of exams(); track exam.id) {
+              <div
+                class="lesson-item exam-item"
+                [class.locked]="!allLessonsDone()"
+                [class.active]="examSubmitted(exam.id)"
+                (click)="openExam(exam)"
+                [title]="allLessonsDone() ? 'Sınava gir' : 'Tüm dersleri tamamlayınca açılır'"
+              >
+                <mat-icon class="done-icon" [class.done]="examSubmitted(exam.id)">
+                  {{ examSubmitted(exam.id) ? 'check_circle' : (allLessonsDone() ? 'quiz' : 'lock') }}
+                </mat-icon>
+                <mat-icon class="type-icon">quiz</mat-icon>
+                <span class="lesson-title">{{ exam.title }}</span>
+                <span class="duration">{{ exam.questionCount }} soru</span>
+              </div>
+            }
+          </div>
+        }
       </aside>
     </div>
 

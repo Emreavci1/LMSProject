@@ -69,7 +69,7 @@
             <textarea id="course-desc" formControlName="description" rows="6" maxlength="2000" placeholder="Eğitimin içeriği, hedef kitlesi ve kazanımları hakkında detaylı bilgi verin..." class="custom-textarea"></textarea>
           </div>
 
-          <!-- Zorunlu eğitim: eğitmen ve Admin işaretleyebilir; katılımcı atamasını Admin yapar -->
+          <!-- Özel eğitim: eğitmen ve Admin işaretleyebilir; katılımcı atamasını Admin yapar -->
           <div class="form-group mandatory-toggle">
             <label class="mandatory-label">
               <input
@@ -78,8 +78,8 @@
                 (change)="isMandatory.set($any($event.target).checked)"
               />
               <span>
-                <strong>Zorunlu eğitim</strong>
-                <small>Katalogda listelenmez; katılımcılar bu eğitime yalnızca Admin atamasıyla katılır ve kendi isteğiyle ayrılamaz.</small>
+                <strong>Özel eğitim</strong>
+                <small>Katalogda (Keşfet) herkese görünmez; bu eğitime yalnızca Admin'in atadığı katılımcılar erişebilir ve kendi isteğiyle ayrılamaz.</small>
               </span>
             </label>
           </div>
@@ -522,6 +522,19 @@
             <span class="schedule-hint"><mat-icon>event_available</mat-icon> Eğitim {{ publishDate() }} {{ publishTime() }} itibarıyla otomatik yayınlanacak.</span>
           }
         </div>
+
+        <!-- Opsiyonel: kayıttan sonra sınav ekleme sayfasına yönlendir -->
+        <label class="exam-after-check">
+          <input
+            type="checkbox"
+            [checked]="addExamsAfter()"
+            (change)="addExamsAfter.set($any($event.target).checked)"
+          />
+          <span>
+            <strong>Kaydettikten sonra sınav ekle</strong>
+            <small>Eğitim kaydedilince kurs yönetimindeki "Sınavlar" sekmesine yönlendirilirsin. Sınavlar eğitimin sonunda yer alır ve dersler bitince açılır.</small>
+          </span>
+        </label>
       </div>
     </div>
 

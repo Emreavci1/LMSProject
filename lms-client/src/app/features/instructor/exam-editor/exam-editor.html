@@ -1,0 +1,187 @@
+@if (view() === 'results') {
+  <!-- ============ SONUÇLAR / DEĞERLENDİRME ============ -->
+  @if (resultsExam(); as re) {
+    <app-exam-results
+      [courseId]="courseId()"
+      [examId]="re.id"
+      [examTitle]="re.title"
+      (close)="closeResults()"
+    />
+  }
+} @else if (view() === 'list') {
+  <!-- ============ SINAV LİSTESİ ============ -->
+  <div class="add-lesson-header">
+    <h3>Sınavlar</h3>
+    <button class="custom-btn-primary" (click)="startCreate()">
+      <mat-icon>add</mat-icon> Yeni Sınav
+    </button>
+  </div>
+
+  <p class="exam-hint">
+    <mat-icon>info</mat-icon>
+    Sınavlar eğitimin sonunda yer alır. Öğrenci, kursun tüm derslerini tamamlayınca sınava girebilir.
+  </p>
+
+  @if (loading()) {
+    <div class="center-box"><mat-spinner diameter="32" /></div>
+  } @else if (exams().length === 0) {
+    <div class="empty-state-box">
+      <mat-icon>quiz</mat-icon>
+      <p>Henüz sınav eklenmemiş. Yukarıdaki butonla ilk sınavı oluşturun.</p>
+    </div>
+  } @else {
+    <div class="exam-list">
+      @for (exam of exams(); track exam.id) {
+        <div class="exam-row">
+          <div class="icon-box"><mat-icon>quiz</mat-icon></div>
+          <div class="exam-info">
+            <strong>{{ exam.title }}</strong>
+            <span>
+              {{ exam.questionCount }} soru
+              · {{ exam.timeLimitMin ? exam.timeLimitMin + ' dk' : 'Süresiz' }}
+              · {{ exam.maxAttempts }} deneme hakkı
+            </span>
+          </div>
+          <div class="exam-actions">
+            <button mat-icon-button (click)="openResults(exam)" title="Sonuçlar / Değerlendirme" aria-label="Sonuçlar">
+              <mat-icon>assessment</mat-icon>
+            </button>
+            <button mat-icon-button (click)="startEdit(exam)" title="Düzenle" aria-label="Düzenle">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteExam(exam)" title="Sil" aria-label="Sil">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+} @else {
+  <!-- ============ SINAV OLUŞTUR / DÜZENLE FORMU ============ -->
+  @if (loadingDetail()) {
+    <div class="center-box"><mat-spinner diameter="32" /></div>
+  } @else {
+    <div class="exam-form" [class.busy]="saving()">
+      <div class="form-header">
+        <h3>{{ editingId() == null ? 'Yeni Sınav' : 'Sınavı Düzenle' }}</h3>
+      </div>
+
+      <!-- Üst alanlar -->
+      <div class="form-group">
+        <label>Sınav Başlığı</label>
+        <input class="custom-input" [ngModel]="draft().title" (ngModelChange)="setTitle($event)"
+               maxlength="200" placeholder="Örn: Final Sınavı" />
+      </div>
+
+      <div class="form-group">
+        <label>Açıklama / Yönerge <span class="optional-label">(Opsiyonel)</span></label>
+        <textarea class="custom-textarea" [ngModel]="draft().description" (ngModelChange)="setDescription($event)"
+                  rows="2" maxlength="2000" placeholder="Sınav hakkında kısa açıklama veya yönerge..."></textarea>
+      </div>
+
+      <div class="form-row">
+        <!-- Süre sınırı: opsiyonel. Kapalıysa öğrenci bölerek çözebilir. -->
+        <div class="form-group flex-1">
+          <label>Süre Sınırı</label>
+          <div class="timelimit-box">
+            <label class="check-inline">
+              <input type="checkbox" [ngModel]="draft().hasTimeLimit"
+                     (ngModelChange)="setHasTimeLimit($event)" />
+              Süre sınırı olsun
+            </label>
+            @if (draft().hasTimeLimit) {
+              <div class="minutes-field">
+                <input type="number" class="custom-input" min="1" max="600"
+                       [ngModel]="draft().timeLimitMin" (ngModelChange)="setTimeLimit(+$event)" />
+                <span>dakika</span>
+              </div>
+            } @else {
+              <span class="muted-inline">Süresiz — öğrenci bölerek çözüp sonra gönderebilir.</span>
+            }
+          </div>
+        </div>
+
+        <!-- Deneme hakkı -->
+        <div class="form-group flex-1">
+          <label>Deneme Hakkı</label>
+          <input type="number" class="custom-input" min="1" max="20"
+                 [ngModel]="draft().maxAttempts" (ngModelChange)="setMaxAttempts(+$event)" />
+        </div>
+      </div>
+
+      <!-- Sorular -->
+      <div class="questions-header">
+        <h4>Sorular ({{ draft().questions.length }})</h4>
+      </div>
+
+      @for (q of draft().questions; track qi; let qi = $index) {
+        <div class="question-card">
+          <div class="question-top">
+            <span class="q-number">Soru {{ qi + 1 }}</span>
+            <div class="select-wrapper q-type">
+              <select class="custom-select" [ngModel]="q.type"
+                      (ngModelChange)="setQuestionType(qi, $event)">
+                <option value="MultipleChoice">Çoktan Seçmeli</option>
+                <option value="OpenEnded">Açık Uçlu</option>
+              </select>
+              <mat-icon class="select-icon">expand_more</mat-icon>
+            </div>
+            <button mat-icon-button color="warn" class="q-remove"
+                    (click)="removeQuestion(qi)" title="Soruyu sil" aria-label="Soruyu sil">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <div class="form-group">
+            <textarea class="custom-textarea" [ngModel]="q.text"
+                      (ngModelChange)="setQuestionText(qi, $event)" rows="2" maxlength="2000"
+                      placeholder="Soru metni..."></textarea>
+          </div>
+
+          @if (q.type === 'MultipleChoice') {
+            <!-- Şıklar: soldaki daire ile doğru cevabı işaretle -->
+            <div class="options-list">
+              @for (opt of q.options; track oi; let oi = $index) {
+                <div class="option-row" [class.correct]="opt.isCorrect">
+                  <label class="correct-radio" title="Doğru cevap">
+                    <input type="radio" [name]="'correct-' + qi" [checked]="opt.isCorrect"
+                           (change)="setCorrect(qi, oi)" />
+                    <span class="radio-dot"></span>
+                  </label>
+                  <input class="custom-input option-input" [ngModel]="opt.text"
+                         (ngModelChange)="setOptionText(qi, oi, $event)" maxlength="1000"
+                         [placeholder]="'Şık ' + (oi + 1)" />
+                  <button mat-icon-button class="opt-remove" [disabled]="q.options.length <= 2"
+                          (click)="removeOption(qi, oi)" title="Şıkkı sil" aria-label="Şıkkı sil">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+            <button class="add-option-btn" (click)="addOption(qi)">
+              <mat-icon>add</mat-icon> Şık Ekle
+            </button>
+          } @else {
+            <p class="open-ended-hint">
+              <mat-icon>edit_note</mat-icon>
+              Açık uçlu soru — öğrenci yazarak cevaplar, eğitmen/admin sonradan puanlar.
+            </p>
+          }
+        </div>
+      }
+
+      <button class="add-question-btn" (click)="addQuestion()">
+        <mat-icon>add</mat-icon> Soru Ekle
+      </button>
+
+      <!-- Alt aksiyonlar -->
+      <div class="form-actions">
+        <button mat-stroked-button (click)="cancel()" [disabled]="saving()">İptal</button>
+        <button class="custom-btn-primary" (click)="save()" [disabled]="saving()">
+          <mat-icon>save</mat-icon> {{ saving() ? 'Kaydediliyor...' : 'Kaydet' }}
+        </button>
+      </div>
+    </div>
+  }
+}

@@ -39,7 +39,7 @@
         <option value="active">Aktif</option>
         <option value="passive">Pasif</option>
         <option value="public">Herkese Açık</option>
-        <option value="mandatory">Zorunlu</option>
+        <option value="mandatory">Özel Eğitim</option>
       </select>
     </div>
   </div>
@@ -86,13 +86,14 @@
               </td>
               <td class="text-center">
                 @if (course.isMandatory) {
-                  <span class="mandatory-chip">Zorunlu</span>
+                  <span class="mandatory-chip">Özel</span>
                 } @else {
                   <span class="public-chip">Herkese Açık</span>
                 }
               </td>
               <td class="text-center">
-                <span class="student-count">{{ course.studentCount }}</span>
+                <!-- Hiç katılımcı yoksa (0) sayı kırmızı vurgulanır -->
+                <span class="student-count" [class.zero]="course.studentCount === 0">{{ course.studentCount }}</span>
               </td>
               <td class="text-center">
                 <mat-slide-toggle
@@ -140,11 +141,12 @@
         <div class="card-bottom">
           <span class="category-badge">{{ course.category || 'Genel' }}</span>
           @if (course.isMandatory) {
-            <span class="mandatory-chip">Zorunlu</span>
+            <span class="mandatory-chip">Özel</span>
           } @else {
             <span class="public-chip">Herkese Açık</span>
           }
-          <span class="course-meta"><mat-icon>group</mat-icon> {{ course.studentCount }} öğrenci</span>
+          <span class="course-meta"><mat-icon>group</mat-icon>
+            <span class="student-count" [class.zero]="course.studentCount === 0">{{ course.studentCount }}</span> öğrenci</span>
         </div>
       </div>
     }
